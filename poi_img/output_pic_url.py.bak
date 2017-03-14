@@ -1,0 +1,87 @@
+import json
+import re
+
+import db_localhost
+import redis
+
+from . import database
+
+
+def get_task():
+    # attraction, shopping
+    attr_sql = 'select id,url from chat_attraction where image_list=""'
+    shop_sql = 'select id,url from chat_shopping where image_list=""'
+    sql = attr_sql
+    error_list = []
+    for line in database.QueryBySQL(sql):
+        l_json = json.loads(line['url'])
+        if 'daodao' in l_json:
+            url = l_json['daodao']
+            if 'Attraction_Review' in url:
+                yield url
+            else:
+                error_list.append(line['id'])
+        else:
+            error_list.append(line['id'])
+    print(len(error_list))
+    # print error_list
+
+
+def get_task_rest():
+    # restaurant
+    sql = 'select id,res_url from chat_restaurant where image_list=""'
+    error_list = []
+    for line in database.QueryBySQL(sql):
+        url = line['res_url']
+        if 'Restaurant_Review' in url:
+            yield url
+        else:
+            error_list.append(line['id'])
+    print(len(error_list))
+    # print error_list
+
+
+def get_img_url(source_id_set, s_type):
+    if s_type == 'attr':
+        sql = 'select id,imgurl from tp_attr_basic_0801 where id in ({0})'.format(
+            ','.join(["\"" + x + "\"" for x in source_id_set]))
+    elif s_type == 'shop':
+        sql = 'select id,imgurl from tp_shop_basic_0801 where id in ({0})'.format(
+            ','.join(["\"" + x + "\"" for x in source_id_set]))
+    elif s_type == 'rest':
+        sql = 'select id,image_urls from tp_rest_basic_0801 where id in ({0})'.format(
+            ','.join(["\"" + x + "\"" for x in source_id_set]))
+    else:
+        raise Exception("Error Type")
+    for line in db_localhost.QueryBySQL(sql):
+        if s_type in ['attr', 'shop']:
+            for url in line['imgurl'].split('|'):
+                if url:
+                    yield url, line['id']
+        elif s_type == 'rest':
+            for url in line['image_urls'].split('|'):
+                if url:
+                    yield url, line['id']
+
+
+if __name__ == '__main__':
+    redis_dict = redis.Redis(host='10.10.180.145', port=6379, db=10)
+    pattern = re.compile('-d(\d+)')
+    count = 0
+    source_id_set = set()
+    for task in get_task():
+        source_id = pattern.findall(task)[-1]
+        source_id_set.add(source_id)
+        count += 1
+    img_url_list = []
+    for img_url in get_img_url(source_id_set, 'attr'):
+        img_url_list.append(img_url)
+    print(count)
+    print(len(img_url_list))
+    # add redis
+    for url, mid in img_url_list:
+        redis_dict.set(url, mid)
+        # print img_url_list
+        # f = open('/tmp/attr_url_list', 'wb')
+        # for url, mid in set(img_url_list):
+        #     f.write(url + '\n')
