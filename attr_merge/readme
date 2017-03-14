@@ -1,0 +1,2 @@
+# get_middle_table 用于生成中间表(即所有字段均为json的表)
+# output_data 将中间表的数据到处为tmp表的数据

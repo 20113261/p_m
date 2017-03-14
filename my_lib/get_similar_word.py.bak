@@ -1,0 +1,44 @@
+# coding=utf-8
+import re
+def get_similar_word(source):
+    similar_words = {
+        'é': 'e',
+        'ñ': 'n',
+        '\'': '',
+        ' ': '',
+        '­': '',
+        '’': '',
+        '\"': '',
+        '&': '',
+        ')': '',
+        '(': '',
+        ',': '',
+        '/': '',
+        '.': '',
+        ':': '',
+        'É': '',
+        'ß': 'B',
+        'à': 'a',
+        'â': 'a',
+        'ä': 'a',
+        'ç': 'c',
+        'è': 'e',
+        'ë': 'e',
+        'ê': 'e',
+        'î': 'i',
+        'ô': 'o',
+        'ö': 'o',
+        'ü': 'u',
+        '+': '',
+        '-': ''
+    }
+    for k in similar_words:
+        source = source.replace(k, similar_words[k])
+    useless_words = re.findall('\(([\s\S]+?)\)', source)
+    for each in useless_words:
+        source = source.replace('(' + each + ')', '')
+    return source.lower().strip()
+
+if __name__ == '__main__':
+    case='Voi Designer Outlet'
+    print get_similar_word(case)
