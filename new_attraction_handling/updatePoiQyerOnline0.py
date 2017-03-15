@@ -12,6 +12,31 @@ test_db_passwd = 'miaoji1109'
 db_name = 'attr_merge'
 table_name = 'chat_attraction'
 
+__online_sql_dict = {
+    'host': '10.10.222.209',
+    'user': 'reader',
+    'password': 'miaoji1109',
+    'charset': 'utf8',
+    'db': 'base_data'
+}
+
+'''
+2. 检查open字段。如为空，则统一填为：<*><*><00:00-23:55><SURE>
+3.检查address字段。可为空，但内容不能为0
+4.online字段仍保持为0，不做更改
+'''
+
+
+def get_online_0_attr(city_id):
+    _set = set()
+    conn = pymysql.connect(**__online_sql_dict)
+    with conn as cursor:
+        cursor.execute('select id from chat_attraction where city_id=%s and online!=1', (city_id,))
+        for line in cursor.fetchall():
+            _set.add(line[0])
+    conn.close()
+    return _set
+
 
 def insert_db(args):
     conn = pymysql.connect(host='localhost', user='hourong', charset='utf8', passwd='hourong', db='data_prepare')
@@ -84,6 +109,8 @@ def getCandOnlineData(update_cid_file):
         daodao_count = 0
         daodao_succeed_count = 0
 
+        available_poi = get_online_0_attr(line)
+
         for data in datas:
             if len(data) < column_count:
                 print('table column count is ' + str(len(data)) + '. it should not less than ' + str(column_count))
@@ -101,13 +128,15 @@ def getCandOnlineData(update_cid_file):
                 else:
                     word_list.append('')
 
-            # 只选择穷游
-            if not 'qyer' == word_list[source_idx]:
-                continue
-
             # daodao 统计部分
             if 'daodao' in word_list[source_idx]:
                 daodao_count += 1
+
+            # 数据筛选部分
+
+            # id check
+            if word_list[0] not in available_poi:
+                continue
 
             # 数据检查部分
 
@@ -122,25 +151,25 @@ def getCandOnlineData(update_cid_file):
                 continue
 
             # norm_tag
-            if word_list[norm_tag_idx].lower() in ('', 'null', '0'):
-                norm_tag_null_fail_count += 1
-                continue
+            # if word_list[norm_tag_idx].lower() in ('', 'null', '0'):
+            #     norm_tag_null_fail_count += 1
+            #     continue
 
             # map_info
-            try:
-                lat = float(word_list[map_info_idx].strip().split(',')[0])
-                lgt = float(word_list[map_info_idx].strip().split(',')[1])
-            except:
-                map_fail_count += 1
-                continue
+            # try:
+            #     lat = float(word_list[map_info_idx].strip().split(',')[0])
+            #     lgt = float(word_list[map_info_idx].strip().split(',')[1])
+            # except:
+            #     map_fail_count += 1
+            #     continue
 
             # first_img
-            if word_list[first_img_idx].lower() in ('', 'null', '0'):
-                if 'daodao' not in word_list[source_idx]:
-                    first_img_null_fail_count += 1
-                    continue
-            else:
-                img_succeed_count += 1
+            # if word_list[first_img_idx].lower() in ('', 'null', '0'):
+            #     if 'daodao' not in word_list[source_idx]:
+            #         first_img_null_fail_count += 1
+            #         continue
+            # else:
+            #     img_succeed_count += 1
 
             if 'daodao' in word_list[source_idx]:
                 daodao_succeed_count += 1
