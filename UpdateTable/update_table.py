@@ -2,13 +2,6 @@ import pandas
 import pymysql
 
 
-def make_value(x):
-    val = str(x)
-    if val.replace('.', '').isdigit() and '.0' in val:
-        val = str(int(float(val)))
-    return val
-
-
 def get_columns():
     __name = set()
     conn = pymysql.connect(**SQL_DICT)
@@ -56,17 +49,18 @@ def update_table(table, table_name, search_keys=None, ignore_cols=None, debug=Fa
     data_total = []
     for i in range(len(table)):
         line = table.irow(i)
-        data = [make_value(line[k]) for k in (keys + search_keys)]
+        data = [line[k] for k in (keys + search_keys)]
         data_total.append(data)
 
-    conn = pymysql.connect(**SQL_DICT)
-    cursor = conn.cursor()
-    print('#' * 100)
-    print('数据，共', len(data_total))
-    print('更新，共', cursor.executemany(sql, data_total))
-    print('#' * 100)
-    conn.close()
-    if debug:
+    if not debug:
+        conn = pymysql.connect(**SQL_DICT)
+        cursor = conn.cursor()
+        print('#' * 100)
+        print('数据，共', len(data_total))
+        print('更新，共', cursor.executemany(sql, data_total))
+        print('#' * 100)
+        conn.close()
+    else:
         print(data_total)
 
 
@@ -83,13 +77,23 @@ if __name__ == '__main__':
         'charset': 'utf8',
         'db': 'devdb'
     }
-
-    table = pandas.read_excel(
-        '/Users/hourong/Downloads/city表修改.xlsx',
-        sheetname='Sheet 1 - 时区',
-        header=1
-    )
+    xlsx_path = '/Users/hourong/Downloads/city表修改.xlsx'
+    sheetname = 'Sheet 1 - 时区'
+    header = 1
     table_name = 'city'
     search_keys = ['id']
     ignore_cols = ['grade']
-    update_table(table, table_name, search_keys=search_keys, ignore_cols=ignore_cols)
+
+    table = pandas.read_excel(
+        xlsx_path,
+        sheetname=sheetname,
+        header=header
+    )
+    converters = {key: str for key in table.keys()}
+    table = pandas.read_excel(
+        xlsx_path,
+        sheetname=sheetname,
+        header=header,
+        converters=converters
+    )
+    update_table(table, table_name, search_keys=search_keys, ignore_cols=ignore_cols, debug=True)
