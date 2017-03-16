@@ -150,3 +150,20 @@ python3 updatPoi.py cid_file
 ## 运行方法
 - 修改 info_count/info_count.py 中的数据库，数据表信息，以及需要导出报告结果的文件类型和文件位置
 - `python3 info_count.py`
+
+
+# 通用数据更新脚本
+
+## 修改相关配置
+
+- SQL_DICT 中填写数据库连接的相关信息，host，user，password，charset，table 等相关信息
+- table 为 pandas 的一个 DataFrame 其中配置文件名，sheet 名字，以及每个 sheet 中第几行为数据表表头
+- table_name 数据表的名称
+- search_keys 用于生成 where 语句中的约束条件，支持多个
+- ignore_cols 忽略的列，在表格中会出现部分隐藏的列，对于这种隐藏的列程序是无法直接判断的，需要手动添加隐藏的是哪一列
+
+## 运行脚本
+
+```bash
+python3 update_table.py
+```
