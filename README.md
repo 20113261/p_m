@@ -167,3 +167,37 @@ python3 updatPoi.py cid_file
 ```bash
 python3 update_table.py
 ```
+
+# 新增城市脚本
+
+## 环境 
+
+- python3
+- pandas
+- dataset
+
+使用 python3.5 环境开发， pandas 作为文件输入部分，dataset 作为插入数据库部分
+
+## 配置
+```python
+    # 配置为 city spiderdb 或 test 或 online 的数据库
+    SQL_DICT = {
+        'host': '10.10.154.38',
+        'user': 'writer',
+        'password': 'miaoji1109',
+        'charset': 'utf8',
+        'db': 'devdb'
+    }
+    # excel 文件位置
+    xlsx_path = '/Users/hourong/Downloads/2_new_city.xlsx'
+    # 是否反转经纬度
+    need_change_map_info = False
+    # 更新数据库地址
+    target_db = 'mysql://hourong:hourong@10.10.180.145/data_prepare?charset=utf8'
+    # 更新数据表地址
+    target_table = 'city'
+```
+## 启动方法
+```bash
+python3 add_city.py
+```
