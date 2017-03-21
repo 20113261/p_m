@@ -75,14 +75,14 @@ if __name__ == '__main__':
         'user': 'writer',
         'password': 'miaoji1109',
         'charset': 'utf8',
-        'db': 'devdb'
+        'db': 'onlinedb'
     }
-    xlsx_path = '/Users/hourong/Downloads/city表修改.xlsx'
-    sheetname = 'Sheet 1 - 时区'
+    xlsx_path = '/Users/hourong/Downloads/城市中文及英文名.xlsx'
+    sheetname = 'Sheet 1 - Table 1'
     header = 1
     table_name = 'city'
     search_keys = ['id']
-    ignore_cols = ['grade']
+    ignore_cols = []
 
     table = pandas.read_excel(
         xlsx_path,
@@ -95,5 +95,6 @@ if __name__ == '__main__':
         sheetname=sheetname,
         header=header,
         converters=converters
-    )
-    update_table(table, table_name, search_keys=search_keys, ignore_cols=ignore_cols, debug=True)
+    ).fillna('null')
+
+    update_table(table, table_name, search_keys=search_keys, ignore_cols=ignore_cols, debug=False)
