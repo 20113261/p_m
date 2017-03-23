@@ -201,3 +201,12 @@ python3 update_table.py
 ```bash
 python3 add_city.py
 ```
+
+# 人脸识别后的处理方法
+
+## 首先运行程序
+
+```bash
+python3 poi_img/update_img_stats.py
+```
+## 而后重新更新 attr img，first_img 字段
