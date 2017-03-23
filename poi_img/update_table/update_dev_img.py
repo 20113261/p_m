@@ -79,7 +79,7 @@ def update_db(args, s_type):
 if __name__ == '__main__':
     # -------- Variables ----------
 
-    S_TYPE = 'shop'
+    S_TYPE = 'attr'
     ATTRACTION_TABLE = 'chat_attraction'
     RESTAURANT_TABLE = 'chat_restaurant'
     SHOPPING_TABLE = 'chat_shopping'
