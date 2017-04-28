@@ -2,6 +2,13 @@ import pandas
 import pymysql
 import dataset
 
+SQL_DICT = {
+    'host': '10.10.154.38',
+    'user': 'writer',
+    'password': 'miaoji1109',
+    'charset': 'utf8',
+    'db': 'onlinedb'
+}
 ALL_NULL = ['NULL', 'Null', 'null', None, '', 'None', ' ']
 
 
@@ -75,16 +82,10 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
 
 if __name__ == '__main__':
-    SQL_DICT = {
-        'host': '10.10.154.38',
-        'user': 'writer',
-        'password': 'miaoji1109',
-        'charset': 'utf8',
-        'db': 'devdb'
-    }
-    xlsx_path = '/Users/hourong/Downloads/2_new_city.xlsx'
+    xlsx_path = '/Users/hourong/Downloads/0424.xlsx'
     need_change_map_info = False
-    target_db = 'mysql://hourong:hourong@10.10.180.145/data_prepare?charset=utf8'
+    debug = False
+    target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT)
     target_table = 'city'
 
     all_city_id = []
@@ -134,7 +135,10 @@ if __name__ == '__main__':
             if 'visit_num' not in data.keys():
                 data['visit_num'] = '0'
 
-            data_table.insert(data)
+            if debug:
+                print(data)
+            else:
+                data_table.insert(data)
             all_city_id.append(data['id'])
 
     print(all_city_id)

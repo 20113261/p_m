@@ -4,9 +4,9 @@ from fix_daodao_time import fix_daodao_open_time, get_open_time
 from multi_days_check import multi_days_handling
 
 # attr
-# OPEN = 'open'
-# OPEN_DESC = 'open_desc'
-# TASK_TABLE = 'data_prepare.attraction_tmp'
+OPEN = 'open'
+OPEN_DESC = 'open_desc'
+TASK_TABLE = 'data_prepare.attraction_tmp'
 
 # shop
 # OPEN = 'open'
@@ -15,9 +15,9 @@ from multi_days_check import multi_days_handling
 
 
 # rest
-OPEN = 'open_time'
-OPEN_DESC = 'open_time_desc'
-TASK_TABLE = 'data_prepare.restaurant_tmp'
+# OPEN = 'open_time'
+# OPEN_DESC = 'open_time_desc'
+# TASK_TABLE = 'data_prepare.restaurant_tmp'
 
 
 def get_open_time(open_desc):

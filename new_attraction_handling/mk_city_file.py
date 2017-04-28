@@ -38,7 +38,7 @@ def get_ok_cid_set():
 
 
 if __name__ == '__main__':
-    f = open('cid_file_0303', 'w')
+    f = open('cid_file_0417', 'w')
     cid_dict = get_cid_dict()
     # print(len(cid_dict))
     ok_cid = get_ok_cid_set()

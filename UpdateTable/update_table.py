@@ -1,5 +1,6 @@
 import pandas
 import pymysql
+import dataset
 
 
 def get_columns():
@@ -64,6 +65,26 @@ def update_table(table, table_name, search_keys=None, ignore_cols=None, debug=Fa
         print(data_total)
 
 
+def upsert_table(table, table_name, search_keys=None, ignore_cols=None, debug=False):
+    db = dataset.connect('mysql+pymysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT))
+    dataset_table = db[table_name]
+    for i in range(len(table)):
+        row = dict(table.irow(i))
+        for j in ignore_cols:
+            try:
+                row.pop(j)
+            except Exception:
+                continue
+
+        for k in row:
+            row[k] = row[k].strip()
+
+        if debug:
+            print(row)
+        else:
+            print(dataset_table.upsert(row, search_keys))
+
+
 if __name__ == '__main__':
     # Sheet 1 - 修改visit_num
     # Sheet 1 - 删除城市_从库里直接删除
@@ -75,13 +96,13 @@ if __name__ == '__main__':
         'user': 'writer',
         'password': 'miaoji1109',
         'charset': 'utf8',
-        'db': 'onlinedb'
+        'db': 'devdb'
     }
-    xlsx_path = '/Users/hourong/Downloads/城市中文及英文名.xlsx'
-    sheetname = 'Sheet 1 - Table 1'
+    xlsx_path = '/Users/hourong/Downloads/新增国家_0411.xlsx'
+    sheetname = '工作表 1'
     header = 1
-    table_name = 'city'
-    search_keys = ['id']
+    table_name = 'country'
+    search_keys = ['mid']
     ignore_cols = []
 
     table = pandas.read_excel(
@@ -95,6 +116,8 @@ if __name__ == '__main__':
         sheetname=sheetname,
         header=header,
         converters=converters
-    ).fillna('null')
+    ).fillna('NULL')
 
-    update_table(table, table_name, search_keys=search_keys, ignore_cols=ignore_cols, debug=False)
+    upsert_table(table, table_name, search_keys=search_keys, ignore_cols=ignore_cols, debug=False)
+
+    # update_table(table, table_name, search_keys=search_keys, ignore_cols=ignore_cols, debug=False)

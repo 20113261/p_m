@@ -101,7 +101,7 @@ def getCandOnlineData(update_cid_file):
                 first_img_null_fail_count += 1
                 is_legel_data = False
 
-            if True == is_legel_data:
+            if is_legel_data:
                 try:
                     lat = float(word_list[map_info_idx].strip().split(',')[0])
                     lgt = float(word_list[map_info_idx].strip().split(',')[1])
@@ -109,21 +109,20 @@ def getCandOnlineData(update_cid_file):
                     map_fail_count += 1
                     is_legel_data = False
 
-            if True == is_legel_data:
-                if word_list[name_idx].lower() in ('', 'null'):
-                    word_list[name_idx] = word_list[name_en_idx]
-                elif word_list[name_en_idx].lower() in ('', 'null'):
-                    word_list[name_en_idx] = word_list[name_idx]
+            if word_list[name_idx].lower() in ('', 'null'):
+                word_list[name_idx] = word_list[name_en_idx]
+            elif word_list[name_en_idx].lower() in ('', 'null'):
+                word_list[name_en_idx] = word_list[name_idx]
 
-                if word_list[open_time_idx].lower() in ('', 'null'):
-                    word_list[open_time_idx] = '<*><*><00:00-23:55><SURE>'
+            if word_list[open_time_idx].lower() in ('', 'null'):
+                word_list[open_time_idx] = '<*><*><00:00-23:55><SURE>'
 
+            if is_legel_data:
                 word_list[online_idx] = 1
+            else:
+                word_list[online_idx] = 0
 
-                cand_data.append(word_list)
-
-                if len(cand_data) >= 1000:
-                    break
+            cand_data.append(word_list)
 
         if len(cand_data) > 0:
             csv_writer.writerows(cand_data)

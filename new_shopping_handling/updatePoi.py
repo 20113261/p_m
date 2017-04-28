@@ -101,6 +101,9 @@ def getCandOnlineData(update_cid_file):
                 else:
                     word_list.append('')
 
+            # 置位 right_data
+            right_data = True
+
             # daodao 统计部分
             if 'daodao' in word_list[source_idx]:
                 daodao_count += 1
@@ -110,17 +113,17 @@ def getCandOnlineData(update_cid_file):
             # name
             if word_list[name_idx].lower() in ('', 'null', '0') and word_list[name_en_idx].lower() in ('', 'null', '0'):
                 name_null_fail_count += 1
-                continue
+                right_data = False
 
             # city
             if word_list[city_idx].lower() in ('', 'null', '0'):
                 city_null_fail_count += 1
-                continue
+                right_data = False
 
             # norm_tag
             if word_list[norm_tag_idx].lower() in ('', 'null', '0'):
                 norm_tag_null_fail_count += 1
-                continue
+                right_data = False
 
             # map_info
             try:
@@ -128,12 +131,12 @@ def getCandOnlineData(update_cid_file):
                 lgt = float(word_list[map_info_idx].strip().split(',')[1])
             except:
                 map_fail_count += 1
-                continue
+                right_data = False
 
             # first_img
             if word_list[first_img_idx].lower() in ('', 'null', '0'):
                 first_img_null_fail_count += 1
-                continue
+                right_data = False
             else:
                 img_succeed_count += 1
 
@@ -157,7 +160,10 @@ def getCandOnlineData(update_cid_file):
             if word_list[open_time_idx].lower() in ('', 'null', '0'):
                 word_list[open_time_idx] = '<*><*><00:00-23:55><SURE>'
 
-            word_list[online_idx] = 1
+            if right_data:
+                word_list[online_idx] = 1
+            else:
+                word_list[online_idx] = 0
 
             cand_data.append(word_list)
 
@@ -186,6 +192,7 @@ def getCandOnlineData(update_cid_file):
 
     print('Total:', insert_db(all_data))
     out_file.close()
+    pandas.DataFrame(report_data).to_csv('report.csv')
     pandas.DataFrame(report_data).to_excel('report.xlsx')
 
 
