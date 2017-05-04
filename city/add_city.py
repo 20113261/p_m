@@ -82,7 +82,7 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
 
 if __name__ == '__main__':
-    xlsx_path = '/Users/hourong/Downloads/0424.xlsx'
+    xlsx_path = '/Users/hourong/Downloads/0427_city.xlsx'
     need_change_map_info = False
     debug = False
     target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT)
