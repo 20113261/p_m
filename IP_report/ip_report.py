@@ -3,8 +3,9 @@ from datetime import datetime
 from collections import defaultdict
 
 sql_dict = {
-    'user': 'root',
-    'password': '1234',
+    'host': '10.10.180.145',
+    'user': 'hourong',
+    'password': 'hourong',
     'charset': 'utf8',
     'db': 'IP'
 }
@@ -15,17 +16,24 @@ if __name__ == '__main__':
     _count = 0
     conn = pymysql.connect(**sql_dict)
     with conn as cursor:
+        # IP
+        # cursor.execute('''SELECT
+        #   ip_address,
+        #   group_concat(u_time ORDER by u_time)
+        # FROM ip_used
+        # GROUP BY ip_address''')
+        # local proxy
         cursor.execute('''SELECT
-  ip_address,
-  group_concat(u_time ORDER by u_time)
-FROM ip_used
-GROUP BY ip_address''')
+          local_proxy,
+          group_concat(u_time ORDER by u_time)
+        FROM ip_used
+        GROUP BY local_proxy''')
         for line in cursor.fetchall():
             _count += 1
             if _count % 10000 == 0:
                 print(_count)
             ip, times = line
-            time_list = times.split(',')
+            time_list = times.decode().split(',')
             if len(time_list) == 1:
                 count_dict[-1].append(ip)
 
