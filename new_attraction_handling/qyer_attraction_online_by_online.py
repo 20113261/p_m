@@ -8,7 +8,6 @@
 import dataset
 from collections import defaultdict
 
-dev_db = dataset.connect('mysql+pymysql://hourong:hourong@10.10.114.35/attr_merge?charset=utf8')
 online_db = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
 target_db = dataset.connect('mysql+pymysql://hourong:hourong@localhost/data_prepare?charset=utf8')
 
@@ -23,13 +22,14 @@ if __name__ == '__main__':
   name,
   name_en,
   city_id
-FROM chat_attraction;'''):
+FROM chat_attraction
+WHERE status_online = 'Open';'''):
         name_dict[row['city_id']].add(row['name'].lower())
         name_dict[row['city_id']].add(row['name_en'].lower())
         id_set.add(row['id'])
 
     # 查询所有有关 qyer 的开发库景点
-    for row in dev_db.query('''SELECT *
+    for row in online_db.query('''SELECT *
 FROM chat_attraction
 WHERE data_source LIKE '%qyer%' AND map_info != '' AND map_info != 'NULL' AND map_info != '0' AND name != '' AND
       name != 'NULL' AND name != '0';'''):
@@ -46,6 +46,8 @@ WHERE data_source LIKE '%qyer%' AND map_info != '' AND map_info != 'NULL' AND ma
                 if row['open'] in ('', 'NULL', '0'):
                     row['open'] = '<*><*><00:00-23:55><SURE>'
 
+                row['status_online'] = 'Open'
+                row['status_test'] = 'Open'
                 # 数据插入部分
                 target_table.insert(row)
         else:
@@ -56,5 +58,8 @@ WHERE data_source LIKE '%qyer%' AND map_info != '' AND map_info != 'NULL' AND ma
 
             if row['open'] in ('', 'NULL', '0'):
                 row['open'] = '<*><*><00:00-23:55><SURE>'
+
+            row['status_online'] = 'Open'
+            row['status_test'] = 'Open'
 
             target_table.insert(row)
