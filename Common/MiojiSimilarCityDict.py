@@ -5,13 +5,6 @@
 # @Site    : 
 # @File    : MiojiSimilarCityDict.py
 # @Software: PyCharm
-# !/usr/bin/env python
-# -*- coding: utf-8 -*-
-# @Time    : 2017/6/12 下午5:34
-# @Author  : Hou Rong
-# @Site    :
-# @File    : gta_city_info.py
-# @Software: PyCharm
 import dataset
 
 # 相似多字段分割符
