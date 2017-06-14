@@ -22,6 +22,10 @@ COUNTRY_MULTI_KEYS = ['country_alias']
 KEY_TYPE = 'tuple'
 # 当 key 类型为 str 时，多值生成 key 中间所使用的分割符
 STR_KEY_SPLIT_WORD = '|'
+# 字典 key 内容
+# both 用国家城市做 key
+# city 只用 city 信息做 key
+KEY_CONTENT = 'both'
 
 
 def is_legal(s):
@@ -64,14 +68,20 @@ class MiojiSimilarCityDict(object):
                     if is_legal(word):
                         city_key_set.add(key_modify(word))
 
-        for country in country_key_set:
+        if KEY_CONTENT == 'both':
+            for country in country_key_set:
+                for city in city_key_set:
+                    if KEY_TYPE == 'tuple':
+                        yield country, city
+                    elif KEY_TYPE == 'str':
+                        yield STR_KEY_SPLIT_WORD.join([country, city])
+                    else:
+                        raise TypeError('未知分割类型，当前支持 str, tuple')
+        elif KEY_CONTENT == 'city':
             for city in city_key_set:
-                if KEY_TYPE == 'tuple':
-                    yield country, city
-                elif KEY_TYPE == 'str':
-                    yield STR_KEY_SPLIT_WORD.join([country, city])
-                else:
-                    raise TypeError('未知分割类型，当前支持 str, tuple')
+                yield city
+        else:
+            raise TypeError('未知 key 内容设置')
 
     def get_mioji_similar_dict(self):
         __dict = dict()
