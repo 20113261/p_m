@@ -119,20 +119,25 @@ def get_hotel_info():
                 'per_price': float(per_price),
                 'service': 'breakfast',
                 'is_breakfast_free': 'Yes',
-                'ccy': "GBP"
+                'ccy': "GBP",
+                'img_list': ''
             }
 
 
 if __name__ == '__main__':
     # 初始化数据库对象
-    db_insert = dataset.connect('mysql+pymysql://hourong:hourong@localhost/private_data?charset=utf8')
+    # debug
+    # db_insert = dataset.connect('mysql+pymysql://hourong:hourong@localhost/private_data?charset=utf8')
+    # test
+    db_insert = dataset.connect('mysql+pymysql://writer:miaoji1109@10.10.43.99/private_data?charset=utf8')
+
     hotel = db_insert['hotel']
     hotel_room = db_insert['hotel_room']
     hotel_room_price = db_insert['hotel_room_price']
 
     # 通过传递值生成新增数据
     hotel_key_list = ['uid', 'hotel_name', 'hotel_name_en', 'map_info', 'city', 'city_mid', 'country', 'service',
-                      'is_breakfast_free', 'ptid']
+                      'is_breakfast_free', 'ptid', 'img_list']
     for each in get_hotel_info():
         hotel_info = {key: each[key] for key in hotel_key_list}
         hotel_room_info = {
