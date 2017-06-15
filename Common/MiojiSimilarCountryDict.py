@@ -66,9 +66,9 @@ FROM country''')
 
         return __dict
 
-    def get_mioji_country_id(self, keys):
-        if keys in self.dict:
-            return self.dict[keys]
+    def get_mioji_country_id(self, key):
+        if key in self.dict:
+            return self.dict[key]
         else:
             return None
 
