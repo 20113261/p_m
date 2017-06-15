@@ -27,8 +27,10 @@ known_city = {
 
 PTID = '9so8'
 SID = 's100006389so8'
-HOTEL_START_ID = 10002700
-HOTEL_ROOM_START_ID = 10002444
+# HOTEL_START_ID = 10002700
+# HOTEL_ROOM_START_ID = 10002444
+HOTEL_START_ID = 10004500
+HOTEL_ROOM_START_ID = 10004245
 
 
 def get_hotel_info():
@@ -52,7 +54,13 @@ def get_hotel_info():
         table = pandas.read_csv(os.path.join(file_path, filename))
         table = table.fillna('')
         # 去掉 table 中的空行
-        new_lines = [table.iloc[i] for i in range(len(table))]
+        new_lines = []
+        for i in range(len(table)):
+            old_line = table.iloc[i]
+            if old_line['星级'] == '' or old_line['距离'] == '':
+                continue
+            new_lines.append(old_line)
+
         table = pandas.DataFrame(new_lines)
 
         for i in range(len(table)):
@@ -63,9 +71,6 @@ def get_hotel_info():
             per_price = line['限制价格']
             if per_price == '':
                 per_price = -1.0
-
-            if name == '' and name_en == '':
-                continue
 
             # 五星不入库
             if name == '五星':
@@ -79,6 +84,9 @@ def get_hotel_info():
                 room_type = '标准双人间'
                 bed_type = '两张单床'
                 occ = 2
+                # 开始下一个酒店
+                hotel_id += 1
+
             elif i % 5 == 1:
                 room_type = '标准双人间'
                 bed_type = '一张大床'
@@ -99,30 +107,29 @@ def get_hotel_info():
             price = per_price * occ if per_price != '' else -1
 
             # 自增 hotel_id room_id
-            hotel_id += 1
             hotel_room_id += 1
 
             yield {
-                'hotel_name': name,
-                'hotel_name_en': name_en,
-                'uid': 'ht{0}{1}'.format(hotel_id, PTID),
-                'city_mid': city_id,
-                'city': city_info_dict[city_id]['name'],
-                'country': city_info_dict[city_id]['country_name'],
-                'map_info': city_info_dict[city_id]['map_info'],
-                'roomId': 'r{0}{1}'.format(hotel_room_id, PTID),
-                'sid': SID,
-                'ptid': PTID,
-                'room_type': room_type,
-                'bed_type': bed_type,
-                'occ': occ,
-                'price': float(price),
-                'per_price': float(per_price),
-                'service': 'breakfast',
-                'is_breakfast_free': 'Yes',
-                'ccy': "EUR",
-                'img_list': ''
-            }
+                      'hotel_name': name,
+                      'hotel_name_en': name_en,
+                      'uid': 'ht{0}{1}'.format(hotel_id, PTID),
+                      'city_mid': city_id,
+                      'city': city_info_dict[city_id]['name'],
+                      'country': city_info_dict[city_id]['country_name'],
+                      'map_info': city_info_dict[city_id]['map_info'],
+                      'roomId': 'r{0}{1}'.format(hotel_room_id, PTID),
+                      'sid': SID,
+                      'ptid': PTID,
+                      'room_type': room_type,
+                      'bed_type': bed_type,
+                      'occ': occ,
+                      'price': float(price),
+                      'per_price': float(per_price),
+                      'service': 'breakfast',
+                      'is_breakfast_free': 'Yes',
+                      'ccy': "EUR",
+                      'img_list': ''
+                  }, i % 5 == 0
 
 
 if __name__ == '__main__':
@@ -143,7 +150,7 @@ if __name__ == '__main__':
                       'is_breakfast_free', 'ptid', 'img_list']
 
     _count = 0
-    for each in get_hotel_info():
+    for each, need_insert_hotel in get_hotel_info():
         _count += 1
         if _count % 10 == 0:
             print(_count)
@@ -169,6 +176,7 @@ if __name__ == '__main__':
         # print(hotel_info)
         # print(hotel_room_info)
         # print(hotel_room_price_info)
-        hotel.insert(hotel_info)
+        if need_insert_hotel:
+            hotel.insert(hotel_info)
         hotel_room.insert(hotel_room_info)
         hotel_room_price.insert_many(hotel_room_price_info_list)
