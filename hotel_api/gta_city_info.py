@@ -6,10 +6,31 @@
 # @File    : gta_city_info.py
 # @Software: PyCharm
 import dataset
-from Common.MiojiSimilarCityDict import MiojiSimilarCityDict, is_legal, key_modify
+import Common.MiojiSimilarCityDict
+from Common.MiojiSimilarCityDict import is_legal, key_modify
 
 if __name__ == '__main__':
-    mioji_similar_dict = MiojiSimilarCityDict()
+    Common.MiojiSimilarCityDict.ADDITIONAL_COUNTRY_LIST = {
+        '102': 'United Arab Emirates',
+        '109': 'South Korea',
+        '113': 'Laos',
+        '127': 'Brunei Darussalam',
+        '225': 'Ireland (Republic of)',
+        '229': 'Bosnia Herzegovina',
+        '248': 'Macau',
+        '405': 'Congo (Democratic Republic)',
+        '510': 'Trinidad & Tobago',
+        '630': 'San Marino (Republic of)',
+        '645': 'Congo (Republic of)',
+        '679': 'Antigua and Barbuda',
+        '687': 'Saint Martin (French part)',
+        '696': 'Virgin Islands (USA)',
+        '702': 'Saint Lucia',
+        '706': 'Turks and Caicos Islands',
+        '729': 'Cook Islands'
+    }
+
+    mioji_similar_dict = Common.MiojiSimilarCityDict.MiojiSimilarCityDict()
     db = dataset.connect('mysql+pymysql://hourong:hourong@localhost/hotel_api?charset=utf8')
     table = db['gta_city']
 

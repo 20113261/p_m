@@ -27,6 +27,9 @@ STR_KEY_SPLIT_WORD = '|'
 # city 只用 city 信息做 key
 KEY_CONTENT = 'both'
 
+# 额外补充的国家 mid 对应关系, {'mid':'country'}
+ADDITIONAL_COUNTRY_LIST = {}
+
 
 def is_legal(s):
     if s:
@@ -48,6 +51,11 @@ class MiojiSimilarCityDict(object):
     def get_keys(__line):
         country_key_set = set()
         city_key_set = set()
+
+        additional_key = ADDITIONAL_COUNTRY_LIST.get(__line['country_id'], None)
+        if additional_key is not None:
+            country_key_set.add(key_modify(additional_key))
+
         for key in COUNTRY_KEYS:
             if is_legal(__line[key]):
                 country_key_set.add(key_modify(__line[key]))
@@ -88,19 +96,20 @@ class MiojiSimilarCityDict(object):
         db_test = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
         city_country_info = [
             i for i in db_test.query('''SELECT
-      city.id,
-      city.name,
-      city.name_en,
-      city.alias,
-      city.tri_code,
-      country.country_code,
-      country.name          AS country_name,
-      country.name_en       AS country_name_en,
-      country.alias         AS country_alias,
-      country.short_name_cn AS country_short_name_cn,
-      country.short_name_en AS country_short_name_en
-    FROM city
-      JOIN country ON city.country_id = country.mid;''')
+  city.id,
+  city.name,
+  city.name_en,
+  city.alias,
+  city.tri_code,
+  country.mid           AS country_id,
+  country.country_code,
+  country.name          AS country_name,
+  country.name_en       AS country_name_en,
+  country.alias         AS country_alias,
+  country.short_name_cn AS country_short_name_cn,
+  country.short_name_en AS country_short_name_en
+FROM city
+  JOIN country ON city.country_id = country.mid;''')
         ]
         for __line in city_country_info:
             for key in self.get_keys(__line):
