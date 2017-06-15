@@ -13,6 +13,8 @@ MULTI_SPLIT_KEY = '|'
 COUNTRY_KEYS = ['country_name', 'country_name_en', 'country_short_name_cn', 'country_short_name_en']
 # 从国家表中获取的多字段，中间用 MULTI_SPLIT_KEY 分割
 COUNTRY_MULTI_KEYS = ['country_alias']
+# 额外的国家配置
+ADDITIONAL_COUNTRY_LIST = {}
 
 
 def is_legal(s):
@@ -34,6 +36,11 @@ class MiojiSimilarCountryDict(object):
     @staticmethod
     def get_keys(__line):
         country_key_set = set()
+
+        additional_key = ADDITIONAL_COUNTRY_LIST.get(__line['id'], None)
+        if additional_key is not None:
+            country_key_set.add(key_modify(additional_key))
+
         for key in COUNTRY_KEYS:
             if is_legal(__line[key]):
                 country_key_set.add(key_modify(__line[key]))
