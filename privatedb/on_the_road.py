@@ -10,6 +10,7 @@ import pandas
 import dataset
 import Common.MiojiSimilarCityDict
 import Common.CityInfoDict
+import Common.DateRange
 
 known_city = {
     '斯洛文尼亚布拉迪斯拉发': '11526',
@@ -26,8 +27,8 @@ known_city = {
 
 PTID = '9so8'
 SID = 's100006389so8'
-HOTEL_START_ID = 10000892
-HOTEL_ROOM_START_ID = 10000641
+HOTEL_START_ID = 10002700
+HOTEL_ROOM_START_ID = 10002444
 
 
 def get_hotel_info():
@@ -119,12 +120,14 @@ def get_hotel_info():
                 'per_price': float(per_price),
                 'service': 'breakfast',
                 'is_breakfast_free': 'Yes',
-                'ccy': "GBP",
+                'ccy': "EUR",
                 'img_list': ''
             }
 
 
 if __name__ == '__main__':
+    # DateRange Config
+    Common.DateRange.DATE_FORMAT = '%Y%m%d'
     # 初始化数据库对象
     # debug
     # db_insert = dataset.connect('mysql+pymysql://hourong:hourong@localhost/private_data?charset=utf8')
@@ -138,7 +141,12 @@ if __name__ == '__main__':
     # 通过传递值生成新增数据
     hotel_key_list = ['uid', 'hotel_name', 'hotel_name_en', 'map_info', 'city', 'city_mid', 'country', 'service',
                       'is_breakfast_free', 'ptid', 'img_list']
+
+    _count = 0
     for each in get_hotel_info():
+        _count += 1
+        if _count % 10 == 0:
+            print(_count)
         hotel_info = {key: each[key] for key in hotel_key_list}
         hotel_room_info = {
             'roomId': each['roomId'],
@@ -150,16 +158,17 @@ if __name__ == '__main__':
             'breakfast': '1',
             'ptid': each['ptid']
         }
-        hotel_room_price_info = {
+
+        hotel_room_price_info_list = [{
             'roomId': each['roomId'],
-            'date': '20171231',
+            'date': date,
             'price': each['price'],
             'ccy': each['ccy'],
-        }
+        } for date in Common.DateRange.dates_until('20171231')]
 
         # print(hotel_info)
         # print(hotel_room_info)
         # print(hotel_room_price_info)
         hotel.insert(hotel_info)
         hotel_room.insert(hotel_room_info)
-        hotel_room_price.insert(hotel_room_price_info)
+        hotel_room_price.insert_many(hotel_room_price_info_list)
