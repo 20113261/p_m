@@ -7,14 +7,9 @@
 # @Software: PyCharm
 
 import hashlib
-import json
-import os
-import pickle
-import re
 
 import pymysql
 import time
-from pymysql.cursors import DictCursor
 
 # 当 task 数积攒到每多少时进行一次插入
 # 当程序退出后也会执行一次插入，无论当前 task 积攒为多少
@@ -24,6 +19,11 @@ INSERT_WHEN = 2000
 # 入库语句
 
 INSERT_SQL = 'INSERT IGNORE INTO Task (`id`, `worker`, `args`, `task_name`, `priority`) VALUES (%s, %s, %s, %s, %s)'
+
+
+def order_and_sorted_dict(d: dict):
+    return tuple(sorted([(k, order_and_sorted_dict(v)) if isinstance(v, dict) else(k, v) for k, v in d.items()],
+                        key=lambda x: x[0]))
 
 
 class Task(object):
@@ -41,8 +41,9 @@ class Task(object):
 
     def get_task_id(self):
         if isinstance(self.args, dict):
-            key_list = sorted([(k, v) for k, v in self.args.items()], key=lambda x: x[0])
-            return hashlib.md5((self.worker + str(key_list)).encode()).hexdigest()
+            key_tuple = order_and_sorted_dict(self.args)
+            print(key_tuple)
+            return hashlib.md5((self.worker + str(key_tuple)).encode()).hexdigest()
         else:
             raise TypeError('错误的 args 类型 < {0} >'.format(type(self.args).__name__))
 
@@ -110,4 +111,6 @@ class InsertTask(object):
 
 
 if __name__ == '__main__':
-    pass
+    args = {1: 123123, 3: {2: 232322, 1: 111111, 3: 4343}, 2: 222}
+    t = Task(worker='abcTest', args=args, task_name='abcTest')
+    print(t.get_task_id())
