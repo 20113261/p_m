@@ -7,7 +7,7 @@
 # @Software: PyCharm
 
 import hashlib
-
+import json
 import pymysql
 import time
 
@@ -18,7 +18,7 @@ INSERT_WHEN = 2000
 
 # 入库语句
 
-INSERT_SQL = 'INSERT IGNORE INTO Task (`id`, `worker`, `args`, `task_name`, `priority`) VALUES (%s, %s, %s, %s, %s)'
+INSERT_SQL = 'INSERT IGNORE INTO TaskPre0619 (`id`, `worker`, `args`, `task_name`, `priority`) VALUES (%s, %s, %s, %s, %s)'
 
 
 def order_and_sorted_dict(d: dict):
@@ -42,7 +42,6 @@ class Task(object):
     def get_task_id(self):
         if isinstance(self.args, dict):
             key_tuple = order_and_sorted_dict(self.args)
-            print(key_tuple)
             return hashlib.md5((self.worker + str(key_tuple)).encode()).hexdigest()
         else:
             raise TypeError('错误的 args 类型 < {0} >'.format(type(self.args).__name__))
@@ -50,7 +49,7 @@ class Task(object):
 
 class TaskList(list):
     def append_task(self, task: Task):
-        self.append((task.id, task.worker, task.args, task.task_name, task.priority))
+        self.append((task.id, task.worker, json.dumps(task.args), task.task_name, task.priority))
 
 
 class InsertTask(object):
@@ -75,15 +74,21 @@ class InsertTask(object):
 
         self.conn = self.connect()
         self.tasks = TaskList()
+        self.count = 0
 
     def connect(self):
-        return pymysql.connect(self.conn_val)
+        return pymysql.connect(**self.conn_val)
 
     def insert_into_database(self):
         cursor = self.conn.cursor()
         res = cursor.executemany(INSERT_SQL, self.tasks)
         cursor.close()
-        print('本次准备入库任务数：{0}\n实际入库数（其中有重复任务）：{1}'.format(len(self.tasks), res))
+        task_length = len(self.tasks)
+
+        self.count += task_length
+
+        print('本次准备入库任务数：{0}\n实际入库数：{1}\n库中已有任务：{2}\n已完成总数：{3}\n'.format(task_length, res, task_length - res,
+                                                                         self.count))
 
         # 入库完成，清空任务列表
         self.tasks = TaskList()
