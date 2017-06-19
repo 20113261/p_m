@@ -5,11 +5,12 @@
 # @Site    : 
 # @File    : gta_lost_city_country_check.py
 # @Software: PyCharm
-from Common.MiojiSimilarCountryDict import MiojiSimilarCountryDict, is_legal, key_modify
+import Common.MiojiSimilarCountryDict
+from Common.MiojiSimilarCountryDict import key_modify
 import dataset
 
 if __name__ == '__main__':
-    Common.MiojiSimilarCityDict.ADDITIONAL_COUNTRY_LIST = {
+    Common.MiojiSimilarCountryDict.ADDITIONAL_COUNTRY_LIST = {
         '102': 'United Arab Emirates',
         '109': 'South Korea',
         '113': 'Laos',
@@ -30,15 +31,15 @@ if __name__ == '__main__':
     }
 
     db = dataset.connect('mysql+pymysql://hourong:hourong@localhost/hotel_api?charset=utf8')
-    mioji_similar_dict = MiojiSimilarCountryDict()
+    mioji_similar_dict = Common.MiojiSimilarCountryDict.MiojiSimilarCountryDict()
 
     table = db.query('''SELECT DISTINCT
   country_code,
   country_name
-FROM gta_city
-WHERE miaoji_city_id = '';''')
+FROM gta_city;''')
 
     matched_count = 0
+    print("mid,country_code,country_name")
     for line in table:
         country_id = None
         country_id = mioji_similar_dict.get_mioji_country_id(key_modify(line['country_code']))
@@ -47,7 +48,10 @@ WHERE miaoji_city_id = '';''')
 
         if country_id is not None:
             matched_count += 1
+            print("{0},{1},{2}".format(country_id, line['country_code'], line['country_name']))
+
 
         else:
-            print(line['country_code'], line['country_name'])
+            # print(line['country_code'], line['country_name'])
+            pass
     print(matched_count)
