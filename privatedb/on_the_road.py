@@ -26,11 +26,11 @@ known_city = {
 }
 
 PTID = '9so8'
-SID = 's100006389so8'
+SID = 's100149249so8'
 # HOTEL_START_ID = 10002700
 # HOTEL_ROOM_START_ID = 10002444
-HOTEL_START_ID = 10004500
-HOTEL_ROOM_START_ID = 10004245
+HOTEL_START_ID = 10065960
+HOTEL_ROOM_START_ID = 10003440
 
 
 def get_hotel_info():
@@ -93,7 +93,7 @@ def get_hotel_info():
                 occ = 2
             elif i % 5 == 2:
                 room_type = '三人间'
-                bed_type = '不限制床型'
+                bed_type = '不保证床型'
                 occ = 3
             elif i % 5 == 3:
                 room_type = '标准单人间'
@@ -109,7 +109,14 @@ def get_hotel_info():
             # 自增 hotel_id room_id
             hotel_room_id += 1
 
+            star = None
+            if name == '三星':
+                star = 3
+            elif name == '四星':
+                star = 4
+
             yield {
+                      'id': hotel_id,
                       'hotel_name': name,
                       'hotel_name_en': name_en,
                       'uid': 'ht{0}{1}'.format(hotel_id, PTID),
@@ -128,7 +135,8 @@ def get_hotel_info():
                       'service': 'breakfast',
                       'is_breakfast_free': 'Yes',
                       'ccy': "EUR",
-                      'img_list': ''
+                      'img_list': '',
+                      'star': star
                   }, i % 5 == 0
 
 
@@ -139,7 +147,9 @@ if __name__ == '__main__':
     # debug
     # db_insert = dataset.connect('mysql+pymysql://hourong:hourong@localhost/private_data?charset=utf8')
     # test
-    db_insert = dataset.connect('mysql+pymysql://writer:miaoji1109@10.10.43.99/private_data?charset=utf8')
+    # db_insert = dataset.connect('mysql+pymysql://writer:miaoji1109@10.10.43.99/private_data?charset=utf8')
+    # online
+    db_insert = dataset.connect('mysql+pymysql://writer:miaoji1109@10.10.149.146/private_data?charset=utf8')
 
     hotel = db_insert['hotel']
     hotel_room = db_insert['hotel_room']
@@ -147,9 +157,10 @@ if __name__ == '__main__':
 
     # 通过传递值生成新增数据
     hotel_key_list = ['uid', 'hotel_name', 'hotel_name_en', 'map_info', 'city', 'city_mid', 'country', 'service',
-                      'is_breakfast_free', 'ptid', 'img_list']
+                      'is_breakfast_free', 'ptid', 'img_list', 'star', 'id']
 
     _count = 0
+    hotel_data_list = []
     for each, need_insert_hotel in get_hotel_info():
         _count += 1
         if _count % 10 == 0:
@@ -163,7 +174,7 @@ if __name__ == '__main__':
             'type': each['room_type'],
             'bed': each['bed_type'],
             'breakfast': '1',
-            'ptid': each['ptid']
+            'ptid': each['ptid'],
         }
 
         hotel_room_price_info_list = [{
@@ -177,6 +188,8 @@ if __name__ == '__main__':
         # print(hotel_room_info)
         # print(hotel_room_price_info)
         if need_insert_hotel:
-            hotel.insert(hotel_info)
+            hotel_data_list.append(hotel_info)
+            # hotel.insert(hotel_info)
         hotel_room.insert(hotel_room_info)
         hotel_room_price.insert_many(hotel_room_price_info_list)
+    hotel.insert_many(hotel_data_list)
