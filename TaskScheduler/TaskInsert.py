@@ -18,7 +18,7 @@ INSERT_WHEN = 2000
 
 # 入库语句
 
-INSERT_SQL = 'INSERT IGNORE INTO TaskPre0619 (`id`, `worker`, `args`, `task_name`, `priority`) VALUES (%s, %s, %s, %s, %s)'
+INSERT_SQL = 'INSERT IGNORE INTO Task (`id`, `worker`, `args`, `task_name`, `priority`) VALUES (%s, %s, %s, %s, %s)'
 
 
 def order_and_sorted_dict(d: dict):
