@@ -111,6 +111,9 @@ class InsertTask(object):
         else:
             raise TypeError('错误的 args 类型 < {0} >'.format(type(args).__name__))
 
+    def __enter__(self):
+        return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.insert_into_database()
 
