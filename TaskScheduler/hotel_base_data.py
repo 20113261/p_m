@@ -75,45 +75,60 @@ def get_task_hotel_raw():
     # table = pandas.read_csv('/root/data/data_input/source_sid_cid', sep='\t')
     # import pdb
     # pdb.set_trace()
-    f = open('/root/data/task/source_sid_cid_for_hotels')
-    for line in f:
-        try:
-            source, source_id, city_id, url = line.strip().split('\t')
-        except:
-            print('Hello')
-            continue
-        if url.lower() not in ('', 'null', 'http', 'http:', 'http://', 'https', 'https:', 'https://'):
-            other_info = {
-                'source_id': source_id,
-                'city_id': city_id
-            }
-            try:
-                if source not in (
-                        'agoda', 'booking', 'cheaptickets', 'ctrip', 'ebookers', 'elong', 'expedia', 'hotels',
-                        'hoteltravel',
-                        'orbitz', 'travelocity'):
-                    continue
-                elif source == 'hotels':
-                    hotel_id = re.findall('hotel-id=(\d+)', url)[0]
-                    hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id=' + hotel_id
-                elif source in ('booking', 'ctrip', 'expedia', 'travelocity', 'orbitz', 'ebookers', 'cheaptickets'):
-                    hotel_url = url.split('?')[0]
-                elif source == 'elong':
-                    hotel_url = 'http://hotel.elong.com/{0}/'.format(source_id)
-                elif source == 'hoteltravel':
-                    hotel_url = 'http://www.hoteltravel.com/cn/' + source_id
-                else:
-                    hotel_url = url
+    # f = open('/root/data/task/source_sid_cid_agoda')
+    # for line in f:
+    #     try:
+    #         source, source_id, city_id, url = line.strip().split('\t')
+    #     except:
+    #         print('Hello')
+    #         continue
+    #     if url.lower() not in ('', 'null', 'http', 'http:', 'http://', 'https', 'https:', 'https://'):
+    #         other_info = {
+    #             'source_id': source_id,
+    #             'city_id': city_id
+    #         }
+    #         try:
+    #             if source not in (
+    #                     'agoda', 'booking', 'cheaptickets', 'ctrip', 'ebookers', 'elong', 'expedia', 'hotels',
+    #                     'hoteltravel',
+    #                     'orbitz', 'travelocity'):
+    #                 continue
+    #             elif source == 'hotels':
+    #                 hotel_id = re.findall('hotel-id=(\d+)', url)[0]
+    #                 hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id=' + hotel_id
+    #             elif source in ('booking', 'ctrip', 'expedia', 'travelocity', 'orbitz', 'ebookers', 'cheaptickets'):
+    #                 hotel_url = url.split('?')[0]
+    #             elif source == 'elong':
+    #                 hotel_url = 'http://hotel.elong.com/{0}/'.format(source_id)
+    #             elif source == 'hoteltravel':
+    #                 hotel_url = 'http://www.hoteltravel.com/cn/' + source_id
+    #             else:
+    #                 hotel_url = url
+    #
+    #             yield source, hotel_url, other_info
+    #         except:
+    #             continue
 
-                yield source, hotel_url, other_info
-            except:
-                continue
+    # todo 6
+    import dataset
+    db = dataset.connect('mysql+pymysql://writer:miaoji1109@10.10.228.253/spider_db?charset=utf8')
+    # table = db['hotel_base_data_task']
+
+    for line in db.query('''select * from hotel_base_data_task where city_id=21338'''):
+        other_info = {
+            'source_id': line['source_id'],
+            'city_id': line['city_id']
+        }
+        yield line['source'], line['hotel_url'], other_info
 
 
 if __name__ == '__main__':
-    task_name = 'hotel_base_data_170619'
-    it = InsertTask(worker='hotel_base_data', task_name=task_name)
+    task_name = 'hotel_base_data_21338'
 
-    for source, hotel_url, other_info in get_task_hotel_raw():
-        args = {'source': source, 'hotel_url': hotel_url, 'other_info': other_info, 'part': task_name}
-        it.insert_task(args=args)
+    # for source, hotel_url, other_info in get_task_hotel_raw():
+    #     print(source, hotel_url, other_info)
+
+    with InsertTask(worker='hotel_base_data', task_name=task_name) as it:
+        for source, hotel_url, other_info in get_task_hotel_raw():
+            args = {'source': source, 'hotel_url': hotel_url, 'other_info': other_info, 'part': task_name}
+            it.insert_task(args=args)
