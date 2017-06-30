@@ -58,6 +58,16 @@ class BaseDataInsert(object):
             # 存储 id 对应关系
             self.insert_id_map(line['id'], data['id'])
 
+            # 修改 景点、购物、餐厅 表 status
+            if self.need_update_city_id:
+                data['status_test'] = "Open"
+                data['status_online'] = "Close"
+                data['dept_status_online'] = "Close"
+                data['dept_status_test'] = "Close"
+            # 增加 city 表 status
+            else:
+                data['status_test'] = "Open"
+
             yield data
 
     def insert(self, data):
