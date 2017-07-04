@@ -110,25 +110,73 @@ def get_task_hotel_raw():
     #             continue
 
     # todo 6
-    import dataset
-    db = dataset.connect('mysql+pymysql://writer:miaoji1109@10.10.228.253/spider_db?charset=utf8')
-    # table = db['hotel_base_data_task']
+    # import dataset
+    # db = dataset.connect('mysql+pymysql://writer:miaoji1109@10.10.228.253/spider_db?charset=utf8')
+    # # table = db['hotel_base_data_task']
+    #
+    # for line in db.query('''select * from hotel_base_data_task where city_id=21338'''):
+    #     other_info = {
+    #         'source_id': line['source_id'],
+    #         'city_id': line['city_id']
+    #     }
+    #     yield line['source'], line['hotel_url'], other_info
 
-    for line in db.query('''select * from hotel_base_data_task where city_id=21338'''):
+    # todo 7
+    # import dataset
+    # import json
+    # db = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/Task?charset=utf8')
+    # 
+    # for d in db.query(
+    #         '''select * from TaskBak0630_2 where finished=0 and task_name='hotel_static_base_data_170630_ctrip';'''):
+    #     line = json.loads(d['args'])
+    #     other_info = {
+    #         'source_id': line['source_id'],
+    #         'city_id': line['city_id']
+    #     }
+    #     args = {'source': line['source'], 'hotel_url': line['hotel_url'], 'other_info': other_info, 'part': task_name}
+    # 
+    #     yield args, d['id']
+
+    # todo 8
+    import dataset
+    import json
+    ready_set = set()
+    db = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/Task?charset=utf8')
+    db_hotel = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/hotel_adding?charset=utf8')
+    for d in db_hotel.query('''select hotel_url from hotelinfo_static_data where source='ctrip' and star=-1;'''):
+        ready_set.add(d['hotel_url'])
+
+    for d in db.query(
+            '''select * from TaskBak0630_2 where task_name='hotel_static_base_data_170630_ctrip';'''):
+        line = json.loads(d['args'])
+        if line['hotel_url'] not in ready_set:
+            continue
+
         other_info = {
             'source_id': line['source_id'],
             'city_id': line['city_id']
         }
-        yield line['source'], line['hotel_url'], other_info
+        args = {'source': line['source'], 'hotel_url': line['hotel_url'], 'other_info': other_info,
+                'part': 'hotel_base_data_ctrip'}
+
+        yield args
 
 
 if __name__ == '__main__':
-    task_name = 'hotel_base_data_21338'
+    from TaskScheduler.TaskInsert import Task
 
-    # for source, hotel_url, other_info in get_task_hotel_raw():
-    #     print(source, hotel_url, other_info)
+    task_name = 'hotel_base_data_ctrip'
+
+    # for args, parent_id in get_task_hotel_raw():
+    #     print('#' * 100)
+    #     print(parent_id)
+    #     t = Task(worker='hotel_base_data', args=args, task_name='hotel_base_data_ctrip')
+    #
+    #     print(t.get_task_id())
+
+        # for source, hotel_url, other_info in get_task_hotel_raw():
+        #     print(source, hotel_url, other_info)
 
     with InsertTask(worker='hotel_base_data', task_name=task_name) as it:
-        for source, hotel_url, other_info in get_task_hotel_raw():
-            args = {'source': source, 'hotel_url': hotel_url, 'other_info': other_info, 'part': task_name}
+        for args in get_task_hotel_raw():
             it.insert_task(args=args)
