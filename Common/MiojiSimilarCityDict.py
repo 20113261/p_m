@@ -33,8 +33,16 @@ ADDITIONAL_COUNTRY_LIST = {}
 
 def is_legal(s):
     if s:
-        if s.strip():
-            if s.lower() != 'null':
+        if isinstance(s, str):
+            if s.strip():
+                if s.lower() != 'null':
+                    return True
+        elif isinstance(s, int):
+            if s > -1:
+                return True
+
+        elif isinstance(s, float):
+            if s > -1.0:
                 return True
     return False
 
