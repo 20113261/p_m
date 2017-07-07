@@ -138,44 +138,95 @@ def get_task_hotel_raw():
     #     yield args, d['id']
 
     # todo 8
-    import dataset
-    import json
-    ready_set = set()
-    db = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/Task?charset=utf8')
-    db_hotel = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/hotel_adding?charset=utf8')
-    for d in db_hotel.query('''select hotel_url from hotelinfo_static_data where source='ctrip' and star=-1;'''):
-        ready_set.add(d['hotel_url'])
+    # import dataset
+    # import json
+    # ready_set = set()
+    # db = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/Task?charset=utf8')
+    # db_hotel = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/hotel_adding?charset=utf8')
+    # for d in db_hotel.query('''select hotel_url from hotelinfo_static_data where source='ctrip' and star=-1;'''):
+    #     ready_set.add(d['hotel_url'])
+    #
+    # for d in db.query(
+    #         '''select * from TaskBak0630_2 where task_name='hotel_static_base_data_170630_ctrip';'''):
+    #     line = json.loads(d['args'])
+    #     if line['hotel_url'] not in ready_set:
+    #         continue
+    #
+    #     other_info = {
+    #         'source_id': line['source_id'],
+    #         'city_id': line['city_id']
+    #     }
+    #     args = {'source': line['source'], 'hotel_url': line['hotel_url'], 'other_info': other_info,
+    #             'part': 'hotel_base_data_ctrip'}
+    #
+    #     yield args
 
-    for d in db.query(
-            '''select * from TaskBak0630_2 where task_name='hotel_static_base_data_170630_ctrip';'''):
-        line = json.loads(d['args'])
-        if line['hotel_url'] not in ready_set:
+    # todo 9
+    # city_id = 'NULL'
+    # f = open('/root/data/task/s_sid_hotels')
+    # for line in f:
+    #     try:
+    #         source, source_id, url = line.strip().split('\t')
+    #     except:
+    #         print('Hello')
+    #         continue
+    #     if url.lower() not in ('', 'null', 'http', 'http:', 'http://', 'https', 'https:', 'https://'):
+    #         other_info = {
+    #             'source_id': source_id,
+    #             'city_id': city_id
+    #         }
+    #         try:
+    #             if source not in (
+    #                     'agoda', 'booking', 'cheaptickets', 'ctrip', 'ebookers', 'elong', 'expedia', 'hotels',
+    #                     'hoteltravel',
+    #                     'orbitz', 'travelocity'):
+    #                 continue
+    #             elif source == 'hotels':
+    #                 hotel_id = re.findall('hotel-id=(\d+)', url)[0]
+    #                 hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id=' + hotel_id
+    #             elif source in ('booking', 'ctrip', 'expedia', 'travelocity', 'orbitz', 'ebookers', 'cheaptickets'):
+    #                 hotel_url = url.split('?')[0]
+    #             elif source == 'elong':
+    #                 hotel_url = 'http://hotel.elong.com/{0}/'.format(source_id)
+    #             elif source == 'hoteltravel':
+    #                 hotel_url = 'http://www.hoteltravel.com/cn/' + source_id
+    #             else:
+    #                 hotel_url = url
+    #
+    #             args = {'source': source, 'hotel_url': hotel_url, 'other_info': other_info,
+    #                     'part': task_name}
+    #             yield args
+    #         except:
+    #             continue
+
+    # todo 10
+    city_id = 'NULL'
+    f = open('/root/data/task/s_sid_hotels_new')
+    for line in f:
+        try:
+            source, source_id = line.strip().split('\t')
+        except:
+            print('Hello')
             continue
 
+        if source == 'hotels':
+            hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id=' + source_id
+        else:
+            raise Exception()
+
         other_info = {
-            'source_id': line['source_id'],
-            'city_id': line['city_id']
+            'source_id': source_id,
+            'city_id': city_id
         }
-        args = {'source': line['source'], 'hotel_url': line['hotel_url'], 'other_info': other_info,
-                'part': 'hotel_base_data_ctrip'}
+
+        args = {'source': source, 'hotel_url': hotel_url, 'other_info': other_info,
+                'part': task_name}
 
         yield args
 
 
 if __name__ == '__main__':
-    from TaskScheduler.TaskInsert import Task
-
-    task_name = 'hotel_base_data_ctrip'
-
-    # for args, parent_id in get_task_hotel_raw():
-    #     print('#' * 100)
-    #     print(parent_id)
-    #     t = Task(worker='hotel_base_data', args=args, task_name='hotel_base_data_ctrip')
-    #
-    #     print(t.get_task_id())
-
-        # for source, hotel_url, other_info in get_task_hotel_raw():
-        #     print(source, hotel_url, other_info)
+    task_name = 'hotel_base_data_hotels_new'
 
     with InsertTask(worker='hotel_base_data', task_name=task_name) as it:
         for args in get_task_hotel_raw():
