@@ -11,7 +11,4 @@ if __name__ == '__main__':
     client = pymongo.MongoClient(host='10.10.231.105')
     collections = client['PageSaver']['hotel_base_data_agoda']
 
-    for line in collections.find({
-        'source_id': '807465'
-    }):
-        print(line)
+    print(list(collections.find({'source_id': '807465'}))[0]['task_id'])
