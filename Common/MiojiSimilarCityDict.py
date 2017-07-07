@@ -6,6 +6,7 @@
 # @File    : MiojiSimilarCityDict.py
 # @Software: PyCharm
 import dataset
+from collections import defaultdict
 
 # 相似多字段分割符
 MULTI_SPLIT_KEY = '|'
@@ -17,6 +18,10 @@ CITY_MULTI_KEYS = ['alias']
 COUNTRY_KEYS = ['country_name', 'country_name_en', 'country_short_name_cn', 'country_short_name_en']
 # 从国家表中获取的多字段，中间用 MULTI_SPLIT_KEY 分割
 COUNTRY_MULTI_KEYS = ['country_alias']
+# 是否使用 Region 做 key 进行匹配
+NEED_REGION = False
+# Region 使用的字段
+REGION_KEY = ['region', 'region_en', 'region_cn']
 
 # 字典的 key 类型，可与选择 tuple 和 str 类型
 KEY_TYPE = 'tuple'
@@ -53,12 +58,13 @@ def key_modify(s: str):
 
 class MiojiSimilarCityDict(object):
     def __init__(self):
+        self.can_use_region = defaultdict(bool)
         self.dict = self.get_mioji_similar_dict()
 
-    @staticmethod
-    def get_keys(__line):
+    def get_keys(self, __line):
         country_key_set = set()
         city_key_set = set()
+        region_key_set = set()
 
         additional_key = ADDITIONAL_COUNTRY_LIST.get(__line['country_id'], None)
         if additional_key is not None:
@@ -74,6 +80,11 @@ class MiojiSimilarCityDict(object):
                     if is_legal(word):
                         country_key_set.add(key_modify(word))
 
+        if NEED_REGION:
+            for key in REGION_KEY:
+                if is_legal(__line[key]):
+                    region_key_set.add(key_modify(__line[key]))
+
         for key in CITY_KEYS:
             if is_legal(__line[key]):
                 city_key_set.add(key_modify(__line[key]))
@@ -85,19 +96,38 @@ class MiojiSimilarCityDict(object):
                         city_key_set.add(key_modify(word))
 
         if KEY_CONTENT == 'both':
+            if NEED_REGION:
+                for country in country_key_set:
+                    for region in region_key_set:
+                        for city in city_key_set:
+                            if KEY_TYPE == 'tuple':
+                                yield country, region, city
+                            elif KEY_TYPE == 'str':
+                                yield STR_KEY_SPLIT_WORD.join([country, region, city])
+                            else:
+                                raise TypeError('未知分割类型，当前支持 str, tuple')
+
             for country in country_key_set:
                 for city in city_key_set:
+                    if NEED_REGION:
+                        if len(region_key_set) > 0:
+                            self.can_use_region[(country, city)] = True
+
                     if KEY_TYPE == 'tuple':
                         yield country, city
                     elif KEY_TYPE == 'str':
                         yield STR_KEY_SPLIT_WORD.join([country, city])
                     else:
                         raise TypeError('未知分割类型，当前支持 str, tuple')
+
         elif KEY_CONTENT == 'city':
             for city in city_key_set:
                 yield city
         else:
             raise TypeError('未知 key 内容设置')
+
+    def can_use_mioji_region(self, keys):
+        return self.can_use_region[keys]
 
     def get_mioji_similar_dict(self):
         __dict = dict()
@@ -109,6 +139,9 @@ class MiojiSimilarCityDict(object):
   city.name_en,
   city.alias,
   city.tri_code,
+  city.region,
+  city.region_cn,
+  city.region_en,
   country.mid           AS country_id,
   country.country_code,
   country.name          AS country_name,
@@ -128,8 +161,13 @@ FROM city
     def get_mioji_city_id(self, keys):
         if keys in self.dict:
             return self.dict[keys]
-        else:
-            return None
+
+        if NEED_REGION:
+            if self.can_use_mioji_region((keys[0], keys[-1])):
+                if (keys[0], keys[-1]) in self.dict:
+                    return self.dict[(keys[0], keys[-1])]
+
+        return None
 
 
 if __name__ == '__main__':
