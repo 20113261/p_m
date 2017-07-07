@@ -59,6 +59,7 @@ def key_modify(s: str):
 class MiojiSimilarCityDict(object):
     def __init__(self):
         self.can_use_region = defaultdict(bool)
+        self.city_info_dict = defaultdict(str)
         self.dict = self.get_mioji_similar_dict()
 
     def get_keys(self, __line):
@@ -94,6 +95,12 @@ class MiojiSimilarCityDict(object):
                 for word in __line[key].strip().split(MULTI_SPLIT_KEY):
                     if is_legal(word):
                         city_key_set.add(key_modify(word))
+
+        # 保存 city_info 以便查询
+        self.city_info_dict[__line['id']] = 'CityId ({3}) Country ({0}) Region ({1}) City ({2})'.format(
+            ', '.join(country_key_set),
+            ', '.join(region_key_set),
+            ', '.join(city_key_set), __line['id'])
 
         if KEY_CONTENT == 'both':
             if NEED_REGION:
@@ -158,12 +165,15 @@ FROM city
 
         return __dict
 
+    def get_mioji_city_info(self, city_id):
+        return self.city_info_dict[str(city_id)]
+
     def get_mioji_city_id(self, keys):
         if keys in self.dict:
             return self.dict[keys]
 
         if NEED_REGION:
-            if self.can_use_mioji_region((keys[0], keys[-1])):
+            if not self.can_use_mioji_region((keys[0], keys[-1])):
                 if (keys[0], keys[-1]) in self.dict:
                     return self.dict[(keys[0], keys[-1])]
 
