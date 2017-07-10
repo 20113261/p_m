@@ -201,7 +201,7 @@ def get_task_hotel_raw():
 
     # todo 10
     city_id = 'NULL'
-    f = open('/root/data/task/s_sid_hotels_new')
+    f = open('/root/data/task/s_sid_expedia_new')
     for line in f:
         try:
             source, source_id = line.strip().split('\t')
@@ -210,7 +210,9 @@ def get_task_hotel_raw():
             continue
 
         if source == 'hotels':
-            hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id=' + source_id
+            hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id={0}'.format(source_id)
+        elif source == 'expedia':
+            hotel_url = 'https://www.expedia.com.hk/h{0}.Hotel-Information'.format(source_id)
         else:
             raise Exception()
 
@@ -226,7 +228,7 @@ def get_task_hotel_raw():
 
 
 if __name__ == '__main__':
-    task_name = 'hotel_base_data_hotels_new'
+    task_name = 'hotel_base_data_expedia_new'
 
     with InsertTask(worker='hotel_base_data', task_name=task_name) as it:
         for args in get_task_hotel_raw():
