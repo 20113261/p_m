@@ -18,7 +18,7 @@ def get_columns():
     with conn as cursor:
         cursor.execute('''SELECT column_name
     FROM information_schema.columns
-    WHERE table_schema = 'devdb' AND table_name = 'city';''')
+    WHERE table_schema = '{0}' AND table_name = 'city';'''.format(SQL_DICT['db']))
         for line in cursor.fetchall():
             __name.add(line[0])
     conn.close()
