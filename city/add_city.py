@@ -3,11 +3,11 @@ import pymysql
 import dataset
 
 SQL_DICT = {
-    'host': '10.10.154.38',
-    'user': 'writer',
-    'password': 'miaoji1109',
+    'host': '10.10.230.206',
+    'user': 'mioji_admin',
+    'password': 'mioji1109',
     'charset': 'utf8',
-    'db': 'onlinedb'
+    'db': 'tmp'
 }
 ALL_NULL = ['NULL', 'Null', 'null', None, '', 'None', ' ']
 
@@ -29,9 +29,13 @@ def get_continent_max_id_dict() -> dict:
     _dict = {}
     conn = pymysql.connect(**SQL_DICT)
     with conn as cursor:
-        cursor.execute('''SELECT continent, MAX(id)as max_id FROM `city` GROUP BY continent''')
+        cursor.execute('''SELECT
+  continent_id,
+  MAX(id) AS max_id
+FROM `city`
+GROUP BY continent_id''')
         for continent, max_id in cursor.fetchall():
-            _dict[continent] = int(max_id)
+            _dict[str(continent)] = int(max_id)
     return _dict
 
 
@@ -82,7 +86,7 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
 
 if __name__ == '__main__':
-    xlsx_path = '/Users/hourong/Downloads/0427_city.xlsx'
+    xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
     need_change_map_info = False
     debug = False
     target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT)
@@ -126,7 +130,7 @@ if __name__ == '__main__':
 
             # 补充字段
             if 'id' not in data.keys():
-                data['id'] = generate_id(data['continent'])
+                data['id'] = generate_id(data['continent_id'])
             if 'country_id' not in data.keys():
                 data['country_id'] = country_id_dict[data['country']]
             if 'city_type' not in data.keys():
