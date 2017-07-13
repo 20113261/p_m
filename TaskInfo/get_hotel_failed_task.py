@@ -17,7 +17,7 @@ if __name__ == '__main__':
     #         print(line['args'])
 
     for line in db.query('''SELECT args
-    FROM TaskBooking
+    FROM Task
     WHERE finished = 0;'''):
         j_data = json.loads(line['args'])
         print(j_data['source'], j_data['other_info']['source_id'], j_data['hotel_url'])

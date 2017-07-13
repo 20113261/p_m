@@ -199,22 +199,76 @@ def get_task_hotel_raw():
     #         except:
     #             continue
 
-    # todo 10
+    """
+    文件读取 s_sid 不重复抓取 expedia
+    """
+    # city_id = 'NULL'
+    # f = open('/root/data/task/s_sid_expedia_new')
+    # for line in f:
+    #     try:
+    #         source, source_id = line.strip().split('\t')
+    #     except:
+    #         print('Hello')
+    #         continue
+    #
+    #     if source == 'hotels':
+    #         hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id={0}'.format(source_id)
+    #     elif source == 'expedia':
+    #         hotel_url = 'https://www.expedia.com.hk/h{0}.Hotel-Information'.format(source_id)
+    #     else:
+    #         raise Exception()
+    #
+    #     other_info = {
+    #         'source_id': source_id,
+    #         'city_id': city_id
+    #     }
+    #
+    #     args = {'source': source, 'hotel_url': hotel_url, 'other_info': other_info,
+    #             'part': task_name}
+    #
+    #     yield args
+
+    '''
+    文件读取 s sid 不重复抓取 ctrip
+    '''
+
+    # source = 'ctrip'
+    # city_id = 'NULL'
+    # f = open('/root/data/task/ctrip_sid')
+    # for line in f:
+    #     try:
+    #         source_id = line.strip()
+    #     except:
+    #         print('Hello')
+    #         continue
+    #
+    #     hotel_url = 'http://hotels.ctrip.com/international/{0}.html'.format(source_id)
+    #
+    #     other_info = {
+    #         'source_id': source_id,
+    #         'city_id': city_id
+    #     }
+    #
+    #     args = {'source': source, 'hotel_url': hotel_url, 'other_info': other_info,
+    #             'part': task_name}
+    #
+    #     yield args
+
+    '''
+    expedia name name_en 处理
+    '''
+    source = 'expedia'
     city_id = 'NULL'
-    f = open('/root/data/task/s_sid_expedia_new')
+
+    f = open('/root/data/task/expedia_new_total_sid')
     for line in f:
         try:
-            source, source_id = line.strip().split('\t')
+            source_id = line.strip()
         except:
             print('Hello')
             continue
 
-        if source == 'hotels':
-            hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id={0}'.format(source_id)
-        elif source == 'expedia':
-            hotel_url = 'https://www.expedia.com.hk/h{0}.Hotel-Information'.format(source_id)
-        else:
-            raise Exception()
+        hotel_url = 'https://www.expedia.com.hk/h{0}.Hotel-Information'.format(source_id)
 
         other_info = {
             'source_id': source_id,
@@ -228,7 +282,7 @@ def get_task_hotel_raw():
 
 
 if __name__ == '__main__':
-    task_name = 'hotel_base_data_expedia_new'
+    task_name = 'hotel_base_data_expedia_total_new'
 
     with InsertTask(worker='hotel_base_data', task_name=task_name) as it:
         for args in get_task_hotel_raw():

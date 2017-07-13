@@ -11,26 +11,47 @@ from TaskScheduler.TaskInsert import InsertTask
 
 db = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
 if __name__ == '__main__':
-    with InsertTask(worker='hotel_suggestion', task_name='ctrip_suggestion_0704') as it:
-        for line in db.query('''SELECT
-  id,
-  name,
-  name_en,
-  alias
-FROM city'''):
-            key_set = set()
-            if is_legal(line['name']):
-                key_set.add(key_modify(line['name']))
+    '''init hotel task common'''
+    # with InsertTask(worker='hotel_suggestion', task_name='ctrip_suggestion_0704') as it:
+    #         for line in db.query('''SELECT
+    #   id,
+    #   name,
+    #   name_en,
+    #   alias
+    # FROM city'''):
+    #             key_set = set()
+    #             if is_legal(line['name']):
+    #                 key_set.add(key_modify(line['name']))
+    #
+    #             if is_legal(line['name_en']):
+    #                 key_set.add(key_modify(line['name_en']))
+    #
+    #             for i in line['alias'].split('|'):
+    #                 if is_legal(i):
+    #                     key_set.add(key_modify(i))
+    #
+    #             for key in key_set:
+    #                 it.insert_task({
+    #                     'city_id': line['id'],
+    #                     'keyword': key
+    #                 })
 
-            if is_legal(line['name_en']):
-                key_set.add(key_modify(line['name_en']))
+    '''init special suggestion by human'''
+    import pandas
 
-            for i in line['alias'].split('|'):
-                if is_legal(i):
-                    key_set.add(key_modify(i))
+    table = pandas.read_csv('/tmp/ctrip_city_suggestions.csv').fillna('')
 
-            for key in key_set:
+    with InsertTask(worker='hotel_suggestion', task_name='ctrip_suggestion_0711') as it:
+        for i in range(len(table)):
+            line = table.iloc[i]
+            city_id = line['city_id']
+            real_name = line['real_name']
+
+            if real_name:
+                print(line['city_id'], line['real_name'])
+
                 it.insert_task({
-                    'city_id': line['id'],
-                    'keyword': key
+                    'city_id': str(city_id),
+                    'keyword': real_name,
+                    'annotation': '0'
                 })
