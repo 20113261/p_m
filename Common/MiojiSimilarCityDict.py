@@ -179,24 +179,28 @@ FROM city
 
         return None
 
+        # if __name__ == '__main__':
+        # mioji_similar_dict = MiojiSimilarCityDict()
+        # db = dataset.connect('mysql+pymysql://hourong:hourong@localhost/hotel_api?charset=utf8')
+        # table = db['gta_city']
+        #
+        # for line in table:
+        #     city_id = None
+        #     # 按国家二字码和城市名匹配
+        #     if is_legal(line['country_code']):
+        #         city_id = mioji_similar_dict.get_mioji_city_id(
+        #             (key_modify(line['country_code']), key_modify(line['city_name'])))
+        #
+        #     # 按国家名和城市名进行匹配
+        #     if city_id is None:
+        #         if is_legal(line['country_name']):
+        #             city_id = mioji_similar_dict.get_mioji_city_id(
+        #                 (key_modify(line['country_name']), key_modify(line['city_name'])))
+        #
+        #     if city_id is not None:
+        #         print(line['city_code'], city_id)
+
 
 if __name__ == '__main__':
-    mioji_similar_dict = MiojiSimilarCityDict()
-    db = dataset.connect('mysql+pymysql://hourong:hourong@localhost/hotel_api?charset=utf8')
-    table = db['gta_city']
-
-    for line in table:
-        city_id = None
-        # 按国家二字码和城市名匹配
-        if is_legal(line['country_code']):
-            city_id = mioji_similar_dict.get_mioji_city_id(
-                (key_modify(line['country_code']), key_modify(line['city_name'])))
-
-        # 按国家名和城市名进行匹配
-        if city_id is None:
-            if is_legal(line['country_name']):
-                city_id = mioji_similar_dict.get_mioji_city_id(
-                    (key_modify(line['country_name']), key_modify(line['city_name'])))
-
-        if city_id is not None:
-            print(line['city_code'], city_id)
+    d = MiojiSimilarCityDict()
+    print(d.get_mioji_city_id(('法国', 'Paris')))
