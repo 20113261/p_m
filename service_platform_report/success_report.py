@@ -13,24 +13,34 @@ if __name__ == '__main__':
     success_count = defaultdict(int)
     key_set = set()
     for key in r.keys():
+        task_type = 'NULL'
+        task_source = 'NULL'
         key_list = key.decode().split('|_||_|')
-        if len(key_list) != 3:
+        if len(key_list) not in (3, 5):
             continue
-        worker, local_ip, result = key_list
+        if len(key_list) == 3:
+            worker, local_ip, result = key_list
+        elif len(key_list) == 5:
+            worker, local_ip, task_source, task_type, result = key_list
+        else:
+            continue
+
         count = r.get(key)
 
         if result == 'failure':
-            fail_count[(worker, local_ip)] = int(count)
+            fail_count[(worker, local_ip, task_source, task_type)] = int(count)
         elif result == 'success':
-            success_count[(worker, local_ip)] = int(count)
+            success_count[(worker, local_ip, task_source, task_type)] = int(count)
 
-        key_set.add((worker, local_ip))
+        key_set.add((worker, local_ip, task_source, task_type))
 
     for key in key_set:
-        worker, local_ip = key
+        worker, local_ip, task_source, task_type = key
         data = {
             'worker_name': worker,
             'slave_ip': local_ip,
+            'source': task_source,
+            'type': task_type,
             'assigned': fail_count[key] + success_count[key],
             'completed': success_count[key],
             'date': datetime.datetime.strftime(dt, '%Y%m%d'),
@@ -43,7 +53,7 @@ if __name__ == '__main__':
         except Exception:
             pass
 
-        print(worker, local_ip, fail_count[key] + success_count[key], success_count[key],
+        print(worker, local_ip, task_source, task_type, fail_count[key] + success_count[key], success_count[key],
               datetime.datetime.strftime(dt, '%Y%m%d'),
               datetime.datetime.strftime(dt, '%H'), datetime.datetime.strftime(dt, '%Y%m%d%H00'))
-    r.flushdb()
+        r.flushdb()
