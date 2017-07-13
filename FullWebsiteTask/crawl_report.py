@@ -9,7 +9,7 @@ import pymongo
 from collections import defaultdict
 
 client = pymongo.MongoClient(host='10.10.231.105')
-collections = client['FullSiteSpider']['Attr']
+collections = client['FullSiteSpider']['AttrFullSiteNew']
 
 if __name__ == '__main__':
     img_dict = defaultdict(list)
