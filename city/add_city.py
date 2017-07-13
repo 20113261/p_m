@@ -33,6 +33,7 @@ def get_continent_max_id_dict() -> dict:
   continent_id,
   MAX(id) AS max_id
 FROM `city`
+WHERE id NOT LIKE '9%'
 GROUP BY continent_id''')
         for continent, max_id in cursor.fetchall():
             _dict[str(continent)] = int(max_id)
