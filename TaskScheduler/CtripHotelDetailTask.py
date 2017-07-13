@@ -11,8 +11,8 @@ from collections import defaultdict
 client = pymongo.MongoClient(host='10.10.231.105')
 collections = client['HotelList']['ctrip']
 
-id_set = set()
 if __name__ == '__main__':
+    # id_set = set()
     # _count = 0
     # for line in collections.find():
     #     _count += 1
@@ -29,4 +29,15 @@ if __name__ == '__main__':
 
     sid_cid_set = set()
     for line in collections.find():
-        sid_cid_set.add((line[''], line['sid']))
+        sid_cid_set.add((line['parent_info']['city_id'], line['sid']))
+
+    f = open('/root/data/task/ctrip_cid_sid', 'w')
+    _count = 0
+    for cid, sid in sid_cid_set:
+        _count += 1
+        if _count % 10000 == 0:
+            print(_count)
+        f.write("{}\t{}\n".format(cid, sid))
+
+    print('total length', len(sid_cid_set))
+    f.close()
