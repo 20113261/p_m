@@ -6,6 +6,7 @@
 # @File    : MiojiSimilarCountryDict.py
 # @Software: PyCharm
 import dataset
+from Common.Utils import is_legal
 
 # 相似多字段分割符
 MULTI_SPLIT_KEY = '|'
@@ -15,14 +16,6 @@ COUNTRY_KEYS = ['country_name', 'country_name_en', 'country_short_name_cn', 'cou
 COUNTRY_MULTI_KEYS = ['country_alias']
 # 额外的国家配置
 ADDITIONAL_COUNTRY_LIST = {}
-
-
-def is_legal(s):
-    if s:
-        if s.strip():
-            if s.lower() != 'null':
-                return True
-    return False
 
 
 def key_modify(s: str):

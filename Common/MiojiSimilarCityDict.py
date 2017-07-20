@@ -7,6 +7,7 @@
 # @Software: PyCharm
 import dataset
 from collections import defaultdict
+from Common.Utils import is_legal
 
 # 相似多字段分割符
 MULTI_SPLIT_KEY = '|'
@@ -34,22 +35,6 @@ KEY_CONTENT = 'both'
 
 # 额外补充的国家 mid 对应关系, {'mid':'country'}
 ADDITIONAL_COUNTRY_LIST = {}
-
-
-def is_legal(s):
-    if s:
-        if isinstance(s, str):
-            if s.strip():
-                if s.lower() != 'null':
-                    return True
-        elif isinstance(s, int):
-            if s > -1:
-                return True
-
-        elif isinstance(s, float):
-            if s > -1.0:
-                return True
-    return False
 
 
 def key_modify(s: str):

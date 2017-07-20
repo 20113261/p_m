@@ -6,10 +6,15 @@
 # @File    : GetMd5.py
 # @Software: PyCharm
 import hashlib
+import json
 
 
 def encode_md5(string):
     return hashlib.md5(string.encode()).hexdigest()
+
+
+def get_token(d: dict) -> str:
+    return encode_md5(json.dumps(d))
 
 
 if __name__ == '__main__':
