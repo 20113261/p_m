@@ -257,18 +257,45 @@ def get_task_hotel_raw():
     '''
     expedia name name_en 处理
     '''
-    source = 'expedia'
+    # source = 'expedia'
+    # city_id = 'NULL'
+    #
+    # f = open('/root/data/task/expedia_new_total_sid')
+    # for line in f:
+    #     try:
+    #         source_id = line.strip()
+    #     except:
+    #         print('Hello')
+    #         continue
+    #
+    #     hotel_url = 'https://www.expedia.com.hk/h{0}.Hotel-Information'.format(source_id)
+    #
+    #     other_info = {
+    #         'source_id': source_id,
+    #         'city_id': city_id
+    #     }
+    #
+    #     args = {'source': source, 'hotel_url': hotel_url, 'other_info': other_info,
+    #             'part': task_name}
+    #
+    #     yield args
+
+    '''
+    tripadvisor 抓取
+    '''
+    import pymysql
+
+    source = 'tripadvisor'
     city_id = 'NULL'
 
-    f = open('/root/data/task/expedia_new_total_sid')
-    for line in f:
-        try:
-            source_id = line.strip()
-        except:
-            print('Hello')
-            continue
-
-        hotel_url = 'https://www.expedia.com.hk/h{0}.Hotel-Information'.format(source_id)
+    conn = pymysql.connect(host='10.10.228.253', user='writer', password='miaoji1109', db='spider_db', charset='utf8')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM `hotel_base_data_task_by_serviceplatform` WHERE source='tripadvisor'")
+    for line in cursor.fetchall():
+        source = line[0]
+        source_id = line[1]
+        city_id = line[2]
+        hotel_url = line[3]
 
         other_info = {
             'source_id': source_id,
@@ -282,7 +309,7 @@ def get_task_hotel_raw():
 
 
 if __name__ == '__main__':
-    task_name = 'hotel_base_data_expedia_total_new'
+    task_name = 'hotel_base_data_tripadvisor_total_new'
 
     with InsertTask(worker='hotel_base_data', task_name=task_name) as it:
         for args in get_task_hotel_raw():

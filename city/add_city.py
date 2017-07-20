@@ -2,12 +2,19 @@ import pandas
 import pymysql
 import dataset
 
+# SQL_DICT = {
+#     'host': '10.10.230.206',
+#     'user': 'mioji_admin',
+#     'password': 'mioji1109',
+#     'charset': 'utf8',
+#     'db': 'tmp'
+# }
 SQL_DICT = {
-    'host': '10.10.230.206',
+    'host': '10.10.228.253',
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
-    'db': 'tmp'
+    'db': 'base_data'
 }
 ALL_NULL = ['NULL', 'Null', 'null', None, '', 'None', ' ']
 
@@ -87,7 +94,8 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
 
 if __name__ == '__main__':
-    xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
+    # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
+    xlsx_path = '/tmp/new_city.xlsx'
     need_change_map_info = False
     debug = False
     target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT)
