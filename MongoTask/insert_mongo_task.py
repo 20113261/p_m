@@ -13,6 +13,7 @@ client = pymongo.MongoClient(host='10.10.231.105')
 collections = client['Task']['NewTask']
 
 if __name__ == '__main__':
+    '''
     f = open('/root/data/task/WholeSiteTask')
     f.readline()
     collections.remove()
@@ -45,3 +46,5 @@ if __name__ == '__main__':
 
     print(count)
     collections.insert_many(data)
+    '''
+    pass
