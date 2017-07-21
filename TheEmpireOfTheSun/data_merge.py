@@ -13,9 +13,9 @@ from collections import defaultdict
 client = pymongo.MongoClient(host='10.10.231.105')
 
 if __name__ == '__main__':
-    db = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/private_data?charset=utf8')
-    private_db = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.149.146/private_data?charset=utf8')
-    base_data_db = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
+    # db = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/private_data?charset=utf8')
+    # private_db = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.149.146/private_data?charset=utf8')
+    # base_data_db = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
 
     target_table = db['hotel_private_test']
     key_match = defaultdict(set)

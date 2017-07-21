@@ -14,7 +14,7 @@ def encode_md5(string):
 
 
 def get_token(d: dict) -> str:
-    return encode_md5(json.dumps(d))
+    return encode_md5(json.dumps(d, sort_keys=True))
 
 
 if __name__ == '__main__':
