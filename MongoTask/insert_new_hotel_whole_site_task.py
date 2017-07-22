@@ -11,6 +11,7 @@ import datetime
 
 from Common.GetMd5 import get_token
 from Common.Utils import is_legal, modify_url
+from Common.MongoUtils import mongo_find_iter
 
 client = pymongo.MongoClient(host='10.10.231.105')
 
@@ -38,62 +39,75 @@ def insert_many_task(d: list, is_end: bool = False) -> int:
     return 0
 
 
-
-
-
 if __name__ == '__main__':
-    pass
-    # data = []
-    #
-    # count = 0
-    # collections.remove()
-    # for line in src_collections.find():
-    #     count += 1
-    #     if count % 1000 == 0:
-    #         print('Now', count)
-    #     source_id = line['parent_info']['id']
-    #     pdf_url_list = line['pdf_url']
-    #     img_url_list = line['img_url']
-    #     for img_url in img_url_list:
-    #         if is_legal(img_url):
-    #             if 'logo' not in img_url.lower():
-    #                 modified_url = modify_url(img_url)
-    #                 if modified_url:
-    #                     args = {
-    #                         'mid': source_id,
-    #                         'type': 'img',
-    #                         'source_url': modified_url
-    #                     }
-    #
-    #                     data.append({
-    #                         'args': args,
-    #                         'task_token': get_token(args),
-    #                         'used_times': 0,
-    #                         'finished': 0,
-    #                         'utime': datetime.datetime.now()
-    #                     })
-    #
-    #                     insert_many_task(data)
-    #
-    #     for pdf_url in pdf_url_list:
-    #         if is_legal(pdf_url):
-    #             modified_url = modify_url(pdf_url)
-    #             if modified_url:
-    #                 args = {
-    #                     'mid': source_id,
-    #                     'type': 'pdf',
-    #                     'source_url': modified_url
-    #                 }
-    #
-    #                 data.append({
-    #                     'args': args,
-    #                     'task_token': get_token(args),
-    #                     'used_times': 0,
-    #                     'finished': 0,
-    #                     'utime': datetime.datetime.now()
-    #                 })
-    #
-    #                 insert_many_task(data)
-    #
-    # print(count)
-    # insert_many_task(data, True)
+    data = []
+
+    count = 0
+    collections.remove()
+    for line in mongo_find_iter(src_collections):
+        count += 1
+        if count % 1000 == 0:
+            print('Now', count)
+        source_id = line['parent_info']['id']
+        pdf_url_list = line['pdf_url']
+        img_url_list = line['img_url']
+        for img_url in img_url_list:
+            if is_legal(img_url):
+                if 'logo' not in img_url.lower():
+                    modified_url = modify_url(img_url)
+                    if modified_url:
+                        args = {
+                            'mid': source_id,
+                            'type': 'img',
+                            'source_url': modified_url
+                        }
+
+                        data.append({
+                            'args': args,
+                            'task_token': get_token(args),
+                            'used_times': 0,
+                            'finished': 0,
+                            'utime': datetime.datetime.now()
+                        })
+
+                        if data and (len(data) % 2000 == 0):
+                            res = []
+                            try:
+                                res = collections.insert(data, continue_on_error=True) or []
+                            except pymongo.errors.DuplicateKeyError:
+                                pass
+                            data = []
+
+        for pdf_url in pdf_url_list:
+            if is_legal(pdf_url):
+                modified_url = modify_url(pdf_url)
+                if modified_url:
+                    args = {
+                        'mid': source_id,
+                        'type': 'pdf',
+                        'source_url': modified_url
+                    }
+
+                    data.append({
+                        'args': args,
+                        'task_token': get_token(args),
+                        'used_times': 0,
+                        'finished': 0,
+                        'utime': datetime.datetime.now()
+                    })
+
+                    if data and (len(data) % 2000 == 0):
+                        res = []
+                        try:
+                            res = collections.insert(data, continue_on_error=True) or []
+                        except pymongo.errors.DuplicateKeyError:
+                            pass
+                        data = []
+
+    print(count)
+    if data:
+        res = []
+        try:
+            res = collections.insert(data, continue_on_error=True) or []
+        except pymongo.errors.DuplicateKeyError:
+            pass
