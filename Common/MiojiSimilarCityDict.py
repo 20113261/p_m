@@ -6,6 +6,7 @@
 # @File    : MiojiSimilarCityDict.py
 # @Software: PyCharm
 import dataset
+import unittest
 from collections import defaultdict
 from Common.Utils import is_legal
 
@@ -186,6 +187,16 @@ FROM city
         #         print(line['city_code'], city_id)
 
 
+class SimilarCityDictTest(unittest.TestCase):
+    def test_case_1(self):
+        d = MiojiSimilarCityDict()
+        self.assertEqual(d.get_mioji_city_id(('法国', 'paris')), '10001')
+
+    def test_case_2(self):
+        COUNTRY_KEYS.append('country_code')
+        d = MiojiSimilarCityDict()
+        self.assertEqual(d.get_mioji_city_id(('fr', 'paris')), '10001')
+
+
 if __name__ == '__main__':
-    d = MiojiSimilarCityDict()
-    print(d.get_mioji_city_id(('法国', 'Paris')))
+    unittest.main()
