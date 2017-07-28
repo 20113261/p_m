@@ -36,7 +36,8 @@ def dates_tasks(take_days, day_step=1, ignore_days=0):
 
 
 if __name__ == '__main__':
-    # for i in dates_until('2017-12-31'):
-    #     print(i)
-    for i in dates_tasks(90, 10, 20):
+    DATE_FORMAT = '%Y%m%d'
+    for i in dates_until('20171231'):
         print(i)
+    # for i in dates_tasks(90, 10, 20):
+    #     print(i)
