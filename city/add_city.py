@@ -16,6 +16,7 @@ SQL_DICT = {
     'charset': 'utf8',
     'db': 'base_data'
 }
+
 ALL_NULL = ['NULL', 'Null', 'null', None, '', 'None', ' ']
 
 
@@ -95,7 +96,8 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
 if __name__ == '__main__':
     # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
-    xlsx_path = '/tmp/new_city.xlsx'
+    # xlsx_path = '/tmp/new_city.xlsx'
+    xlsx_path = '/Users/hourong/Downloads/city_need_update_0803.xlsx'
     need_change_map_info = False
     debug = False
     target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT)
@@ -151,7 +153,7 @@ if __name__ == '__main__':
             if debug:
                 print(data)
             else:
-                data_table.insert(data)
+                data_table.upsert(data, keys=['id'])
             all_city_id.append(data['id'])
 
     print(all_city_id)
