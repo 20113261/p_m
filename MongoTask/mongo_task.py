@@ -14,18 +14,23 @@ import pymysql
 client = pymongo.MongoClient(host='10.10.231.105')
 collections = client['MongoTask']['Task']
 
-conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong', charset='utf8', db='attr_merge')
+# conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong', charset='utf8', db='attr_merge')
+conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong', charset='utf8', db='shop_merge')
 cursor = conn.cursor()
 if __name__ == '__main__':
-    cursor.execute('''select distinct id,url from attr where source='qyer';''')
+    # cursor.execute('''select distinct id,url from attr where source='daodao';''')
+    cursor.execute('''select distinct id,url from shop where source='daodao';''')
     data = []
     _count = 0
     for _, target_url in cursor.fetchall():
         _count += 1
         task_info = {
-            'worker': 'proj.qyer_poi_tasks.qyer_poi_task',
-            'queue': 'poi_task_2',
-            'routing_key': 'poi_task_2',
+            # 'worker': 'proj.qyer_poi_tasks.qyer_poi_task',
+            # 'worker': 'proj.tasks.get_lost_attr',
+            'worker': 'proj.tasks.get_lost_shop',
+            'queue': 'poi_task_1',
+            'routing_key': 'poi_task_1',
+            'task_name': 'daodao_shop',
             'args': {
                 'target_url': target_url,
                 'city_id': 'NULL',
