@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# @Time    : 2017/8/9 下午4:19
+# @Author  : Hou Rong
+# @Site    : 
+# @File    : mongo_task_read_file.py
+# @Software: PyCharm
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
 # @Time    : 2017/8/8 上午8:19
 # @Author  : Hou Rong
 # @Site    :
@@ -14,30 +21,31 @@ import pymysql
 client = pymongo.MongoClient(host='10.10.231.105')
 collections = client['MongoTask']['Task']
 
-# conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong', charset='utf8', db='attr_merge')
-conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong', charset='utf8', db='rest_merge')
-cursor = conn.cursor()
 if __name__ == '__main__':
-    # cursor.execute('''select distinct id,url from attr where source='daodao';''')
-    cursor.execute('''select distinct id,url from rest where source='daodao';''')
+    f = open('/tmp/all_img_1.txt')
     data = []
     _count = 0
-    for _, target_url in cursor.fetchall():
+    for target_url in f:
         _count += 1
         task_info = {
             # 'worker': 'proj.qyer_poi_tasks.qyer_poi_task',
             # 'worker': 'proj.tasks.get_lost_attr',
             # 'worker': 'proj.tasks.get_lost_shop',
-            'worker': 'proj.tasks.get_lost_rest',
-            'queue': 'poi_task_1',
-            'routing_key': 'poi_task_1',
+            'worker': 'proj.file_downloader_task.file_downloader',
+            'queue': 'file_downloader',
+            'routing_key': 'file_downloader',
             # 'task_name': 'daodao_shop',
-            'task_name': 'daodao_rest',
+            'task_name': 'file_download',
             'args': {
-                'target_url': target_url,
-                'city_id': 'NULL',
+                # 'target_url': target_url,
+                # 'city_id': 'NULL',
+                'url': target_url.strip(),
+                'file_type': 'img',
+                'file_path': '/search/nfs/image/img_itrip',
+                'need_filter': 'NO',
+                'file_split': 'NO'
             },
-            'priority': 3,
+            'priority': 5,
             'finished': 0,
             'used_times': 0,
             'utime': datetime.datetime.now()
