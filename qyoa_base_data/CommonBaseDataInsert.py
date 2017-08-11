@@ -11,7 +11,8 @@ from qyoa_base_data import settings
 
 
 class BaseDataInsert(object):
-    def __init__(self, keys, key_map, table_name, unique_key, need_update_city_id):
+    def __init__(self, keys, key_map, table_name, unique_key, need_update_city_id, need_add_id_map=True,
+                 need_new_data=True):
         self.keys = keys
         self.key_map = key_map
         self.src_table_name, self.dst_table_name = table_name
@@ -20,8 +21,12 @@ class BaseDataInsert(object):
         self.target_db = dataset.connect(settings.TARGET_DB_STR)
         self.id_map_db = dataset.connect(settings.ID_MAP_DB_STR)
         self.data_id_set = set()
+        self.errors = list()
         self.id_map = self.get_id_map()
         self.need_update_city_id = need_update_city_id
+        self.id_key = unique_key[0]
+        self.need_add_id_map = need_add_id_map
+        self.need_new_data = need_new_data
 
     def get_data(self):
         for line in self.private_db.query(
@@ -36,27 +41,39 @@ class BaseDataInsert(object):
             # 从 refer 中获取 id
             if line['refer'] is not None:
                 if line['refer'] != '':
-                    data['id'] = line['refer']
+                    data[self.id_key] = line['refer']
 
-            # 从 id_map 中获取 id
-            if 'id' not in data:
-                id_map_miaoji_id = self.id_map.get(line['id'], None)
-                if id_map_miaoji_id:
-                    data['id'] = id_map_miaoji_id
+            if not self.need_new_data:
+                if self.id_key not in data:
+                    self.errors.append(line)
+                    continue
+                if not data[self.id_key]:
+                    self.errors.append(line)
+                    continue
 
-            # 新生成相关 id
-            if 'id' not in data:
-                data['id'] = self.get_new_id()
+            # 如果需要增加 id map 的关系，则使用如此方法获取 id
+            if self.need_add_id_map:
+                # 从 id_map 中获取 id
+                if self.id_key not in data:
+                    id_map_miaoji_id = self.id_map.get(line[self.id_key], None)
+                    if id_map_miaoji_id:
+                        data[self.id_key] = id_map_miaoji_id
+
+                # 新生成相关 id
+                if self.id_key not in data:
+                    data[self.id_key] = self.get_new_id()
 
             # 景点，购物，餐厅更新 city_id
             if self.need_update_city_id:
                 data['city_id'] = self.id_map.get(data['city_id'], None) or data['city_id']
 
             # 保存本次所有 id
-            self.data_id_set.add(data['id'])
+            self.data_id_set.add(data[self.id_key])
 
-            # 存储 id 对应关系
-            self.insert_id_map(line['id'], data['id'])
+            # 如果需要增加 id 对应关系
+            if self.need_add_id_map:
+                # 存储 id 对应关系
+                self.insert_id_map(line[self.id_key], data[self.id_key])
 
             # 修改 景点、购物、餐厅 表 status
             if self.need_update_city_id:
@@ -89,6 +106,7 @@ class BaseDataInsert(object):
         for data in self.get_data():
             self.insert(data)
         print(self.data_id_set)
+        print(self.errors)
 
     @abc.abstractclassmethod
     def get_new_id(self):
@@ -134,9 +152,28 @@ class ShopBaseDataInsert(BaseDataInsert):
         pass
 
 
-if __name__ == '__main__':
-    city_base_data_insert = CityBaseDataInsert()
-    city_base_data_insert.run()
+class HotelBaseDataInsert(BaseDataInsert):
+    def __init__(self):
+        super().__init__(settings.HOTEL_KEYS, settings.HOTEL_KEY_MAP, ('hotel', 'hotel'), settings.HOTEL_UNIQUE_KEY,
+                         False, need_add_id_map=False, need_new_data=False)
+        import pymysql
+        self.conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong')
 
-    attr_base_data_insert = AttrBaseDataInsert()
-    attr_base_data_insert.run()
+    def get_new_id(self):
+        pass
+
+    def insert(self, data):
+        with self.conn.cursor() as cursor:
+            pass
+        print(data)
+
+
+if __name__ == '__main__':
+    # city_base_data_insert = CityBaseDataInsert()
+    # city_base_data_insert.run()
+    #
+    # attr_base_data_insert = AttrBaseDataInsert()
+    # attr_base_data_insert.run()
+
+    hotel_base_data_insert = HotelBaseDataInsert()
+    hotel_base_data_insert.run()
