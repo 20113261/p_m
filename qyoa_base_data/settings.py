@@ -13,6 +13,7 @@ CITY_UNIQUE_KEY = ['id']
 ATTR_UNIQUE_KEY = ['id']
 REST_UNIQUE_KEY = ['id']
 SHOP_UNIQUE_KEY = ['id']
+HOTEL_UNIQUE_KEY = ['uid']
 
 CITY_KEY_MAP = {
     'img_list': 'new_product_city_pic'
@@ -25,6 +26,9 @@ REST_KEY_MAP = {
 }
 
 SHOP_KEY_MAP = {
+}
+
+HOTEL_KEY_MAP = {
 }
 
 CITY_KEYS = [
@@ -225,3 +229,5 @@ SHOP_KEYS = [
     'utime',
     'website_url'
 ]
+
+HOTEL_KEYS = []
