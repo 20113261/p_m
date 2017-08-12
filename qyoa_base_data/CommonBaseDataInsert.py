@@ -7,12 +7,14 @@
 # @Software: PyCharm
 import dataset
 import abc
+import json
 from qyoa_base_data import settings
+from toolbox.Common import is_legal
 
 
 class BaseDataInsert(object):
     def __init__(self, keys, key_map, table_name, unique_key, need_update_city_id, need_add_id_map=True,
-                 need_new_data=True):
+                 need_new_data=True, need_update_status=True):
         self.keys = keys
         self.key_map = key_map
         self.src_table_name, self.dst_table_name = table_name
@@ -27,6 +29,9 @@ class BaseDataInsert(object):
         self.id_key = unique_key[0]
         self.need_add_id_map = need_add_id_map
         self.need_new_data = need_new_data
+        self.need_update_status = need_update_status
+        self.total = 0
+        self.update = 0
 
     def get_data(self):
         for line in self.private_db.query(
@@ -34,9 +39,8 @@ class BaseDataInsert(object):
             data = {}
             for k in self.keys:
                 # 去除空行
-                if line[k]:
-                    if line[k] != '' and line[k] != 'NULL':
-                        data[(self.key_map.get(k, None) or k)] = line[k]
+                if is_legal(line[k]):
+                    data[(self.key_map.get(k, None) or k)] = line[k]
 
             # 从 refer 中获取 id
             if line['refer'] is not None:
@@ -75,15 +79,16 @@ class BaseDataInsert(object):
                 # 存储 id 对应关系
                 self.insert_id_map(line[self.id_key], data[self.id_key])
 
-            # 修改 景点、购物、餐厅 表 status
-            if self.need_update_city_id:
-                data['status_test'] = "Open"
-                data['status_online'] = "Close"
-                data['dept_status_online'] = "Close"
-                data['dept_status_test'] = "Close"
-            # 增加 city 表 status
-            else:
-                data['status_test'] = "Open"
+            if self.need_update_status:
+                # 修改 景点、购物、餐厅 表 status
+                if self.need_update_city_id:
+                    data['status_test'] = "Open"
+                    data['status_online'] = "Close"
+                    data['dept_status_online'] = "Close"
+                    data['dept_status_test'] = "Close"
+                # 增加 city 表 status
+                else:
+                    data['status_test'] = "Open"
 
             yield data
 
@@ -155,17 +160,32 @@ class ShopBaseDataInsert(BaseDataInsert):
 class HotelBaseDataInsert(BaseDataInsert):
     def __init__(self):
         super().__init__(settings.HOTEL_KEYS, settings.HOTEL_KEY_MAP, ('hotel', 'hotel'), settings.HOTEL_UNIQUE_KEY,
-                         False, need_add_id_map=False, need_new_data=False)
+                         False, need_add_id_map=False, need_new_data=False, need_update_status=False)
         import pymysql
-        self.conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong')
+        self.conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong', charset='utf8',
+                                    db='base_data')
 
     def get_new_id(self):
         pass
 
-    def insert(self, data):
+    def insert(self, data: dict):
+        self.total += 1
         with self.conn.cursor() as cursor:
-            pass
-        print(data)
+            sql_temp = []
+            sql_data = []
+            data['official'] = 1
+            for k, v in data.items():
+                if k != 'rec_priority':
+                    sql_temp.append('`{0}`=%s'.format(k))
+                    sql_data.append(v)
+                elif v in (10, '10'):
+                    sql_temp.append('`commercial_mark`=%s')
+                    sql_data.append(json.dumps({'type': 0, 'title': '洛杉矶旅游局会员酒店'}))
+
+            sql = 'UPDATE hotel_online_test SET {0} WHERE uid=%s'.format(','.join(sql_temp))
+            sql_data.append(data['uid'])
+            self.update += cursor.execute(sql, sql_data)
+        print('Total: {0}, Update: {1}'.format(self.total, self.update))
 
 
 if __name__ == '__main__':
