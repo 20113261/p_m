@@ -97,7 +97,7 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 if __name__ == '__main__':
     # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
     # xlsx_path = '/tmp/new_city.xlsx'
-    xlsx_path = '/Users/hourong/Downloads/city_need_update_0803.xlsx'
+    xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
     need_change_map_info = False
     debug = False
     target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT)
@@ -106,24 +106,28 @@ if __name__ == '__main__':
     all_city_id = []
     cols = get_columns()
     country_id_dict = get_country_id_dict()
-    header = 1
-    table = pandas.read_excel(
-        xlsx_path,
-        header=header
-    )
-    converters = {key: str for key in table.keys()}
+    header = 0
+    sheetname = 'city'
     table = pandas.read_excel(
         xlsx_path,
         header=header,
-        converters=converters,
+        sheetname=sheetname,
     ).fillna('null')
 
     data_table = dataset.connect(target_db).get_table(target_table)
 
+    converters = {key: str for key in table.keys()}
+    table = pandas.read_excel(
+        xlsx_path,
+        header=header,
+        sheetname=sheetname,
+        converters=converters,
+    ).fillna('null')
+
     conn = pymysql.connect(**SQL_DICT)
     with conn as cursor:
         for i in range(len(table)):
-            line = table.irow(i)
+            line = table.iloc[i]
             data = {}
             for key in table.keys():
                 # 去除无关项
@@ -131,13 +135,14 @@ if __name__ == '__main__':
                     continue
 
                 # 去除中英文名为空的
-                if line['name'] in ALL_NULL and line['name_en'] in ALL_NULL:
-                    continue
+                # if line['name'] in ALL_NULL and line['name_en'] in ALL_NULL:
+                #     continue
 
                 # 判断字段是否符合规范
                 res, value = check_and_modify_columns(key, line[key])
                 if res:
-                    data[key] = value
+                    if value not in ('NULL', 'null'):
+                        data[key] = value
 
             # 补充字段
             if 'id' not in data.keys():
