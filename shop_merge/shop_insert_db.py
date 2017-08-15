@@ -43,7 +43,7 @@ def get_shop_id_list():
 def get_shop_dict(shop_id_list):
     shop_dict = defaultdict(dict)
     conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', password='mioji1109', charset='utf8',
-                           db='base_data')
+                           db='shop_merge')
     cursor = conn.cursor(cursor=DictCursor)
     sql = "select * from shop where id in (%s)" % ','.join(
         ["\"" + x + "\"" for x in shop_id_list])
@@ -98,6 +98,7 @@ GROUP BY id'''
                     data_dict[each_name][source] = shop_info[each_name]
 
         if not can_be_used:
+            print('union_info', union_info)
             continue
 
         new_data_dict = {}
