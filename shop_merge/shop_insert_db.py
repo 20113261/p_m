@@ -6,6 +6,8 @@ import toolbox.Common
 from pymysql.cursors import DictCursor
 from collections import defaultdict
 
+others_name_list = ['source']
+
 json_name_list = ['url', 'ranking', 'star', 'recommend_lv', 'plantocounts', 'beentocounts', 'commentcounts', 'tagid',
                   'introduction']
 norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'site', 'phone',
@@ -42,7 +44,9 @@ def get_shop_id_list():
 
 def get_shop_dict(shop_id_list):
     shop_dict = defaultdict(dict)
-    conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', password='mioji1109', charset='utf8',
+    # conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', password='mioji1109', charset='utf8',
+    #                        db='shop_merge')
+    conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong', charset='utf8',
                            db='shop_merge')
     cursor = conn.cursor(cursor=DictCursor)
     sql = "select * from shop where id in (%s)" % ','.join(
@@ -81,6 +85,11 @@ GROUP BY id'''
 
         data_dict = defaultdict(dict)
         can_be_used = False
+
+        # 初始化融合信息
+        for each_name in (json_name_list + norm_name_list + others_name_list):
+            data_dict[each_name] = {}
+
         for s_sid in union_info.split('|_||_|'):
             source, source_id = s_sid.split('|')
             if not source_id or not source:
@@ -92,15 +101,13 @@ GROUP BY id'''
 
             can_be_used = True
 
-            for each_name in (json_name_list + norm_name_list):
-                data_dict[each_name] = {}
+            for each_name in (json_name_list + norm_name_list + others_name_list):
                 if str(shop_dict[each_name]).upper() not in ('NULL', ''):
                     data_dict[each_name][source] = shop_info[each_name]
 
         if not can_be_used:
             print('union_info', union_info)
             continue
-
         new_data_dict = {}
         for norm_name in norm_name_list:
             new_data_dict[norm_name] = get_key_by_priority(data_dict[norm_name]) or ''
@@ -110,6 +117,8 @@ GROUP BY id'''
 
         new_data_dict['phone'] = new_data_dict['phone'].replace('电话号码：', '').strip()
 
+        # 添加 source
+        source = '|'.join(sorted(data_dict['source'].values()))
         data_dict = new_data_dict
 
         sql = 'insert ignore into ' \
