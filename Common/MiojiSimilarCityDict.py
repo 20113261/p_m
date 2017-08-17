@@ -123,7 +123,7 @@ class MiojiSimilarCityDict(object):
         return self.can_use_region[keys]
 
     def get_mioji_similar_dict(self):
-        __dict = dict()
+        __dict = defaultdict(set)
         db_test = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
         city_country_info = [
             i for i in db_test.query('''SELECT
@@ -147,7 +147,7 @@ FROM city
         ]
         for __line in city_country_info:
             for key in self.get_keys(__line):
-                __dict[key] = __line['id']
+                __dict[key].add(__line['id'])
 
         return __dict
 
@@ -190,12 +190,16 @@ FROM city
 class SimilarCityDictTest(unittest.TestCase):
     def test_case_1(self):
         d = MiojiSimilarCityDict()
-        self.assertEqual(d.get_mioji_city_id(('法国', 'paris')), '10001')
+        self.assertSetEqual(d.get_mioji_city_id(('法国', 'paris')), {'10001', })
 
     def test_case_2(self):
         COUNTRY_KEYS.append('country_code')
         d = MiojiSimilarCityDict()
-        self.assertEqual(d.get_mioji_city_id(('fr', 'paris')), '10001')
+        self.assertSetEqual(d.get_mioji_city_id(('fr', 'paris')), {'10001', })
+
+    def test_case_3(self):
+        d = MiojiSimilarCityDict()
+        self.assertSetEqual(d.get_mioji_city_id(('美国', '阿森斯')), {'50251', '50252'})
 
 
 if __name__ == '__main__':
