@@ -201,6 +201,13 @@ class SimilarCityDictTest(unittest.TestCase):
         d = MiojiSimilarCityDict()
         self.assertSetEqual(d.get_mioji_city_id(('美国', '阿森斯')), {'50251', '50252'})
 
+    def test_case_4(self):
+        global COUNTRY_KEYS
+        COUNTRY_KEYS = ['country_id', 'country_name', 'country_name_en', 'country_short_name_cn',
+                        'country_short_name_en']
+        d = MiojiSimilarCityDict()
+        self.assertSetEqual(d.get_mioji_city_id(('501', '阿森斯')), {'50251', '50252'})
+
 
 if __name__ == '__main__':
     unittest.main()
