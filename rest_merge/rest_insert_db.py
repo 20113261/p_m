@@ -90,6 +90,13 @@ GROUP BY id'''
 if __name__ == '__main__':
     conn = pymysql.connect(host='10.10.180.145', user='hourong', passwd='hourong', charset='utf8', db='rest_merge')
 
+    sql = 'insert into chat_restaurant(`id`,`name`,`name_en`,' \
+          '`source`,`city_id`,`map_info`,`address`,`real_ranking`,' \
+          '`grade`,`res_url`,`telphone`,`introduction`,`open_time_desc`,`prize`,' \
+          '`traveler_choice`,`review_num`,`price`,`price_level`,`cuisines`, ' \
+          '`image_urls`,`tagid`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
+          '%s,%s,%s,%s,%s,%s,%s,%s)'
+
     for task_dict in get_task():
         count = 0
         data = []
@@ -143,13 +150,6 @@ if __name__ == '__main__':
 
                 # 添加 source
                 source = '|'.join(sorted(data_dict['source'].values()))
-
-                sql = 'insert into chat_restaurant(`id`,`name`,`name_en`,' \
-                      '`source`,`city_id`,`map_info`,`address`,`real_ranking`,' \
-                      '`grade`,`res_url`,`telphone`,`introduction`,`open_time_desc`,`prize`,' \
-                      '`traveler_choice`,`review_num`,`price`,`price_level`,`cuisines`, ' \
-                      '`image_urls`,`tagid`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-                      '%s,%s,%s,%s,%s,%s,%s,%s)'
 
                 # 替换旧的 data_dict
                 data_dict = new_data_dict
