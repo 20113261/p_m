@@ -6,7 +6,8 @@
 # @File    : settings.py
 # @Software: PyCharm
 PRIVATE_DB_STR = 'mysql+pymysql://reader:miaoji1109@10.10.149.146/private_data?charset=utf8'
-TARGET_DB_STR = 'mysql+pymysql://hourong:hourong@10.10.180.145/base_data?charset=utf8'
+# TARGET_DB_STR = 'mysql+pymysql://hourong:hourong@10.10.180.145/base_data?charset=utf8'
+TARGET_DB_STR = 'mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/base_data?charset=utf8'
 ID_MAP_DB_STR = 'mysql+pymysql://hourong:hourong@10.10.180.145/IdMap?charset=utf8'
 
 CITY_UNIQUE_KEY = ['id']
@@ -270,3 +271,39 @@ HOTEL_KEYS = ['description_en',
               'check_in_time',
               # 此字段为本次录入的特殊字段，在 insert db 部分去除
               'rec_priority', ]
+
+ATTR_DEFAULT_VALUE = {
+    'grade': -1,
+    'ranking': -1,
+    'real_ranking': -1,
+    'star': -1,
+    'recommend_lv': -1,
+    'plantocount': -1,
+    'beentocount': -1,
+    'commentcount': -1,
+    'add_info': '',
+    'address_en': '',
+    'event_mark': '',
+    'norm_tagid': '',
+    'norm_tagid_en': '',
+    'image': '',
+    'rcmd_open': '',
+    'tagid': '',
+    'description': '',
+    'description_en': '',
+    'open_desc': '',
+    'ticket': '',
+    'ticket_desc': '',
+    'visit_time': '',
+    'schedule': '',
+    'schedule_en': '',
+    'comment_info': '',
+    'website_url': '',
+    'blong_to_list': '',
+    'fix_ranking': '',
+    'nearCity': '',
+    'official': 1,
+    'data_source': 'mioji'
+}
+
+ATTR_SKIP_KEYS = ['tagB', 'data_source', 'official']

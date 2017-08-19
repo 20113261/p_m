@@ -8,6 +8,7 @@
 import dataset
 import abc
 import json
+import copy
 from qyoa_base_data import settings
 from toolbox.Common import is_legal
 
@@ -32,12 +33,21 @@ class BaseDataInsert(object):
         self.need_update_status = need_update_status
         self.total = 0
         self.update = 0
+        self.default_val = {}
+        self.skip_keys = settings.ATTR_SKIP_KEYS
+
+    def update_default_val(self, d: dict):
+        self.default_val.update(d)
 
     def get_data(self):
         for line in self.private_db.query(
-                'SELECT * from {0} WHERE ptid = "qyoa" AND disable = 0'.format(self.src_table_name)):
-            data = {}
+                '''SELECT * from {0} WHERE ptid = "qyoa" AND disable = 0 AND city_id=50016;'''.format(
+                    self.src_table_name)):
+            data = copy.deepcopy(self.default_val)
             for k in self.keys:
+                # 去除不使用的值
+                if k in self.skip_keys:
+                    continue
                 # 去除空行
                 if is_legal(line[k]):
                     data[(self.key_map.get(k, None) or k)] = line[k]
@@ -83,12 +93,13 @@ class BaseDataInsert(object):
                 # 修改 景点、购物、餐厅 表 status
                 if self.need_update_city_id:
                     data['status_test'] = "Open"
-                    data['status_online'] = "Close"
-                    data['dept_status_online'] = "Close"
-                    data['dept_status_test'] = "Close"
+                    data['status_online'] = "Open"
+                    data['dept_status_online'] = "Open"
+                    data['dept_status_test'] = "Open"
                 # 增加 city 表 status
                 else:
                     data['status_test'] = "Open"
+                    data['status_online'] = "Open"
 
             yield data
 
@@ -111,7 +122,6 @@ class BaseDataInsert(object):
         for data in self.get_data():
             self.insert(data)
         print(self.data_id_set)
-        print(self.errors)
 
     @abc.abstractclassmethod
     def get_new_id(self):
@@ -129,14 +139,17 @@ class CityBaseDataInsert(BaseDataInsert):
 class AttrBaseDataInsert(BaseDataInsert):
     def __init__(self):
         super().__init__(settings.ATTR_KEYS, settings.ATTR_KEY_MAP, ('attraction', 'chat_attraction'),
-                         settings.ATTR_UNIQUE_KEY, True)
+                         settings.ATTR_UNIQUE_KEY, need_update_city_id=False, need_add_id_map=True,
+                         need_new_data=True,
+                         need_update_status=True)
+        self.update_default_val(settings.ATTR_DEFAULT_VALUE)
 
     def get_new_id(self):
         return list(
             self.target_db.query(
                 '''SELECT concat('v', substr(max(id), 2) + 1) AS new_id FROM chat_attraction;'''
             )
-        )[0]['new_id'].decode()
+        )[0]['new_id']
 
 
 class RestBaseDataInsert(BaseDataInsert):
@@ -192,8 +205,8 @@ if __name__ == '__main__':
     # city_base_data_insert = CityBaseDataInsert()
     # city_base_data_insert.run()
     #
-    # attr_base_data_insert = AttrBaseDataInsert()
-    # attr_base_data_insert.run()
+    attr_base_data_insert = AttrBaseDataInsert()
+    attr_base_data_insert.run()
 
-    hotel_base_data_insert = HotelBaseDataInsert()
-    hotel_base_data_insert.run()
+    # hotel_base_data_insert = HotelBaseDataInsert()
+    # hotel_base_data_insert.run()
