@@ -19,6 +19,8 @@ SQL_DICT = {
 
 ALL_NULL = ['NULL', 'Null', 'null', None, '', 'None', ' ']
 
+change_map_info_key = ['map_info', 'border_map_1', 'border_map_2']
+
 
 def get_columns():
     __name = set()
@@ -71,7 +73,7 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
     if key in ['newProduct_status', 'newProduct_dept_status', 'status', 'dept_status']:
         return True, _value.title()
 
-    if key in ['map_info', 'border_map_1', 'border_map_2']:
+    if key in change_map_info_key:
         map_info = _value.replace('，', ',').replace(' ', '')
         if need_change_map_info:
             map_info = ','.join((map_info.split(',')[::-1]))
@@ -97,8 +99,13 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 if __name__ == '__main__':
     # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
     # xlsx_path = '/tmp/new_city.xlsx'
-    xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
-    need_change_map_info = False
+    # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
+    xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
+
+    need_change_map_info = True
+    global change_map_info_key
+    change_map_info_key = ['border_map_1', 'border_map_2']
+
     debug = False
     target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT)
     target_table = 'city'
@@ -106,7 +113,7 @@ if __name__ == '__main__':
     all_city_id = []
     cols = get_columns()
     country_id_dict = get_country_id_dict()
-    header = 0
+    header = 1
     sheetname = 'city'
     table = pandas.read_excel(
         xlsx_path,
@@ -137,7 +144,8 @@ if __name__ == '__main__':
                 # 去除中英文名为空的
                 # if line['name'] in ALL_NULL and line['name_en'] in ALL_NULL:
                 #     continue
-
+                data['country'] = '美国'
+                data['continent_id'] = '50'
                 # 判断字段是否符合规范
                 res, value = check_and_modify_columns(key, line[key])
                 if res:
