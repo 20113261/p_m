@@ -71,43 +71,43 @@ def get_task_hotel_raw():
     #     }
     #     yield source, hotel_url, other_info
     # todo 5
-    # import pandas
-    # table = pandas.read_csv('/root/data/data_input/source_sid_cid', sep='\t')
-    # import pdb
-    # pdb.set_trace()
-    # f = open('/root/data/task/source_sid_cid_agoda')
-    # for line in f:
-    #     try:
-    #         source, source_id, city_id, url = line.strip().split('\t')
-    #     except:
-    #         print('Hello')
-    #         continue
-    #     if url.lower() not in ('', 'null', 'http', 'http:', 'http://', 'https', 'https:', 'https://'):
-    #         other_info = {
-    #             'source_id': source_id,
-    #             'city_id': city_id
-    #         }
-    #         try:
-    #             if source not in (
-    #                     'agoda', 'booking', 'cheaptickets', 'ctrip', 'ebookers', 'elong', 'expedia', 'hotels',
-    #                     'hoteltravel',
-    #                     'orbitz', 'travelocity'):
-    #                 continue
-    #             elif source == 'hotels':
-    #                 hotel_id = re.findall('hotel-id=(\d+)', url)[0]
-    #                 hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id=' + hotel_id
-    #             elif source in ('booking', 'ctrip', 'expedia', 'travelocity', 'orbitz', 'ebookers', 'cheaptickets'):
-    #                 hotel_url = url.split('?')[0]
-    #             elif source == 'elong':
-    #                 hotel_url = 'http://hotel.elong.com/{0}/'.format(source_id)
-    #             elif source == 'hoteltravel':
-    #                 hotel_url = 'http://www.hoteltravel.com/cn/' + source_id
-    #             else:
-    #                 hotel_url = url
-    #
-    #             yield source, hotel_url, other_info
-    #         except:
-    #             continue
+    import pandas
+    table = pandas.read_csv('/root/data/data_input/source_sid_cid', sep='\t')
+    import pdb
+    pdb.set_trace()
+    f = open('/root/data/task/source_sid_cid_agoda')
+    for line in f:
+        try:
+            source, source_id, city_id, url = line.strip().split('\t')
+        except:
+            print('Hello')
+            continue
+        if url.lower() not in ('', 'null', 'http', 'http:', 'http://', 'https', 'https:', 'https://'):
+            other_info = {
+                'source_id': source_id,
+                'city_id': city_id
+            }
+            try:
+                if source not in (
+                        'agoda', 'booking', 'cheaptickets', 'ctrip', 'ebookers', 'elong', 'expedia', 'hotels',
+                        'hoteltravel',
+                        'orbitz', 'travelocity'):
+                    continue
+                elif source == 'hotels':
+                    hotel_id = re.findall('hotel-id=(\d+)', url)[0]
+                    hotel_url = 'http://zh.hotels.com/hotel/details.html?hotel-id=' + hotel_id
+                elif source in ('booking', 'ctrip', 'expedia', 'travelocity', 'orbitz', 'ebookers', 'cheaptickets'):
+                    hotel_url = url.split('?')[0]
+                elif source == 'elong':
+                    hotel_url = 'http://hotel.elong.com/{0}/'.format(source_id)
+                elif source == 'hoteltravel':
+                    hotel_url = 'http://www.hoteltravel.com/cn/' + source_id
+                else:
+                    hotel_url = url
+
+                yield source, hotel_url, other_info
+            except:
+                continue
 
     # todo 6
     # import dataset

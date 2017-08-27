@@ -29,7 +29,7 @@ if __name__ == '__main__':
   source,
   city_id
 FROM hotel_suggestions_city
-WHERE annotation != -1 AND select_index != -1 AND source IN ('booking', 'hotels', 'expedia', 'elong', 'agoda');''')
+WHERE annotation != -1 AND select_index != -1 AND source IN ('booking', 'hotels', 'expedia', 'elong', 'agoda') AND city_id in (50531, 51478, 51472, 51475, 51476, 51473, 50777, 51471, 51477, 51470, 51468, 50598, 51467, 51474, 51466, 51481, 51482, 50595, 51483, 51487, 51485, 50206, 50402, 51484, 51486, 50231, 50197, 50528, 51469, 50265, 51490, 51491, 51489, 51492, 51493, 50008, 51494, 51495, 50145, 51496, 51497, 50616, 50810, 51498, 51499, 51479, 50637, 51488, 50118, 51480, 51501, 51500);''')
     data = []
     _count = 0
     _finished = 0
@@ -71,6 +71,8 @@ WHERE annotation != -1 AND select_index != -1 AND source IN ('booking', 'hotels'
                 print("Now", _count)
                 print("Finished", _finished)
     print(exc_set)
+    print("Now", _count)
+    print("Finished", _finished)
     #     data.append(task_info)
     #     if _count % 10000 == 0:
     #         print(_count)
