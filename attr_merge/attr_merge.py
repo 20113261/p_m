@@ -3,8 +3,26 @@ from pymysql.cursors import DictCursor
 
 from Config.settings import dev_conf, attr_merge_conf
 from my_lib.get_similar_word import get_similar_word
+from collections import defaultdict
 
-TARGET_TABLE = 'target_city_new'
+inner_source_merge_id = set()
+
+
+def get_id_keys():
+    id_keys = defaultdict(set)
+    conn = pymysql.connect(**attr_merge_conf)
+    cursor = conn.cursor()
+    cursor.execute('''SELECT
+  id,
+  source,
+  source_id
+FROM attr_unid;''')
+    for line in cursor.fetchall():
+        # 存储 source source_id
+        id_keys[line[0]].add((line[1], line[2]))
+        # 存储 source
+        id_keys[line[0]].add(line[1])
+    return id_keys
 
 
 def get_max_id():
@@ -51,7 +69,7 @@ ORDER BY id;'''
     city_id_list = []
 
     conn = pymysql.connect(**attr_merge_conf)
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor=DictCursor)
 
     cursor.execute(sql)
     for line in cursor.fetchall():
@@ -113,6 +131,7 @@ WHERE source = %s AND city_id = %s;'''
 
 
 def task(task_source):
+    id_keys = get_id_keys()
     name_dict, en_dict, city_id_list = similar_dict()
 
     count = 0
@@ -120,7 +139,6 @@ def task(task_source):
     for each_city in get_task_city():
         city_id = each_city['city_id']
         city_name = each_city['city_name']
-        city_name_en = each_city['city_name_en']
         city_map_info = each_city['map_info']
         country_name = each_city['country_name']
 
@@ -130,7 +148,6 @@ def task(task_source):
             source = task_source
             source_id = each_attr_info['id']
             name = each_attr_info['name']
-            map_info = each_attr_info['map_info']
             name_en = get_similar_word(each_attr_info['name_en'] or '')
             name_key = city_id + '|_|_|' + (name or '')
             name_en_key = city_id + '|_|_|' + (name_en or '')
@@ -142,10 +159,30 @@ def task(task_source):
                 miaoji_id = en_dict.get(name_en_key, '')
             else:
                 miaoji_id = get_new_miaoji_id()
-            count += 1
 
-            # id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info,
-            # grade, star, ranking, address, url
+            # 融合过以及同源融合判定
+            if (source, source_id) in id_keys[miaoji_id]:
+                # 已融合过，跳过入库
+                # 之后可以改为更新内容
+                continue
+            else:
+                if source in id_keys[miaoji_id]:
+                    # 同源融合
+                    inner_source_merge_id.add(miaoji_id)
+
+                    # 此部分有重复，同源融合日志输出时，需要先打印此部分
+                    id_keys[miaoji_id].add(source)
+                    id_keys[miaoji_id].add((source, source_id))
+                    print("同源融合，mid: {0}, id_set: {1}".format(miaoji_id, id_keys[miaoji_id]))
+                else:
+                    # 非同源融合，正常进行
+                    pass
+
+            # 增加同源融合判定信息
+            id_keys[miaoji_id].add(source)
+            id_keys[miaoji_id].add((source, source_id))
+
+            count += 1
             each_data = (
                 miaoji_id, city_id, city_name, country_name, city_map_info, source, source_id, each_attr_info['name'],
                 each_attr_info['name_en'], each_attr_info['map_info'], each_attr_info['grade'], each_attr_info['star'],
@@ -165,6 +202,9 @@ def task(task_source):
                 print(count)
     print(insert_db(data))
     print(count)
+
+    # 打印同源融合情况
+    print(inner_source_merge_id)
 
 
 if __name__ == '__main__':
