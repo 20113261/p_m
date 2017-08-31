@@ -5,7 +5,7 @@ import pymysql
 import toolbox.Common
 from pymysql.cursors import DictCursor
 from collections import defaultdict
-from add_open_time.add_open_time import get_open_time
+from add_open_time.add_open_time import fix_daodao_open_time
 from norm_tag.shop_norm_tag import get_norm_tag
 from Config.settings import shop_merge_conf, shop_data_conf
 
@@ -130,7 +130,14 @@ GROUP BY id'''.format(','.join((map(lambda x: x.strip(), open('cid_file')))))
         new_data_dict['phone'] = new_data_dict['phone'].replace('电话号码：', '').strip()
 
         # todo modify opentime, norm_tagid, comment and so on
-        norm_open_time = get_open_time(data_dict['opentime'])
+        if 'daodao' in data_dict['opentime']:
+            open_desc = data_dict['opentime']['daodao']
+            try:
+                norm_open_time = fix_daodao_open_time(open_desc)
+            except Exception:
+                print(open_desc)
+        else:
+            norm_open_time = ''
 
         if 'daodao' in data_dict['tagid']:
             norm_tag, norm_tag_en = get_norm_tag(data_dict['tagid'])

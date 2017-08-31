@@ -6,7 +6,7 @@ import toolbox.Common
 import copy
 from pymysql.cursors import DictCursor
 from collections import defaultdict
-from add_open_time.add_open_time import get_open_time
+from add_open_time.add_open_time import fix_daodao_open_time
 from norm_tag.rest_norm_tag import get_norm_tag
 
 others_name_list = ['source']
@@ -163,7 +163,14 @@ if __name__ == '__main__':
                 source = '|'.join(sorted(data_dict['source'].values()))
 
                 # todo modify opentime, norm_tagid, comment and so on
-                norm_open_time = get_open_time(data_dict['opentime'])
+                if 'daodao' in data_dict['opentime']:
+                    open_desc = data_dict['opentime']['daodao']
+                    try:
+                        norm_open_time = fix_daodao_open_time(open_desc)
+                    except Exception:
+                        print(open_desc)
+                else:
+                    norm_open_time = ''
 
                 if 'daodao' in data_dict['tagid']:
                     norm_tag, norm_tag_en = get_norm_tag(data_dict['tagid'])
