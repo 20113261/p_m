@@ -37,3 +37,11 @@ shop_merge_conf = {
     'charset': 'utf8',
     'db': 'shop_merge'
 }
+
+rest_data_conf = {
+    'host': '10.10.228.253',
+    'user': 'mioji_admin',
+    'password': 'mioji1109',
+    'charset': 'utf8',
+    'db': 'rest_merge'
+}

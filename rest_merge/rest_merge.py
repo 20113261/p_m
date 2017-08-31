@@ -1,55 +1,119 @@
-# import db_devdb
-# import db_localhost as db
 import pymysql
 from pymysql.cursors import DictCursor
-from my_lib.get_rest_info import get_tp_rest_info_by_city_id
+
+from Config.settings import dev_conf, rest_merge_conf, rest_data_conf
 from my_lib.get_similar_word import get_similar_word
-from my_lib.url_is_similar import get_modify_url
-from rest_merge.get_max_id import get_max_id
+from collections import defaultdict
+
+skip_inner_source_merge = True
+inner_source_merge_id = set()
+
+
+def get_id_keys():
+    id_keys = defaultdict(set)
+    conn = pymysql.connect(**rest_merge_conf)
+    cursor = conn.cursor()
+    cursor.execute('''SELECT
+  id,
+  source,
+  source_id
+FROM rest_unid;''')
+    for line in cursor.fetchall():
+        # 存储 source source_id
+        id_keys[line[0]].add((line[1], line[2]))
+        # 存储 source
+        id_keys[line[0]].add(line[1])
+    return id_keys
+
+
+def get_max_id():
+    id_set = set()
+    conn = pymysql.connect(**rest_merge_conf)
+    cursor = conn.cursor()
+
+    cursor.execute('''SELECT id
+FROM chat_restaurant;''')
+
+    for line in cursor.fetchall():
+        try:
+            id_set.add(int(line[0][1:]))
+        except Exception:
+            continue
+
+    cursor.execute('''SELECT id
+FROM rest_unid;''')
+
+    for line in cursor.fetchall():
+        try:
+            id_set.add(int(line[0][1:]))
+        except Exception:
+            continue
+
+    return 'r' + str(max(id_set))
+
 
 max_id = get_max_id()
+print('Get Max mioji ID')
 
-TARGET_TABLE = 'target_city_new'
 
-
-def similar_dict():
+def similar_dict(cid):
     name_dict = {}
     en_dict = {}
-    site_dict = {}
-    sql = 'select id,name,name_en,site,city_id from rest_unid'
-    city_id_list = []
-    _count = 0
 
-    conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong', charset='utf8', db='rest_merge')
+    sql = '''SELECT
+  id,
+  name,
+  name_en,
+  city_id
+FROM rest_unid WHERE city_id=%s
+ORDER BY id;'''
+
+    city_id_list = []
+
+    conn = pymysql.connect(**rest_merge_conf)
     cursor = conn.cursor(cursor=DictCursor)
-    cursor.execute(sql)
-    for line in cursor.fetchall(sql):
-        _count += 1
-        if _count % 20000 == 0:
-            print(_count)
-        miaoji_id = line['id']
+
+    cursor.execute(sql, (cid,))
+    for line in cursor.fetchall():
+        mid = line['id']
         name = line['name']
         name_en = get_similar_word(line['name_en'])
-        site = get_modify_url(line['site'])
         city_id = line['city_id']
         city_id_list.append(city_id)
-        site_dict[city_id + '|_|_|' + site] = miaoji_id
-        name_dict[city_id + '|_|_|' + name] = miaoji_id
-        en_dict[city_id + '|_|_|' + name_en] = miaoji_id
-    return name_dict, en_dict, site_dict, city_id_list
+        name_key = city_id + '|_|_|' + name
+        en_key = city_id + '|_|_|' + name_en
+        if name_key not in name_dict:
+            name_dict[name_key] = mid
+        if en_key not in en_dict:
+            en_dict[en_key] = mid
+
+    return name_dict, en_dict, city_id_list
 
 
 def get_task_city():
-    sql = "select id as city_id, name as city_name, name_en as city_name_en, country as country_name from city"
-    conn = pymysql.connect(host='10.10.69.170', user='reader', password='miaoji1109', charset='utf8', db='base_data')
-    cursor = conn.cursor()
+    conn = pymysql.connect(**dev_conf)
+    cursor = conn.cursor(cursor=DictCursor)
+    sql = """SELECT
+  id           AS city_id,
+  city.name    AS city_name,
+  city.name_en AS city_name_en,
+  country.name AS country_name,
+  map_info
+FROM city
+  JOIN country ON city.country_id = country.mid WHERE id in (51469,50531,51466,51468,50777,51481,51474,51467,51470,50598,50595,51482,51487,51486,51483,51484,51488,50118,50206,50810,51480,51498,50197,51495,50231,51492,50145,51485,51493,51497,50402,50528,50008,51494,51496,50616,51479,50637,51501,51500,51471,51472,51477,51478,51475,51473,50265,51491,51476,51489,51499,51490);"""
     cursor.execute(sql)
     yield from cursor.fetchall()
 
 
 def insert_db(args):
-    sql = 'insert ignore into rest_merge.rest_unid (`id`,`name`,`name_en`,`source`,`source_id`,`site`,`city_id`,`city_name`,`country_name`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    return db.ExecuteSQLs(sql, args)
+    conn = pymysql.connect(**rest_merge_conf)
+    cursor = conn.cursor()
+    sql = '''INSERT INTO rest_unid (id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info, grade, comment_count, ranking, address, url)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    res = cursor.executemany(sql, args)
+    cursor.close()
+    conn.close()
+    return res
 
 
 def get_new_miaoji_id():
@@ -58,58 +122,105 @@ def get_new_miaoji_id():
     return max_id
 
 
-if __name__ == '__main__':
-    name_dict, en_dict, site_dict, city_id_list = similar_dict()
-    TASK_SOURCE = 'daodao'
-    if TASK_SOURCE not in ['daodao', 'qyer']:
-        raise Exception("Error Source")
+def get_rest_info(source, cid):
+    sql = '''SELECT *
+FROM rest
+WHERE source = %s AND city_id = %s;'''
+    conn = pymysql.connect(**rest_data_conf)
+    cursor = conn.cursor(cursor=DictCursor)
+    cursor.execute(sql, (source, cid))
+    yield from cursor.fetchall()
+
+
+def task(task_source):
+    id_keys = get_id_keys()
+    print('id keys OK')
 
     count = 0
-    datas = []
+    data = []
     for each_city in get_task_city():
         city_id = each_city['city_id']
         city_name = each_city['city_name']
-        city_name_en = each_city['city_name_en']
+        city_map_info = each_city['map_info']
         country_name = each_city['country_name']
-        # use tp source
-        if TASK_SOURCE == 'daodao':
-            # try:
-            #     tp_source_city_id = get_tp_source_city_id((country_name, city_name, city_name_en))[0]['gid']
-            # except:
-            #     tp_source_city_id = ''
-            # rest_infos = get_tp_rest_info(tp_source_city_id)
-            rest_infos = get_tp_rest_info_by_city_id(city_id)
 
-        for rest_info in rest_infos:
-            source = TASK_SOURCE
-            source_id = rest_info['id']
-            name = rest_info['name'] or ''
-            name_en = get_similar_word(rest_info['name_en'] or '')
-            site = get_modify_url(rest_info['site'] or '')
+        print('#' * 100)
+        print("Now City cid: {}, country: {}, name: {}".format(city_id, country_name, city_name))
+        # init similar dict
+        name_dict, en_dict, city_id_list = similar_dict(city_id)
+        print('similar dict OK')
+
+        rest_info = get_rest_info(task_source, city_id)
+        print('rest info OK')
+
+        for each_rest_info in rest_info:
+            source = task_source
+            source_id = each_rest_info['id']
+            name = each_rest_info['name']
+            name_en = get_similar_word(each_rest_info['name_en'] or '')
             name_key = city_id + '|_|_|' + (name or '')
             name_en_key = city_id + '|_|_|' + (name_en or '')
-            site_key = city_id + '|_|_|' + (site or '')
-            if (name_key in name_dict or name_en_key in name_dict) and (rest_info['name'] != '') and (
-                        rest_info['name'] is not None) and (rest_info['name'] != 'NULL'):
+            if (name_key in name_dict or name_key in en_dict) and (each_rest_info['name'] != '') and (
+                        each_rest_info['name'] is not None):
                 miaoji_id = name_dict.get(name_key, '')
-            elif (name_en_key in en_dict or name_key in en_dict) and (rest_info['name_en'] != '') and (
-                        rest_info['name_en'] is not None) and (rest_info['name_en'] != 'NULL'):
+            elif (name_en_key in en_dict or name_en_key in name_dict) and (each_rest_info['name_en'] != '') and (
+                        each_rest_info['name_en'] is not None):
                 miaoji_id = en_dict.get(name_en_key, '')
-            elif (site_key in site_dict) and (rest_info['site'] != '') and (rest_info['site'] is not None) and \
-                    (rest_info['site'] != 'NULL'):
-                miaoji_id = site_dict.get(site_key, '')
             else:
                 miaoji_id = get_new_miaoji_id()
+
+            # 融合过以及同源融合判定
+            if (source, source_id) in id_keys[miaoji_id]:
+                # 已融合过，跳过入库
+                # 之后可以改为更新内容
+                continue
+            else:
+                if source in id_keys[miaoji_id]:
+                    if skip_inner_source_merge:
+                        miaoji_id = get_new_miaoji_id()
+                    else:
+                        # 同源融合
+                        inner_source_merge_id.add(miaoji_id)
+
+                        # 此部分有重复，同源融合日志输出时，需要先打印此部分
+                        id_keys[miaoji_id].add(source)
+                        id_keys[miaoji_id].add((source, source_id))
+                        print("同源融合，mid: {0}, id_set: {1}".format(miaoji_id, id_keys[miaoji_id]))
+                else:
+                    # 非同源融合，正常进行
+                    pass
+
+            # 增加同源融合判定信息
+            id_keys[miaoji_id].add(source)
+            id_keys[miaoji_id].add((source, source_id))
+
             count += 1
-            data = (miaoji_id, rest_info['name'], rest_info['name_en'], source, source_id, rest_info['site'], city_id,
-                    city_name, country_name)
+            each_data = (
+                miaoji_id, city_id, city_name, country_name, city_map_info, source, source_id, each_rest_info['name'],
+                each_rest_info['name_en'], each_rest_info['map_info'], each_rest_info['grade'],
+                each_rest_info['commentcounts'],
+                each_rest_info['ranking'], each_rest_info['address'], each_rest_info['url']
+            )
+
+            # 增加进一步融合的 key
             name_dict[name_key] = miaoji_id
             en_dict[name_en_key] = miaoji_id
-            site_dict[site_key] = miaoji_id
-            datas.append(data)
+
+            # 添加数据
+            data.append(each_data)
+
             if count % 1000 == 0:
-                print('Insert', insert_db(datas))
-                datas = []
-                print('Total', count)
-    print("Insert", insert_db(datas))
-    print("Total", count)
+                insert_db(data)
+                data = []
+                print(count)
+
+        print('#' * 100)
+    print(insert_db(data))
+    print(count)
+
+    # 打印同源融合情况
+    print(inner_source_merge_id)
+
+
+if __name__ == '__main__':
+    task('daodao')
