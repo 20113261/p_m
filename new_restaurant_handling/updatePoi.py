@@ -4,25 +4,22 @@ import sys
 import MySQLdb
 import csv
 import pymysql
+from Config.settings import rest_merge_conf
 
-test_db_ip = '10.10.114.35'
-test_db_user = 'reader'
-test_db_passwd = 'miaoji1109'
-db_name = 'rest_merge'
-table_name = 'chat_restaurant'
+table_name = 'chat_restaurant_new'
 
 
 def insert_db(args):
-    conn = pymysql.connect(host='localhost', user='hourong', charset='utf8', passwd='hourong', db='data_prepare')
+    conn = pymysql.connect(host='10.10.180.145', user='hourong', charset='utf8', passwd='hourong', db='data_prepare')
     with conn as cursor:
-        sql = 'replace into chat_restaurant VALUES ({})'.format(','.join(['%s'] * 67))
+        sql = 'replace into chat_restaurant VALUES ({})'.format(','.join(['%s'] * 68))
         res = cursor.executemany(sql, args)
     conn.close()
     return res
 
 
 def getCandOnlineData(update_cid_file):
-    conn = MySQLdb.connect(host=test_db_ip, user=test_db_user, charset='utf8', passwd=test_db_passwd, db=db_name)
+    conn = MySQLdb.connect(**rest_merge_conf)
     cursor = conn.cursor()
 
     get_column_sql = "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name='" + table_name + "'";
@@ -42,13 +39,14 @@ def getCandOnlineData(update_cid_file):
 
     name_idx = 1
     name_en_idx = 2
-    map_info_idx = 7
+    map_info_idx = 6
     city_idx = 6
     first_img_idx = 46
-    open_time_idx = 26
-    online_idx = 45
+    open_time_idx = 25
+    online_idx = 66
+    test_idx = 67
 
-    column_count = 64
+    column_count = 67
     all_data = []
     for cand_line in open(update_cid_file):
         line_list = cand_line.strip().split('\t')
@@ -88,8 +86,9 @@ def getCandOnlineData(update_cid_file):
                     word_list.append('')
 
             is_legel_data = True
+            # 过滤
 
-            if (word_list[name_idx].lower() in ('', 'null') and word_list[name_en_idx].lower() in ('', 'null')):
+            if word_list[name_idx].lower() in ('', 'null') and word_list[name_en_idx].lower() in ('', 'null'):
                 name_null_fail_count += 1
                 is_legel_data = False
 
@@ -101,7 +100,7 @@ def getCandOnlineData(update_cid_file):
                 first_img_null_fail_count += 1
                 is_legel_data = False
 
-            if True == is_legel_data:
+            if is_legel_data:
                 try:
                     lat = float(word_list[map_info_idx].strip().split(',')[0])
                     lgt = float(word_list[map_info_idx].strip().split(',')[1])
@@ -109,7 +108,9 @@ def getCandOnlineData(update_cid_file):
                     map_fail_count += 1
                     is_legel_data = False
 
-            if True == is_legel_data:
+            # 过滤结束
+
+            if is_legel_data:
                 if word_list[name_idx].lower() in ('', 'null'):
                     word_list[name_idx] = word_list[name_en_idx]
                 elif word_list[name_en_idx].lower() in ('', 'null'):
@@ -118,12 +119,13 @@ def getCandOnlineData(update_cid_file):
                 if word_list[open_time_idx].lower() in ('', 'null'):
                     word_list[open_time_idx] = '<*><*><00:00-23:55><SURE>'
 
-                word_list[online_idx] = 1
+                word_list[online_idx] = 'Open'
+                word_list[test_idx] = 'Open'
 
                 cand_data.append(word_list)
 
-                if len(cand_data) >= 1000:
-                    break
+                # if len(cand_data) >= 1000:
+                #     break
 
         if len(cand_data) > 0:
             csv_writer.writerows(cand_data)
@@ -138,10 +140,10 @@ def getCandOnlineData(update_cid_file):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('USAG:python a.py cid_file[one cid each line]')
-        sys.exit(1)
-
-    cid_file = sys.argv[1]
-
+    # if len(sys.argv) != 2:
+    #     print('USAG:python a.py cid_file[one cid each line]')
+    #     sys.exit(1)
+    #
+    # cid_file = sys.argv[1]
+    cid_file = 'cid_file'
     getCandOnlineData(cid_file)
