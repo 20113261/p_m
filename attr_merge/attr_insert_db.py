@@ -10,6 +10,9 @@ import pymysql
 import json
 from pymysql.cursors import DictCursor
 from collections import defaultdict
+from Config.settings import attr_data_conf, attr_merge_conf
+
+need_cid_file = True
 
 other_name_list = ['source']
 
@@ -45,7 +48,7 @@ def get_attr_dict(city_id):
     attr_dict = defaultdict(dict)
 
     # get s sid
-    conn = pymysql.connect(host='10.10.180.145', user='hourong', passwd='hourong', charset='utf8', db='attr_merge')
+    conn = pymysql.connect(**attr_merge_conf)
     with conn.cursor() as cursor:
         sql = '''SELECT
   source,
@@ -56,8 +59,19 @@ WHERE city_id = %s;'''
         res = ["('{0}', '{1}')".format(s, sid) for s, sid in cursor.fetchall()]
     conn.close()
 
+    # get line old
+    conn = pymysql.connect(**attr_merge_conf)
+    with conn.cursor(cursor=DictCursor) as cursor:
+        sql = "select * from attr where (source, id) in (%s)" % ','.join(res)
+
+        cursor.execute(sql)
+        for line in cursor.fetchall():
+            source = line['source']
+            source_id = line['id']
+            attr_dict[(source, source_id)] = line
+
     # get whole line in per city
-    conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', passwd='mioji1109', charset='utf8', db='base_data')
+    conn = pymysql.connect(**attr_data_conf)
     with conn.cursor(cursor=DictCursor) as cursor:
         sql = "select * from attr where (source, id) in (%s)" % ','.join(res)
 
@@ -71,10 +85,11 @@ WHERE city_id = %s;'''
 
 
 def get_task():
-    conn = pymysql.connect(host='10.10.180.145', user='hourong', passwd='hourong', charset='utf8', db='attr_merge')
+    conn = pymysql.connect(**attr_merge_conf)
     # 获取所有用于融合的城市 id
     cursor = conn.cursor()
-    cursor.execute("select distinct city_id from attr_unid where city_id=50012;")
+    cursor.execute("select distinct city_id from attr_unid where city_id in ({});".format(format(
+        ','.join((map(lambda x: x.strip(), open('cid_file')))))))
     total_city_id = list(map(lambda x: x[0], cursor.fetchall()))
     cursor.close()
 
@@ -99,7 +114,14 @@ GROUP BY id'''
 
 
 if __name__ == '__main__':
-    conn = pymysql.connect(host='10.10.180.145', user='hourong', passwd='hourong', charset='utf8', db='attr_merge')
+    conn = pymysql.connect(**attr_merge_conf)
+
+    sql = 'replace into chat_attraction(`id`,`name`,`name_en`,`data_source`,`city_id`,' \
+          '`map_info`,`address`,`star`,`plantocount`,`beentocount`,`real_ranking`,' \
+          '`grade`,`commentcount`,`tagid`,`url`,`website_url`,`phone`,`introduction`,' \
+          '`open_desc`,`recommend_lv`,`prize`,`traveler_choice`, `alias`, ' \
+          '`image`, `ori_grade`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
+          '%s,%s,%s,%s,%s,%s,%s,%s)'
 
     for task_dict in get_task():
         count = 0
@@ -167,13 +189,6 @@ if __name__ == '__main__':
                 # 数据入库部分
                 # 替换旧的 data_dict
                 data_dict = new_data_dict
-
-                sql = 'insert into chat_attraction(`id`,`name`,`name_en`,`data_source`,`city_id`,' \
-                      '`map_info`,`address`,`star`,`plantocount`,`beentocount`,`real_ranking`,' \
-                      '`grade`,`commentcount`,`tagid`,`url`,`website_url`,`phone`,`introduction`,' \
-                      '`open_desc`,`recommend_lv`,`prize`,`traveler_choice`, `alias`, ' \
-                      '`image`, `ori_grade`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-                      '%s,%s,%s,%s,%s,%s,%s,%s)'
 
                 data.append((
                     miaoji_id, data_dict['name'], data_dict['name_en'], source, city_id,
