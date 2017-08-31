@@ -5,6 +5,9 @@ import pymysql
 import toolbox.Common
 from pymysql.cursors import DictCursor
 from collections import defaultdict
+from add_open_time.add_open_time import get_open_time
+from norm_tag.shop_norm_tag import get_norm_tag
+from Config.settings import shop_merge_conf, shop_data_conf
 
 others_name_list = ['source']
 
@@ -44,10 +47,8 @@ def get_shop_id_list():
 
 def get_shop_dict(shop_id_list):
     shop_dict = defaultdict(dict)
-    # conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', password='mioji1109', charset='utf8',
-    #                        db='shop_merge')
-    conn = pymysql.connect(host='10.10.180.145', user='hourong', password='hourong', charset='utf8',
-                           db='shop_merge')
+
+    conn = pymysql.connect(**shop_merge_conf)
     cursor = conn.cursor(cursor=DictCursor)
     sql = "select * from shop where id in (%s)" % ','.join(
         ["\"" + x + "\"" for x in shop_id_list])
@@ -57,6 +58,17 @@ def get_shop_dict(shop_id_list):
         source = line['source']
         shop_dict[(source, source_id)] = line
     cursor.close()
+
+    conn = pymysql.connect(**shop_data_conf)
+    cursor = conn.cursor(cursor=DictCursor)
+    sql = "select * from shop where id in (%s)" % ','.join(
+        ["\"" + x + "\"" for x in shop_id_list])
+    cursor.execute(sql)
+    for line in cursor.fetchall():
+        source_id = line['id']
+        source = line['source']
+        shop_dict[(source, source_id)] = line
+
     return shop_dict
 
 
@@ -71,8 +83,8 @@ def get_task():
   id,
   city_id,
   group_concat(concat(source, '|', source_id) SEPARATOR '|_||_|') AS union_info
-FROM shop_unid
-GROUP BY id'''
+FROM shop_unid WHERE city_id in ({})
+GROUP BY id'''.format(','.join((map(lambda x: x.strip(), open('cid_file')))))
 
     cursor.execute(sql)
     count = 0
@@ -117,17 +129,29 @@ GROUP BY id'''
 
         new_data_dict['phone'] = new_data_dict['phone'].replace('电话号码：', '').strip()
 
+        # todo modify opentime, norm_tagid, comment and so on
+        norm_open_time = get_open_time(data_dict['opentime'])
+
+        if 'daodao' in data_dict['tagid']:
+            norm_tag, norm_tag_en = get_norm_tag(data_dict['tagid'])
+        else:
+            norm_tag, norm_tag_en = '', ''
+
+        # phone 处理
+        if data_dict['phone'] == '+ 新增電話號碼':
+            data_dict['phone'] = ''
+
         # 添加 source
         source = '|'.join(sorted(data_dict['source'].values()))
         data_dict = new_data_dict
 
-        sql = 'insert ignore into ' \
+        sql = 'replace into ' \
               'chat_shopping(`id`,`name`,`name_en`,`data_source`,`city_id`,' \
               '`map_info`,`address`,`star`,`plantocount`,`beentocount`,' \
-              '`real_ranking`,`grade`,`commentcount`,`tagid`,`url`,`website_url`,' \
-              '`phone`,`introduction`,`open_desc`,`recommend_lv`,`prize`,' \
+              '`real_ranking`,`grade`,`commentcount`,`tagid`,`norm_tagid`,`norm_tagid_en`,`url`,`website_url`,' \
+              '`phone`,`introduction`,`open`,`open_desc`,`recommend_lv`,`prize`,' \
               '`traveler_choice`,`image`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-              '%s,%s,%s,%s,%s,%s,%s,%s)'
+              '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
 
         data.append((
             miaoji_id, data_dict['name'], data_dict['name_en'], source, city_id,
@@ -135,8 +159,8 @@ GROUP BY id'''
             data_dict['star'], data_dict['plantocounts'], data_dict['beentocounts'],
             data_dict['ranking'], data_dict['grade'],
             data_dict['commentcounts'],
-            data_dict['tagid'], data_dict['url'], data_dict['site'], data_dict['phone'],
-            data_dict['introduction'],
+            data_dict['tagid'], norm_tag, norm_tag_en, data_dict['url'], data_dict['site'], data_dict['phone'],
+            data_dict['introduction'], norm_open_time,
             data_dict['opentime'], data_dict['recommend_lv'], data_dict['prize'],
             data_dict['traveler_choice'],
             data_dict['imgurl']))
