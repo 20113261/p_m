@@ -1,7 +1,7 @@
 import pymysql
 from pymysql.cursors import DictCursor
 
-from Config.settings import dev_conf, attr_merge_conf
+from Config.settings import dev_conf, attr_merge_conf, attr_data_conf
 from my_lib.get_similar_word import get_similar_word
 from collections import defaultdict
 
@@ -98,7 +98,7 @@ def get_task_city():
   country.name AS country_name,
   map_info
 FROM city
-  JOIN country ON city.country_id = country.mid;"""
+  JOIN country ON city.country_id = country.mid WHERE id in (51469,50531,51466,51468,50777,51481,51474,51467,51470,50598,50595,51482,51487,51486,51483,51484,51488,50118,50206,50810,51480,51498,50197,51495,50231,51492,50145,51485,51493,51497,50402,50528,50008,51494,51496,50616,51479,50637,51501,51500,51471,51472,51477,51478,51475,51473,50265,51491,51476,51489,51499,51490);"""
     cursor.execute(sql)
     yield from cursor.fetchall()
 
@@ -106,8 +106,8 @@ FROM city
 def insert_db(args):
     conn = pymysql.connect(**attr_merge_conf)
     cursor = conn.cursor()
-    sql = '''INSERT INTO attr_unid (id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info, grade, star, ranking, address, url)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    sql = '''INSERT INTO attr_unid (id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info, grade, star, ranking, address, url, part)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
     res = cursor.executemany(sql, args)
     cursor.close()
     conn.close()
@@ -124,7 +124,7 @@ def get_attr_info(source, cid):
     sql = '''SELECT *
 FROM attr
 WHERE source = %s AND city_id = %s;'''
-    conn = pymysql.connect(**attr_merge_conf)
+    conn = pymysql.connect(**attr_data_conf)
     cursor = conn.cursor(cursor=DictCursor)
     cursor.execute(sql, (source, cid))
     yield from cursor.fetchall()
@@ -142,6 +142,8 @@ def task(task_source):
         city_map_info = each_city['map_info']
         country_name = each_city['country_name']
 
+        print('#' * 100)
+        print("Now City cid: {}, country: {}, name: {}".format(city_id, country_name, city_name))
         attr_info = get_attr_info(task_source, city_id)
 
         for each_attr_info in attr_info:
@@ -186,7 +188,8 @@ def task(task_source):
             each_data = (
                 miaoji_id, city_id, city_name, country_name, city_map_info, source, source_id, each_attr_info['name'],
                 each_attr_info['name_en'], each_attr_info['map_info'], each_attr_info['grade'], each_attr_info['star'],
-                each_attr_info['ranking'], each_attr_info['address'], each_attr_info['url']
+                each_attr_info['ranking'], each_attr_info['address'], each_attr_info['url'],
+                'meizhilv'
             )
 
             # 增加进一步融合的 key
