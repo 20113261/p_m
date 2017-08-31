@@ -1,6 +1,17 @@
 import datetime
 import re
 
+S2F = {
+    '一': '周一',
+    '二': '周二',
+    '三': '周三',
+    '四': '周四',
+    '五': '周五',
+    '六': '周六',
+    '七': '周七',
+    '日': '周七'
+}
+
 C2A = {'一': '一',
        '二': '二',
        '三': '三',
@@ -216,29 +227,62 @@ def fix_time_digits(source_open_time):
 
 
 def fix_daodao_open_time(source_open_time):
+    # 周替换
+    __source_open_time = source_open_time.replace('星期', '周')
+
+    # 数字替换
+    for k, v in S2F.items():
+        __source_open_time = __source_open_time.replace(k, v)
+
+    __source_open_time.replace('周周', '周')
+
+    # 加 |
+    # 时间 星期
     try:
-        open_time_desc = get_time_range(source_open_time.strip())
+        for t, weekday in re.findall('(\d+:\d+)(周[\s\S])', __source_open_time):
+            __source_open_time = __source_open_time.replace('{0}{1}'.format(t, weekday), '{0}|{1}'.format(t, weekday))
+    except Exception:
+        pass
+    # |
+    # 时间时间
+    try:
+        for t1, t2 in re.findall('(\d+:\d{2})(\d+:\d{2})', __source_open_time):
+            __source_open_time = __source_open_time.replace('{0}{1}'.format(t1, t2), '{0}|{1}'.format(t1, t2))
+    except Exception:
+        pass
+
+    try:
+        open_time_desc = get_time_range(__source_open_time.strip())
         open_time = get_open_time(open_time_desc)
     except:
-        open_time = fix_time_digits(source_open_time)
+        open_time = fix_time_digits(__source_open_time)
     return open_time
 
 
 if __name__ == '__main__':
-    open_time = '周一 - 周六:下午7点00分 - 上午10点00分'
-    open_time = '周一 - 周六:10:00 - 17:00'
-    open_time = '周一 - 周日:8:00 - 18:00'
-    open_time = '周二 - 周四:11:00 - 17:00|周五:11:00 - 21:00|周六 - 周日:11:00 - 17:00'
-    open_time = '周一 - 周四 11:00 - 21:30|周五 - 周六 11:00 - 22:00'
-    open_time = '周一 - 周二 11:00 - 14:00| 17:30 - 22:00|周三 5:30 - 22:00| 23:00 - 14:00|周四 11:00 - 14:00| 17:30 - 22:00|周五 - 周日 17:30 - 22:30|周五 11:30 - 14:00|周六 - 周日 11:30 - 14:30'
-    open_time = '周一 - 周四 10:00 - 22:00|周五 10:00 - 2:00|周六 8:00 - 2:00'
-    open_time = '周一 - 周四 7:00 - 2:00|周五 16:00 - 2:00|周六 13:00 - 2:00'
-    open_time = '周一 - 周四 7:00 - 2:00|周五 16:00 - 2:00|周六 13:00 - 2:00'
-    open_time = '周一 - 周五:11:30 - 22:30|周六 - 周日:11:30 - 20:00'
-    open_time = '周一至周日8:00-17:30。'
+    # open_time = '周一 - 周六:下午7点00分 - 上午10点00分'
+    # open_time = '周一 - 周六:10:00 - 17:00'
+    # open_time = '周一 - 周日:8:00 - 18:00'
+    # open_time = '周二 - 周四:11:00 - 17:00|周五:11:00 - 21:00|周六 - 周日:11:00 - 17:00'
+    # open_time = '周一 - 周四 11:00 - 21:30|周五 - 周六 11:00 - 22:00'
+    # open_time = '周一 - 周二 11:00 - 14:00| 17:30 - 22:00|周三 5:30 - 22:00| 23:00 - 14:00|周四 11:00 - 14:00| 17:30 - 22:00|周五 - 周日 17:30 - 22:30|周五 11:30 - 14:00|周六 - 周日 11:30 - 14:30'
+    # open_time = '周一 - 周四 10:00 - 22:00|周五 10:00 - 2:00|周六 8:00 - 2:00'
+    # open_time = '周一 - 周四 7:00 - 2:00|周五 16:00 - 2:00|周六 13:00 - 2:00'
+    # open_time = '周一 - 周四 7:00 - 2:00|周五 16:00 - 2:00|周六 13:00 - 2:00'
+    # open_time = '周一 - 周五:11:30 - 22:30|周六 - 周日:11:30 - 20:00'
+    # open_time = '周一至周日8:00-17:30。'
     # open_time = '12:00  - 18:00 ，周一歇业'
     # open_time = '1:1-12:31#周一-周六#13:00-15:30|1:1-12:31#周二-周六#21:00-23:30'
     # open_time = '星期一  12:00 - 15:00 | 17:00 - 22:00'
+    # open_time = '星期日 13:00 - 20:00星期一 - 星期五 16:00 - 22:00星期六 12:00 - 22:00'
+
+    # open_time = '星期三 - 四13:00 - 20:00星期五13:00 - 22:00星期六12:00 - 18:00'
+    # open_time = '星期三 - 四13:00 - 20:00星期五13:00 - 22:00星期六12:00 - 18:00'
+    # open_time = '星期日13:00 - 17:00星期二 - 星期五09:00 - 17:00星期六10:00 - 17:00'
+
+    # open_time = '星期二 - 六10:00 - 15:30'
+    open_time = '星期一 - 星期四09:00 - 12:0013:00 - 15:00'
+    # open_time = '星期日09:00 - 11:3018:00 - 19:00星期一 - 星期二08:00 - 17:00星期三08:00 - 19:30星期四08:00 - 17:00星期五08:00 - 16:30'
     # open_time = '开放时间：全天'
     # open_time = '周一 - 周六:上午9点00分 - 下午8点00分'
     # print(fix_time_digits_2(open_time))

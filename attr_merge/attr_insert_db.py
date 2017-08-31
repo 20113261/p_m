@@ -11,7 +11,7 @@ import json
 from pymysql.cursors import DictCursor
 from collections import defaultdict
 from Config.settings import attr_data_conf, attr_merge_conf
-from add_open_time.add_open_time import get_open_time
+from add_open_time.fix_daodao_time import fix_daodao_open_time
 from norm_tag.attr_norm_tag import get_norm_tag
 
 need_cid_file = True
@@ -187,7 +187,15 @@ if __name__ == '__main__':
                                  )
 
                 # todo modify opentime, norm_tagid, comment and so on
-                norm_open_time = get_open_time(data_dict['opentime'])
+
+                if 'daodao' in data_dict['opentime']:
+                    open_desc = data_dict['opentime']['daodao']
+                    try:
+                        norm_open_time = fix_daodao_open_time(open_desc)
+                    except Exception:
+                        print(open_desc)
+                else:
+                    norm_open_time = ''
 
                 if 'daodao' in data_dict['tagid']:
                     norm_tag, norm_tag_en = get_norm_tag(data_dict['tagid'])
