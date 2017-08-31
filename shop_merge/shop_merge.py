@@ -1,10 +1,11 @@
 import pymysql
 from pymysql.cursors import DictCursor
 
-from Config.settings import dev_conf, shop_merge_conf
+from Config.settings import dev_conf, shop_merge_conf, shop_data_conf
 from my_lib.get_similar_word import get_similar_word
 from collections import defaultdict
 
+need_cid_file = True
 skip_inner_source_merge = True
 inner_source_merge_id = set()
 
@@ -92,14 +93,25 @@ ORDER BY id;'''
 def get_task_city():
     conn = pymysql.connect(**dev_conf)
     cursor = conn.cursor(cursor=DictCursor)
-    sql = """SELECT
+    if need_cid_file:
+        sql = """SELECT
   id           AS city_id,
   city.name    AS city_name,
   city.name_en AS city_name_en,
   country.name AS country_name,
   map_info
 FROM city
-  JOIN country ON city.country_id = country.mid;"""
+  JOIN country ON city.country_id = country.mid WHERE id in ({});""".format(
+            ','.join((map(lambda x: x.strip(), open('cid_file')))))
+    else:
+        sql = """SELECT
+          id           AS city_id,
+          city.name    AS city_name,
+          city.name_en AS city_name_en,
+          country.name AS country_name,
+          map_info
+        FROM city
+          JOIN country ON city.country_id = country.mid;"""
     cursor.execute(sql)
     yield from cursor.fetchall()
 
@@ -125,7 +137,7 @@ def get_shop_info(source, cid):
     sql = '''SELECT *
 FROM shop
 WHERE source = %s AND city_id = %s;'''
-    conn = pymysql.connect(**shop_merge_conf)
+    conn = pymysql.connect(**shop_data_conf)
     cursor = conn.cursor(cursor=DictCursor)
     cursor.execute(sql, (source, cid))
     yield from cursor.fetchall()
