@@ -1,29 +1,25 @@
 # encoding=utf8
-
 import sys
-import MySQLdb
 import csv
 import pymysql
 import pandas
+from pymysql.cursors import DictCursor
+from Config.settings import attr_merge_conf
 
-test_db_ip = '10.10.114.35'
-test_db_user = 'reader'
-test_db_passwd = 'miaoji1109'
-db_name = 'attr_merge'
-table_name = 'chat_attraction'
+table_name = 'chat_attraction_new'
 
 
 def insert_db(args):
-    conn = pymysql.connect(host='localhost', user='hourong', charset='utf8', passwd='hourong', db='data_prepare')
+    conn = pymysql.connect(host='10.10.180.145', user='hourong', charset='utf8', passwd='hourong', db='data_prepare')
     with conn as cursor:
-        sql = 'replace into chat_attraction VALUES ({})'.format(','.join(['%s'] * 67))
+        sql = 'replace into chat_attraction VALUES ({})'.format(','.join(['%s'] * 68))
         res = cursor.executemany(sql, args)
     conn.close()
     return res
 
 
 def getCandOnlineData(update_cid_file):
-    conn = MySQLdb.connect(host=test_db_ip, user=test_db_user, charset='utf8', passwd=test_db_passwd, db=db_name)
+    conn = pymysql.connect(**attr_merge_conf)
     cursor = conn.cursor()
 
     get_column_sql = "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name='{}'".format(
@@ -47,13 +43,14 @@ def getCandOnlineData(update_cid_file):
     map_info_idx = 5
     city_idx = 6
     first_img_idx = 40
-    source_idx = 8
-    norm_tag_idx = 19
-    open_time_idx = 28
-    online_idx = 42
-    address_idx = 21
+    source_idx = 7
+    norm_tag_idx = 18
+    open_time_idx = 27
+    test_idx = 67
+    online_idx = 66
+    address_idx = 20
 
-    column_count = 67
+    column_count = 68
     all_data = []
     report_data = pandas.DataFrame(
         columns=['ID', '城市名', '国家', '开发库中景点个数', 'test 上线景点个数', '上线景点占比', '上线景点有图占比', '开发库中 daodao 景点个数',
@@ -158,7 +155,8 @@ def getCandOnlineData(update_cid_file):
             if word_list[open_time_idx].lower() in ('', 'null', '0'):
                 word_list[open_time_idx] = '<*><*><00:00-23:55><SURE>'
 
-            word_list[online_idx] = 1
+            word_list[online_idx] = 'Open'
+            word_list[test_idx] = 'Open'
 
             cand_data.append(word_list)
 
@@ -192,10 +190,10 @@ def getCandOnlineData(update_cid_file):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('USAG:python a.py cid_file[one cid each line]')
-        sys.exit(1)
-
-    cid_file = sys.argv[1]
-
+    # if len(sys.argv) != 2:
+    #     print('USAG:python a.py cid_file[one cid each line]')
+    #     sys.exit(1)
+    #
+    # cid_file = sys.argv[1]
+    cid_file = 'cid_file'
     getCandOnlineData(cid_file)
