@@ -5,16 +5,13 @@ import MySQLdb
 import csv
 import pymysql
 import pandas
+from Config.settings import shop_merge_conf
 
-test_db_ip = '10.10.114.35'
-test_db_user = 'reader'
-test_db_passwd = 'miaoji1109'
-db_name = 'shop_merge'
-table_name = 'chat_shopping'
+table_name = 'chat_shopping_new'
 
 
 def insert_db(args):
-    conn = pymysql.connect(host='localhost', user='hourong', charset='utf8', passwd='hourong', db='data_prepare')
+    conn = pymysql.connect(host='10.10.180.145', user='hourong', charset='utf8', passwd='hourong', db='data_prepare')
     with conn as cursor:
         sql = 'replace into chat_shopping VALUES ({})'.format(','.join(['%s'] * 55))
         res = cursor.executemany(sql, args)
@@ -23,7 +20,7 @@ def insert_db(args):
 
 
 def getCandOnlineData(update_cid_file):
-    conn = MySQLdb.connect(host=test_db_ip, user=test_db_user, charset='utf8', passwd=test_db_passwd, db=db_name)
+    conn = MySQLdb.connect(**shop_merge_conf)
     cursor = conn.cursor()
 
     get_column_sql = "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name='{}'".format(
@@ -50,7 +47,8 @@ def getCandOnlineData(update_cid_file):
     source_idx = 38
     norm_tag_idx = 33
     open_time_idx = 20
-    online_idx = 39
+    test_idx = 54
+    online_idx = 53
     address_idx = 5
 
     column_count = 55
@@ -197,10 +195,11 @@ def getCandOnlineData(update_cid_file):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('USAG:python a.py cid_file[one cid each line]')
-        sys.exit(1)
+    # if len(sys.argv) != 2:
+    #     print('USAG:python a.py cid_file[one cid each line]')
+    #     sys.exit(1)
+    #
+    # cid_file = sys.argv[1]
 
-    cid_file = sys.argv[1]
-
+    cid_file = 'cid_file'
     getCandOnlineData(cid_file)
