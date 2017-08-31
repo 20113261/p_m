@@ -1,8 +1,10 @@
 # coding=utf-8
 import json
 import re
-
-import db_localhost as db
+import pymysql
+from pymysql.cursors import DictCursor
+from .lang_convert import tradition2simple
+from Config.settings import local_tag_conf
 
 REST_TABLE = 'data_prepare.restaurant_tmp'
 split_pattern = re.compile('[|与/]')
@@ -63,16 +65,40 @@ key_words_dict = {'\u9ece\u5df4\u5ae9\u83dc': '\u9ece\u5df4\u5ae9', '\u79d8\u9c8
 
 def get_tagid_dict():
     tag_tag_en_dict = {}
-    sql = 'select tag,tag_en from tag.restaurant_tagS'
-    for line in db.QueryBySQL(sql):
+    sql = 'select tag,tag_en from restaurant_tagS'
+    conn = pymysql.connect(**local_tag_conf)
+    cursor = conn.cursor(cursor=DictCursor)
+    cursor.execute(sql)
+    for line in cursor.fetchall():
         tag = line['tag']
         tag_en = line['tag_en']
         tag_tag_en_dict[tag] = tag_en
     return tag_tag_en_dict
 
 
+tag_dict = get_tagid_dict()
+
+
+def get_norm_tag(tag_id):
+    norm_tag = []
+    norm_tag_en = []
+    lines = tradition2simple(tag_id['daodao']).decode()
+    for raw_tag in split_pattern.split(lines):
+        tag = raw_tag.strip()
+        if tag in tag_dict:
+            norm_tag.append(tag)
+            norm_tag_en.append(tag_dict[tag])
+            continue
+        if tag in key_words_dict:
+            if key_words_dict[tag] in tag_dict:
+                norm_tag.append(key_words_dict[tag])
+                norm_tag_en.append(tag_dict[key_words_dict[tag]])
+    norm_tag = '|'.join(norm_tag)
+    norm_tag_en = '|'.join(norm_tag_en)
+    return norm_tag, norm_tag_en
+
+
 def get_datas():
-    tag_dict = get_tagid_dict()
     datas = []
     sql = 'select id,tagid,source from ' + REST_TABLE
     _count = 0

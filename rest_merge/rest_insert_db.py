@@ -3,8 +3,11 @@ import json
 import gc
 import pymysql
 import toolbox.Common
+import copy
 from pymysql.cursors import DictCursor
 from collections import defaultdict
+from add_open_time.add_open_time import get_open_time
+from norm_tag.rest_norm_tag import get_norm_tag
 
 others_name_list = ['source']
 json_name_list = ['commentcounts', 'ranking', 'price', 'introduction']
@@ -18,6 +21,13 @@ key_priority.update({
     'yelp': 8,
     'tripadvisor': 10
 })
+
+W2N = {
+    '¥¥-¥¥¥': '23',
+    '¥': '1',
+    '': '0',
+    '¥¥¥¥': '4'
+}
 
 
 def get_key_by_priority(src: dict):
@@ -63,7 +73,8 @@ def get_task():
     conn = pymysql.connect(host='10.10.180.145', user='hourong', passwd='hourong', charset='utf8', db='rest_merge')
     # 获取所有用于融合的城市 id
     cursor = conn.cursor()
-    cursor.execute("select distinct city_id from rest_unid where city_id=50012;")
+    cursor.execute("select distinct city_id from rest_unid where city_id in ({});".format(
+        ','.join((map(lambda x: x.strip(), open('cid_file'))))))
     total_city_id = list(map(lambda x: x[0], cursor.fetchall()))
     cursor.close()
 
@@ -90,12 +101,12 @@ GROUP BY id'''
 if __name__ == '__main__':
     conn = pymysql.connect(host='10.10.180.145', user='hourong', passwd='hourong', charset='utf8', db='rest_merge')
 
-    sql = 'insert into chat_restaurant(`id`,`name`,`name_en`,' \
+    sql = 'replace into chat_restaurant(`id`,`name`,`name_en`,' \
           '`source`,`city_id`,`map_info`,`address`,`real_ranking`,' \
-          '`grade`,`res_url`,`telphone`,`introduction`,`open_time_desc`,`prize`,' \
+          '`grade`,`res_url`,`telphone`,`introduction`,`open_time`,`open_time_desc`,`prize`,' \
           '`traveler_choice`,`review_num`,`price`,`price_level`,`cuisines`, ' \
-          '`image_urls`,`tagid`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-          '%s,%s,%s,%s,%s,%s,%s,%s)'
+          '`image_urls`,`tagid`,`norm_tagid`,`norm_tagid_en`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
+          '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
 
     for task_dict in get_task():
         count = 0
@@ -137,32 +148,48 @@ if __name__ == '__main__':
                     print('union_info', union_info)
                     continue
 
+                data_dict['tagid'] = copy.deepcopy(data_dict['cuisines'])
+
                 new_data_dict = {}
                 for norm_name in norm_name_list:
                     new_data_dict[norm_name] = get_key_by_priority(data_dict[norm_name]) or ''
 
-                for json_name in json_name_list:
+                for json_name in (set(json_name_list) | {'tagid', }):
                     new_data_dict[json_name] = json.dumps(data_dict[json_name])
-
-                new_data_dict['tagid'] = json.dumps(new_data_dict['cuisines'])
 
                 new_data_dict['phone'] = new_data_dict['phone'].replace('电话号码：', '').strip()
 
                 # 添加 source
                 source = '|'.join(sorted(data_dict['source'].values()))
 
+                # todo modify opentime, norm_tagid, comment and so on
+                norm_open_time = get_open_time(data_dict['opentime'])
+
+                if 'daodao' in data_dict['tagid']:
+                    norm_tag, norm_tag_en = get_norm_tag(data_dict['tagid'])
+                else:
+                    norm_tag, norm_tag_en = '', ''
+
                 # 替换旧的 data_dict
                 data_dict = new_data_dict
+
+                # phone 处理
+                if data_dict['phone'] == '+ 新增電話號碼':
+                    data_dict['phone'] = ''
+
+                # price_level
+                data_dict['price_level'] = W2N.get(data_dict.get('price_level', ''), '0')
 
                 data.append((
                     miaoji_id, data_dict['name'], data_dict['name_en'], source, key,
                     data_dict['map_info'],
                     data_dict['address'],
                     data_dict['ranking'], data_dict['grade'],
-                    data_dict['url'], data_dict['phone'], data_dict['introduction'], data_dict['opentime'],
+                    data_dict['url'], data_dict['phone'], data_dict['introduction'], norm_open_time,
+                    data_dict['opentime'],
                     data_dict['prize'], data_dict['traveler_choice'],
                     data_dict['commentcounts'], data_dict['price'], data_dict['price_level'], data_dict['cuisines'],
-                    data_dict['imgurl'], data_dict['tagid']))
+                    data_dict['imgurl'], data_dict['tagid'], norm_tag, norm_tag_en))
 
                 if count % 3000 == 0:
                     print("Total:", count)

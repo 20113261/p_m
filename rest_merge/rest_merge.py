@@ -100,7 +100,8 @@ def get_task_city():
   country.name AS country_name,
   map_info
 FROM city
-  JOIN country ON city.country_id = country.mid WHERE id in (51469,50531,51466,51468,50777,51481,51474,51467,51470,50598,50595,51482,51487,51486,51483,51484,51488,50118,50206,50810,51480,51498,50197,51495,50231,51492,50145,51485,51493,51497,50402,50528,50008,51494,51496,50616,51479,50637,51501,51500,51471,51472,51477,51478,51475,51473,50265,51491,51476,51489,51499,51490);"""
+  JOIN country ON city.country_id = country.mid WHERE id in ({});""".format(
+        ','.join((map(lambda x: x.strip(), open('cid_file')))))
     cursor.execute(sql)
     yield from cursor.fetchall()
 
@@ -108,8 +109,8 @@ FROM city
 def insert_db(args):
     conn = pymysql.connect(**rest_merge_conf)
     cursor = conn.cursor()
-    sql = '''INSERT INTO rest_unid (id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info, grade, comment_count, ranking, address, url)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    sql = '''INSERT IGNORE INTO rest_unid (id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info, grade, comment_count, ranking, address, url, part)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
     res = cursor.executemany(sql, args)
     cursor.close()
     conn.close()
@@ -199,7 +200,7 @@ def task(task_source):
                 miaoji_id, city_id, city_name, country_name, city_map_info, source, source_id, each_rest_info['name'],
                 each_rest_info['name_en'], each_rest_info['map_info'], each_rest_info['grade'],
                 each_rest_info['commentcounts'],
-                each_rest_info['ranking'], each_rest_info['address'], each_rest_info['url']
+                each_rest_info['ranking'], each_rest_info['address'], each_rest_info['url'], 'meizhilv'
             )
 
             # 增加进一步融合的 key
