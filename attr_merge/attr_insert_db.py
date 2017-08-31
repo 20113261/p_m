@@ -11,6 +11,8 @@ import json
 from pymysql.cursors import DictCursor
 from collections import defaultdict
 from Config.settings import attr_data_conf, attr_merge_conf
+from add_open_time.add_open_time import get_open_time
+from norm_tag.attr_norm_tag import get_norm_tag
 
 need_cid_file = True
 
@@ -118,10 +120,10 @@ if __name__ == '__main__':
 
     sql = 'replace into chat_attraction(`id`,`name`,`name_en`,`data_source`,`city_id`,' \
           '`map_info`,`address`,`star`,`plantocount`,`beentocount`,`real_ranking`,' \
-          '`grade`,`commentcount`,`tagid`,`url`,`website_url`,`phone`,`introduction`,' \
-          '`open_desc`,`recommend_lv`,`prize`,`traveler_choice`, `alias`, ' \
+          '`grade`,`commentcount`,`tagid`,`norm_tagid`,`norm_tagid_en`,`url`,`website_url`,`phone`,`introduction`,' \
+          '`open`, `open_desc`,`recommend_lv`,`prize`,`traveler_choice`, `alias`, ' \
           '`image`, `ori_grade`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-          '%s,%s,%s,%s,%s,%s,%s,%s)'
+          '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
 
     for task_dict in get_task():
         count = 0
@@ -185,6 +187,16 @@ if __name__ == '__main__':
                                  )
 
                 # todo modify opentime, norm_tagid, comment and so on
+                norm_open_time = get_open_time(data_dict['opentime'])
+
+                if 'daodao' in data_dict['tagid']:
+                    norm_tag, norm_tag_en = get_norm_tag(data_dict['tagid'])
+                else:
+                    norm_tag, norm_tag_en = '', ''
+
+                # phone 处理
+                if data_dict['phone'] == '+ 新增電話號碼':
+                    data_dict['phone'] = ''
 
                 # 数据入库部分
                 # 替换旧的 data_dict
@@ -196,8 +208,9 @@ if __name__ == '__main__':
                     data_dict['star'], data_dict['plantocounts'], data_dict['beentocounts'],
                     data_dict['ranking'], data_dict['grade'],
                     data_dict['commentcounts'],
-                    data_dict['tagid'], data_dict['url'], data_dict['site'], data_dict['phone'],
-                    data_dict['introduction'],
+                    data_dict['tagid'], norm_tag, norm_tag_en, data_dict['url'], data_dict['site'],
+                    data_dict['phone'],
+                    data_dict['introduction'], norm_open_time,
                     data_dict['opentime'], data_dict['recommend_lv'], data_dict['prize'],
                     data_dict['traveler_choice'], alias, data_dict['imgurl'], data_dict['grade'])
                 )

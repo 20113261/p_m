@@ -1,7 +1,7 @@
 import pymysql
 
-from fix_daodao_time import fix_daodao_open_time, get_open_time
-from multi_days_check import multi_days_handling
+from .fix_daodao_time import fix_daodao_open_time, get_open_time
+from .multi_days_check import multi_days_handling
 
 # attr
 OPEN = 'open'
