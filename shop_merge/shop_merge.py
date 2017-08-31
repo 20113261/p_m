@@ -5,8 +5,9 @@ from Config.settings import dev_conf, shop_merge_conf
 from my_lib.get_similar_word import get_similar_word
 from collections import defaultdict
 
+skip_inner_source_merge = True
+inner_source_merge_id = set()
 
-# 同源不融合
 
 def get_id_keys():
     id_keys = defaultdict(set)
@@ -18,7 +19,10 @@ def get_id_keys():
   source_id
 FROM shop_unid;''')
     for line in cursor.fetchall():
+        # 存储 source source_id
         id_keys[line[0]].add((line[1], line[2]))
+        # 存储 source
+        id_keys[line[0]].add(line[1])
     return id_keys
 
 
@@ -66,7 +70,7 @@ ORDER BY id;'''
     city_id_list = []
 
     conn = pymysql.connect(**shop_merge_conf)
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor=DictCursor)
 
     cursor.execute(sql)
     for line in cursor.fetchall():
@@ -117,7 +121,7 @@ def get_new_miaoji_id():
     return max_id
 
 
-def get_attr_info(source, cid):
+def get_shop_info(source, cid):
     sql = '''SELECT *
 FROM shop
 WHERE source = %s AND city_id = %s;'''
@@ -139,29 +143,54 @@ def task(task_source):
         city_map_info = each_city['map_info']
         country_name = each_city['country_name']
 
-        attr_info = get_attr_info(task_source, city_id)
+        shop_info = get_shop_info(task_source, city_id)
 
-        for each_attr_info in attr_info:
+        for each_shop_info in shop_info:
             source = task_source
-            source_id = each_attr_info['id']
-            name = each_attr_info['name']
-            name_en = get_similar_word(each_attr_info['name_en'] or '')
+            source_id = each_shop_info['id']
+            name = each_shop_info['name']
+            name_en = get_similar_word(each_shop_info['name_en'] or '')
             name_key = city_id + '|_|_|' + (name or '')
             name_en_key = city_id + '|_|_|' + (name_en or '')
-            if (name_key in name_dict or name_key in en_dict) and (each_attr_info['name'] != '') and (
-                        each_attr_info['name'] is not None):
+            if (name_key in name_dict or name_key in en_dict) and (each_shop_info['name'] != '') and (
+                        each_shop_info['name'] is not None):
                 miaoji_id = name_dict.get(name_key, '')
-            elif (name_en_key in en_dict or name_en_key in name_dict) and (each_attr_info['name_en'] != '') and (
-                        each_attr_info['name_en'] is not None):
+            elif (name_en_key in en_dict or name_en_key in name_dict) and (each_shop_info['name_en'] != '') and (
+                        each_shop_info['name_en'] is not None):
                 miaoji_id = en_dict.get(name_en_key, '')
             else:
                 miaoji_id = get_new_miaoji_id()
-            count += 1
 
+            # 融合过以及同源融合判定
+            if (source, source_id) in id_keys[miaoji_id]:
+                # 已融合过，跳过入库
+                # 之后可以改为更新内容
+                continue
+            else:
+                if source in id_keys[miaoji_id]:
+                    if skip_inner_source_merge:
+                        miaoji_id = get_new_miaoji_id()
+                    else:
+                        # 同源融合
+                        inner_source_merge_id.add(miaoji_id)
+
+                        # 此部分有重复，同源融合日志输出时，需要先打印此部分
+                        id_keys[miaoji_id].add(source)
+                        id_keys[miaoji_id].add((source, source_id))
+                        print("同源融合，mid: {0}, id_set: {1}".format(miaoji_id, id_keys[miaoji_id]))
+                else:
+                    # 非同源融合，正常进行
+                    pass
+
+            # 增加同源融合判定信息
+            id_keys[miaoji_id].add(source)
+            id_keys[miaoji_id].add((source, source_id))
+
+            count += 1
             each_data = (
-                miaoji_id, city_id, city_name, country_name, city_map_info, source, source_id, each_attr_info['name'],
-                each_attr_info['name_en'], each_attr_info['map_info'], each_attr_info['grade'], each_attr_info['star'],
-                each_attr_info['ranking'], each_attr_info['address'], each_attr_info['url']
+                miaoji_id, city_id, city_name, country_name, city_map_info, source, source_id, each_shop_info['name'],
+                each_shop_info['name_en'], each_shop_info['map_info'], each_shop_info['grade'], each_shop_info['star'],
+                each_shop_info['ranking'], each_shop_info['address'], each_shop_info['url']
             )
 
             # 增加进一步融合的 key
@@ -177,6 +206,9 @@ def task(task_source):
                 print(count)
     print(insert_db(data))
     print(count)
+
+    # 打印同源融合情况
+    print(inner_source_merge_id)
 
 
 if __name__ == '__main__':
