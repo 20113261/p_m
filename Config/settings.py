@@ -6,6 +6,22 @@
 # @File    : settings.py
 # @Software: PyCharm
 
+localhost_conf = {
+    'host': '10.10.180.145',
+    'user': 'hourong',
+    'password': 'hourong',
+    'charset': 'utf8',
+    'db': 'hourong'
+}
+
+local_tag_conf = {
+    'host': '10.10.180.145',
+    'user': 'hourong',
+    'password': 'hourong',
+    'charset': 'utf8',
+    'db': 'hourong'
+}
+
 dev_conf = {
     'host': '10.10.69.170',
     'user': 'reader',
