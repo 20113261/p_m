@@ -5,6 +5,7 @@ from Config.settings import dev_conf, attr_merge_conf, attr_data_conf
 from my_lib.get_similar_word import get_similar_word
 from collections import defaultdict
 
+need_cid = True
 inner_source_merge_id = set()
 
 
@@ -91,14 +92,25 @@ ORDER BY id;'''
 def get_task_city():
     conn = pymysql.connect(**dev_conf)
     cursor = conn.cursor(cursor=DictCursor)
-    sql = """SELECT
+    if need_cid:
+        sql = """SELECT
   id           AS city_id,
   city.name    AS city_name,
   city.name_en AS city_name_en,
   country.name AS country_name,
   map_info
 FROM city
-  JOIN country ON city.country_id = country.mid WHERE id in (51469,50531,51466,51468,50777,51481,51474,51467,51470,50598,50595,51482,51487,51486,51483,51484,51488,50118,50206,50810,51480,51498,50197,51495,50231,51492,50145,51485,51493,51497,50402,50528,50008,51494,51496,50616,51479,50637,51501,51500,51471,51472,51477,51478,51475,51473,50265,51491,51476,51489,51499,51490);"""
+  JOIN country ON city.country_id = country.mid WHERE id in ({});""".format(
+            ','.join((map(lambda x: x.strip(), open('cid_file')))))
+    else:
+        sql = '''SELECT
+  id           AS city_id,
+  city.name    AS city_name,
+  city.name_en AS city_name_en,
+  country.name AS country_name,
+  map_info
+FROM city
+  JOIN country ON city.country_id = country.mid;'''
     cursor.execute(sql)
     yield from cursor.fetchall()
 
