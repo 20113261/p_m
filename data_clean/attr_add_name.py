@@ -2,7 +2,7 @@ import pymysql
 from pymysql.cursors import DictCursor
 from Config.settings import attr_merge_conf
 
-TASK_TABLE = 'data_prepare.attraction_tmp'
+TASK_TABLE = 'chat_attraction_new'
 
 
 def name_problem():
