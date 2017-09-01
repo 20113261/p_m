@@ -88,25 +88,25 @@ def getCandOnlineData(update_cid_file):
             is_legel_data = True
             # 过滤
 
-            if word_list[name_idx].lower() in ('', 'null') and word_list[name_en_idx].lower() in ('', 'null'):
-                name_null_fail_count += 1
-                is_legel_data = False
-
-            if is_legel_data and word_list[city_idx].lower() in ('', 'null'):
-                city_null_fail_count += 1
-                is_legel_data = False
-
-            if is_legel_data and word_list[first_img_idx].lower() in ('', 'null'):
-                first_img_null_fail_count += 1
-                is_legel_data = False
-
-            if is_legel_data:
-                try:
-                    lat = float(word_list[map_info_idx].strip().split(',')[0])
-                    lgt = float(word_list[map_info_idx].strip().split(',')[1])
-                except:
-                    map_fail_count += 1
-                    is_legel_data = False
+            # if word_list[name_idx].lower() in ('', 'null') and word_list[name_en_idx].lower() in ('', 'null'):
+            #     name_null_fail_count += 1
+            #     is_legel_data = False
+            #
+            # if is_legel_data and word_list[city_idx].lower() in ('', 'null'):
+            #     city_null_fail_count += 1
+            #     is_legel_data = False
+            #
+            # if is_legel_data and word_list[first_img_idx].lower() in ('', 'null'):
+            #     first_img_null_fail_count += 1
+            #     is_legel_data = False
+            #
+            # if is_legel_data:
+            #     try:
+            #         lat = float(word_list[map_info_idx].strip().split(',')[0])
+            #         lgt = float(word_list[map_info_idx].strip().split(',')[1])
+            #     except:
+            #         map_fail_count += 1
+            #         is_legel_data = False
 
             # 过滤结束
 

@@ -158,10 +158,8 @@ def getCandOnlineData(update_cid_file):
             if word_list[open_time_idx].lower() in ('', 'null', '0'):
                 word_list[open_time_idx] = '<*><*><00:00-23:55><SURE>'
 
-            if right_data:
-                word_list[online_idx] = 1
-            else:
-                word_list[online_idx] = 0
+            word_list[online_idx] = 'Open'
+            word_list[test_idx] = 'Open'
 
             cand_data.append(word_list)
 
