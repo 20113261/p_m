@@ -4,6 +4,7 @@ from pymysql.cursors import DictCursor
 from Config.settings import dev_conf, rest_merge_conf, rest_data_conf
 from my_lib.get_similar_word import get_similar_word
 from collections import defaultdict
+from norm_tag.lang_convert import tradition2simple
 
 skip_inner_source_merge = True
 inner_source_merge_id = set()
@@ -154,7 +155,15 @@ def task(task_source):
         rest_info = get_rest_info(task_source, city_id)
         print('rest info OK')
 
-        for each_rest_info in rest_info:
+        for each_rest_info_src in rest_info:
+            each_rest_info = {}
+            # 简体化字段
+            for e_k in each_rest_info_src:
+                if isinstance(each_rest_info_src[e_k], str):
+                    each_rest_info[e_k] = tradition2simple(each_rest_info_src[e_k]).decode()
+                else:
+                    each_rest_info[e_k] = each_rest_info_src[e_k]
+
             source = task_source
             source_id = each_rest_info['id']
             name = each_rest_info['name']

@@ -4,6 +4,7 @@ from pymysql.cursors import DictCursor
 from Config.settings import dev_conf, attr_merge_conf, attr_data_conf
 from my_lib.get_similar_word import get_similar_word
 from collections import defaultdict
+from norm_tag.lang_convert import tradition2simple
 
 need_cid = True
 inner_source_merge_id = set()
@@ -158,7 +159,15 @@ def task(task_source):
         print("Now City cid: {}, country: {}, name: {}".format(city_id, country_name, city_name))
         attr_info = get_attr_info(task_source, city_id)
 
-        for each_attr_info in attr_info:
+        for each_attr_info_src in attr_info:
+            each_attr_info = {}
+            # 简体化字段
+            for e_k in each_attr_info_src:
+                if isinstance(each_attr_info_src[e_k], str):
+                    each_attr_info[e_k] = tradition2simple(each_attr_info_src[e_k]).decode()
+                else:
+                    each_attr_info[e_k] = each_attr_info_src[e_k]
+
             source = task_source
             source_id = each_attr_info['id']
             name = each_attr_info['name']

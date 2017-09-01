@@ -7,7 +7,7 @@ import copy
 from pymysql.cursors import DictCursor
 from collections import defaultdict
 from add_open_time.add_open_time import fix_daodao_open_time
-from norm_tag.rest_norm_tag import get_norm_tag
+from norm_tag.rest_norm_tag import get_norm_tag, tradition2simple
 
 others_name_list = ['source']
 json_name_list = ['commentcounts', 'ranking', 'price', 'introduction']
@@ -141,7 +141,10 @@ if __name__ == '__main__':
 
                     for each_name in (json_name_list + norm_name_list):
                         if str(rest_info[each_name]).upper() not in ('NULL', ''):
-                            data_dict[each_name][source] = rest_info[each_name]
+                            if isinstance(rest_info[each_name], str):
+                                data_dict[each_name][source] = tradition2simple(rest_info[each_name]).decode()
+                            else:
+                                data_dict[each_name][source] = rest_info[each_name]
 
                 # 不能融合的内容包含两种
                 if not can_be_used:
@@ -160,7 +163,7 @@ if __name__ == '__main__':
                 new_data_dict['phone'] = new_data_dict['phone'].replace('电话号码：', '').strip()
 
                 # 添加 source
-                source = '|'.join(sorted(data_dict['source'].values()))
+                source = '|'.join(map(lambda x: x.split('|')[0], union_info.split('|_||_|')))
 
                 # todo modify opentime, norm_tagid, comment and so on
                 if 'daodao' in data_dict['opentime']:
@@ -168,6 +171,7 @@ if __name__ == '__main__':
                     try:
                         norm_open_time = fix_daodao_open_time(open_desc)
                     except Exception:
+                        norm_open_time = ''
                         print(open_desc)
                 else:
                     norm_open_time = ''
@@ -180,8 +184,13 @@ if __name__ == '__main__':
                 # 替换旧的 data_dict
                 data_dict = new_data_dict
 
+                # name name_en 判断
+                if data_dict['name'] != data_dict['name_en']:
+                    if data_dict['name_en'] in data_dict['name']:
+                        data_dict['name'] = data_dict['name'].replace(data_dict['name_en'], '')
+
                 # phone 处理
-                if data_dict['phone'] == '+ 新增電話號碼':
+                if data_dict['phone'] in ('+ 新增電話號碼', '+ 新增电话号码'):
                     data_dict['phone'] = ''
 
                 # price_level

@@ -4,6 +4,7 @@ from pymysql.cursors import DictCursor
 from Config.settings import dev_conf, shop_merge_conf, shop_data_conf
 from my_lib.get_similar_word import get_similar_word
 from collections import defaultdict
+from norm_tag.lang_convert import tradition2simple
 
 need_cid_file = True
 skip_inner_source_merge = True
@@ -119,8 +120,8 @@ FROM city
 def insert_db(args):
     conn = pymysql.connect(**shop_merge_conf)
     cursor = conn.cursor()
-    sql = '''INSERT INTO shop_unid (id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info, grade, star, ranking, address, url)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    sql = '''INSERT INTO shop_unid (id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info, grade, star, ranking, address, url, part)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
     res = cursor.executemany(sql, args)
     cursor.close()
     conn.close()
@@ -157,7 +158,15 @@ def task(task_source):
 
         shop_info = get_shop_info(task_source, city_id)
 
-        for each_shop_info in shop_info:
+        for each_shop_info_src in shop_info:
+            each_shop_info = {}
+            # 简体化字段
+            for e_k in each_shop_info_src:
+                if isinstance(each_shop_info_src[e_k], str):
+                    each_shop_info[e_k] = tradition2simple(each_shop_info_src[e_k]).decode()
+                else:
+                    each_shop_info[e_k] = each_shop_info_src[e_k]
+
             source = task_source
             source_id = each_shop_info['id']
             name = each_shop_info['name']
@@ -202,7 +211,7 @@ def task(task_source):
             each_data = (
                 miaoji_id, city_id, city_name, country_name, city_map_info, source, source_id, each_shop_info['name'],
                 each_shop_info['name_en'], each_shop_info['map_info'], each_shop_info['grade'], each_shop_info['star'],
-                each_shop_info['ranking'], each_shop_info['address'], each_shop_info['url']
+                each_shop_info['ranking'], each_shop_info['address'], each_shop_info['url'], 'meizhilv'
             )
 
             # 增加进一步融合的 key

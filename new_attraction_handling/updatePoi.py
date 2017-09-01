@@ -104,39 +104,39 @@ def getCandOnlineData(update_cid_file):
 
             # 数据检查部分
 
-            # # name
-            # if word_list[name_idx].lower() in ('', 'null', '0') and word_list[name_en_idx].lower() in ('', 'null', '0'):
-            #     name_null_fail_count += 1
-            #     continue
-            #
-            # # city
-            # if word_list[city_idx].lower() in ('', 'null', '0'):
-            #     city_null_fail_count += 1
-            #     continue
-            #
-            # # norm_tag
-            # if word_list[norm_tag_idx].lower() in ('', 'null', '0'):
-            #     norm_tag_null_fail_count += 1
-            #     continue
-            #
-            # # map_info
-            # try:
-            #     lat = float(word_list[map_info_idx].strip().split(',')[0])
-            #     lgt = float(word_list[map_info_idx].strip().split(',')[1])
-            # except:
-            #     map_fail_count += 1
-            #     continue
-            #
-            # # first_img
-            # if word_list[first_img_idx].lower() in ('', 'null', '0'):
-            #     if 'daodao' not in word_list[source_idx]:
-            #         first_img_null_fail_count += 1
-            #         continue
-            # else:
-            #     img_succeed_count += 1
-            #
-            # if 'daodao' in word_list[source_idx]:
-            #     daodao_succeed_count += 1
+            # name
+            if word_list[name_idx].lower() in ('', 'null', '0') and word_list[name_en_idx].lower() in ('', 'null', '0'):
+                name_null_fail_count += 1
+                continue
+
+            # city
+            if word_list[city_idx].lower() in ('', 'null', '0'):
+                city_null_fail_count += 1
+                continue
+
+            # norm_tag
+            if word_list[norm_tag_idx].lower() in ('', 'null', '0'):
+                norm_tag_null_fail_count += 1
+                continue
+
+            # map_info
+            try:
+                lat = float(word_list[map_info_idx].strip().split(',')[0])
+                lgt = float(word_list[map_info_idx].strip().split(',')[1])
+            except:
+                map_fail_count += 1
+                continue
+
+            # first_img
+            if word_list[first_img_idx].lower() in ('', 'null', '0'):
+                if 'daodao' not in word_list[source_idx]:
+                    first_img_null_fail_count += 1
+                    continue
+            else:
+                img_succeed_count += 1
+
+            if 'daodao' in word_list[source_idx]:
+                daodao_succeed_count += 1
 
             # 数据更改部分
             # name

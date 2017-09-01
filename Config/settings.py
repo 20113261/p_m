@@ -77,3 +77,11 @@ rest_data_conf = {
     'charset': 'utf8',
     'db': 'rest_merge'
 }
+
+merge_data_target_db = {
+    'host': '10.10.180.145',
+    'user': 'hourong',
+    'password': 'hourong',
+    'charset': 'utf8',
+    'db': 'data_prepare'
+}

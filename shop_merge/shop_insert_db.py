@@ -6,8 +6,8 @@ import toolbox.Common
 from pymysql.cursors import DictCursor
 from collections import defaultdict
 from add_open_time.add_open_time import fix_daodao_open_time
-from norm_tag.shop_norm_tag import get_norm_tag
 from Config.settings import shop_merge_conf, shop_data_conf
+from norm_tag.shop_norm_tag import get_norm_tag, tradition2simple
 
 others_name_list = ['source']
 
@@ -114,8 +114,11 @@ GROUP BY id'''.format(','.join((map(lambda x: x.strip(), open('cid_file')))))
             can_be_used = True
 
             for each_name in (json_name_list + norm_name_list + others_name_list):
-                if str(shop_dict[each_name]).upper() not in ('NULL', ''):
-                    data_dict[each_name][source] = shop_info[each_name]
+                if str(shop_info[each_name]).upper() not in ('NULL', ''):
+                    if isinstance(shop_info[each_name], str):
+                        data_dict[each_name][source] = tradition2simple(shop_info[each_name]).decode()
+                    else:
+                        data_dict[each_name][source] = shop_info[each_name]
 
         if not can_be_used:
             print('union_info', union_info)
@@ -135,6 +138,7 @@ GROUP BY id'''.format(','.join((map(lambda x: x.strip(), open('cid_file')))))
             try:
                 norm_open_time = fix_daodao_open_time(open_desc)
             except Exception:
+                norm_open_time = ''
                 print(open_desc)
         else:
             norm_open_time = ''
@@ -145,11 +149,11 @@ GROUP BY id'''.format(','.join((map(lambda x: x.strip(), open('cid_file')))))
             norm_tag, norm_tag_en = '', ''
 
         # phone 处理
-        if data_dict['phone'] == '+ 新增電話號碼':
+        if data_dict['phone'] in ('+ 新增電話號碼', '+ 新增电话号码'):
             data_dict['phone'] = ''
 
         # 添加 source
-        source = '|'.join(sorted(data_dict['source'].values()))
+        source = '|'.join(map(lambda x: x.split('|')[0], union_info.split('|_||_|')))
         data_dict = new_data_dict
 
         sql = 'replace into ' \
@@ -159,6 +163,15 @@ GROUP BY id'''.format(','.join((map(lambda x: x.strip(), open('cid_file')))))
               '`phone`,`introduction`,`open`,`open_desc`,`recommend_lv`,`prize`,' \
               '`traveler_choice`,`image`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
               '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+
+        # name name_en 判断
+        if data_dict['name'] != data_dict['name_en']:
+            if data_dict['name_en'] in data_dict['name']:
+                data_dict['name'] = data_dict['name'].replace(data_dict['name_en'], '')
+
+        # phone
+        if data_dict['phone'] in ('+ 新增電話號碼', '+ 新增电话号码'):
+            data_dict['phone'] = ''
 
         data.append((
             miaoji_id, data_dict['name'], data_dict['name_en'], source, city_id,

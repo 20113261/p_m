@@ -132,11 +132,11 @@ def getCandOnlineData(update_cid_file):
                 right_data = False
 
             # first_img
-            if word_list[first_img_idx].lower() in ('', 'null', '0'):
-                first_img_null_fail_count += 1
-                right_data = False
-            else:
-                img_succeed_count += 1
+            # if word_list[first_img_idx].lower() in ('', 'null', '0'):
+            #     first_img_null_fail_count += 1
+            #     right_data = False
+            # else:
+            #     img_succeed_count += 1
 
             if 'daodao' in word_list[source_idx]:
                 daodao_succeed_count += 1

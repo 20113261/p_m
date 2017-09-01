@@ -12,7 +12,7 @@ from pymysql.cursors import DictCursor
 from collections import defaultdict
 from Config.settings import attr_data_conf, attr_merge_conf
 from add_open_time.fix_daodao_time import fix_daodao_open_time
-from norm_tag.attr_norm_tag import get_norm_tag
+from norm_tag.attr_norm_tag import get_norm_tag, tradition2simple
 
 need_cid_file = True
 
@@ -158,8 +158,10 @@ if __name__ == '__main__':
 
                     for each_name in (json_name_list + norm_name_list):
                         if str(rest_info[each_name]).upper() not in ('NULL', ''):
-                            data_dict[each_name][source] = rest_info[each_name]
-
+                            if isinstance(rest_info[each_name], str):
+                                data_dict[each_name][source] = tradition2simple(rest_info[each_name]).decode()
+                            else:
+                                data_dict[each_name][source] = rest_info[each_name]
                 # 不能融合的内容包含两种
                 if not can_be_used:
                     print('union_info', union_info)
@@ -177,10 +179,10 @@ if __name__ == '__main__':
 
                 # 数据操作部分
                 # 添加 source
-                source = '|'.join(sorted(data_dict['source'].values()))
+                source = '|'.join(map(lambda x: x.split('|')[0], union_info.split('|_||_|')))
 
                 # add alias
-                alias = '|'.join(filter(lambda x: x != data_dict['name'] and x != data_dict['name_en'],
+                alias = '|'.join(filter(lambda x: x != new_data_dict['name'] and x != new_data_dict['name_en'],
                                         set(list(data_dict['name'].values()) +
                                             list(data_dict['name_en'].values()))
                                         )
@@ -193,6 +195,7 @@ if __name__ == '__main__':
                     try:
                         norm_open_time = fix_daodao_open_time(open_desc)
                     except Exception:
+                        norm_open_time = ''
                         print(open_desc)
                 else:
                     norm_open_time = ''
@@ -202,13 +205,18 @@ if __name__ == '__main__':
                 else:
                     norm_tag, norm_tag_en = '', ''
 
-                # phone 处理
-                if data_dict['phone'] == '+ 新增電話號碼':
-                    data_dict['phone'] = ''
-
                 # 数据入库部分
                 # 替换旧的 data_dict
                 data_dict = new_data_dict
+
+                # name name_en 判断
+                if data_dict['name'] != data_dict['name_en']:
+                    if data_dict['name_en'] in data_dict['name']:
+                        data_dict['name'] = data_dict['name'].replace(data_dict['name_en'], '')
+
+                # phone 处理
+                if data_dict['phone'] in ('+ 新增電話號碼', '+ 新增电话号码'):
+                    data_dict['phone'] = ''
 
                 data.append((
                     miaoji_id, data_dict['name'], data_dict['name_en'], source, city_id,
