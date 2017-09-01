@@ -1,6 +1,7 @@
 # coding=utf-8
 import datetime
 import re
+from collections import defaultdict
 
 pattern = re.compile('<([\s\S]*?)>')
 day_list = ['周1', '周2', '周3', '周4', '周5', '周6', '周7']
@@ -114,7 +115,8 @@ def hours_list_merge(hours_list):
     :param hours_list: 传入的时间列表
     :return: list
     """
-    return list([to_clock(a[0]) + "-" + to_clock(a[1]) for a in times_merge([([to_min(y) for y in x.split('-')]) for x in hours_list])])
+    return list([to_clock(a[0]) + "-" + to_clock(a[1]) for a in
+                 times_merge([([to_min(y) for y in x.split('-')]) for x in hours_list])])
 
 
 def hours_merge(day_time_dict):
@@ -130,6 +132,33 @@ def hours_merge(day_time_dict):
     return new_day_time_dict
 
 
+def merged_key(keys):
+    tmp = []
+    result = []
+    for i in sorted(keys):
+        if len(tmp) > 0:
+            if i - tmp[-1] == 1:
+                tmp.append(i)
+            else:
+                result.append(tmp)
+                tmp = [i]
+        else:
+            tmp.append(i)
+    result.append(tmp)
+
+    per_key = []
+    for i in result:
+        if len(i) == 1:
+            per_key.append(i[0])
+        else:
+            res = "周{}-周{}".format(i[0], i[-1])
+            if res:
+                yield res
+    res = ','.join(map(lambda x: '周' + str(x), per_key))
+    if res:
+        yield res
+
+
 def output_str(day_time_dict):
     """
     将day_time_dict字典转换为open_time字符串
@@ -143,9 +172,23 @@ def output_str(day_time_dict):
     return '|'.join(res_list)
 
 
+def day_merge(day_time_dict: dict):
+    merged_dey = defaultdict(list)
+
+    for k, v in day_time_dict.items():
+        merged_dey[tuple(v)].append(int(k[1]))
+
+    result = {}
+    for v, key in merged_dey.items():
+        for new_key in merged_key(key):
+            result[new_key] = list(v)
+    return result
+
+
 def multi_days_handling(source):
     day_time_dict = get_day_time_dict(source)
     day_time_dict = hours_merge(day_time_dict)
+    day_time_dict = day_merge(day_time_dict)
     return output_str(day_time_dict)
 
 
