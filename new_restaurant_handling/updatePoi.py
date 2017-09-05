@@ -41,7 +41,7 @@ def getCandOnlineData(update_cid_file):
     name_en_idx = 2
     map_info_idx = 6
     city_idx = 6
-    first_img_idx = 46
+    first_img_idx = 45
     open_time_idx = 25
     online_idx = 66
     test_idx = 67
@@ -96,9 +96,9 @@ def getCandOnlineData(update_cid_file):
                 city_null_fail_count += 1
                 is_legel_data = False
 
-            # if is_legel_data and word_list[first_img_idx].lower() in ('', 'null'):
-            #     first_img_null_fail_count += 1
-            #     is_legel_data = False
+            if is_legel_data and word_list[first_img_idx].lower() in ('', 'null'):
+                first_img_null_fail_count += 1
+                is_legel_data = False
 
             if is_legel_data:
                 try:

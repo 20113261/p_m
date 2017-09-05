@@ -35,6 +35,9 @@ def task_enter():
 
         source, sid, city_id, url = s_l
 
+        if source != 'elong':
+            continue
+
         if source not in (
                 'agoda', 'booking', 'elong', 'expedia', 'hotels'):
             continue
@@ -46,7 +49,7 @@ def task_enter():
         elif source in ('booking', 'ctrip', 'expedia', 'travelocity', 'orbitz', 'ebookers', 'cheaptickets'):
             hotel_url = url.split('?')[0]
         elif source == 'elong':
-            hotel_url = 'http://hotel.elong.com/{0}/'.format(sid)
+            hotel_url = 'http://ihotel.elong.com/{0}/'.format(sid)
         else:
             hotel_url = url
 

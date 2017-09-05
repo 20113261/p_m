@@ -127,6 +127,11 @@ GROUP BY id'''.format(','.join((map(lambda x: x.strip(), open('cid_file')))))
         for norm_name in norm_name_list:
             new_data_dict[norm_name] = get_key_by_priority(data_dict[norm_name]) or ''
 
+        # daodao url 处理
+        if 'daodao' in data_dict['url']:
+            data_dict['url']['daodao'] = data_dict['url']['daodao'].replace('www.tripadvisor.com.hk',
+                                                                            'www.tripadvisor.cn')
+
         for json_name in json_name_list:
             new_data_dict[json_name] = json.dumps(data_dict[json_name])
 

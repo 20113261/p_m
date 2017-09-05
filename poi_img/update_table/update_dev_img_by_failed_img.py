@@ -9,7 +9,7 @@ __img_sql_dict = {
 }
 
 __merge_dict = {
-    'host': '10.10.114.35',
+    'host': '10.10.180.145',
     'user': 'hourong',
     'passwd': 'hourong',
     'charset': 'utf8'
@@ -70,11 +70,11 @@ def get_task(s_type, is_empty=True):
 
 def update_db(args, s_type):
     if s_type == 'attr':
-        sql = 'update ignore {} set image_list=%s where id=%s'.format(ATTRACTION_TABLE)
+        sql = 'update ignore {} set first_image=%s,image_list=%s where id=%s'.format(ATTRACTION_TABLE)
     elif s_type == 'rest':
-        sql = 'update ignore {} set image_list=%s where id=%s'.format(RESTAURANT_TABLE)
+        sql = 'update ignore {} set first_image=%s,image_list=%s where id=%s'.format(RESTAURANT_TABLE)
     elif s_type == 'shop':
-        sql = 'update ignore {} set image_list=%s where id=%s'.format(SHOPPING_TABLE)
+        sql = 'update ignore {} set first_image=%s,image_list=%s where id=%s'.format(SHOPPING_TABLE)
     else:
         raise TypeError()
     conn = pymysql.connect(db=db, **__merge_dict)
@@ -87,10 +87,10 @@ def update_db(args, s_type):
 if __name__ == '__main__':
     # -------- Variables ----------
 
-    S_TYPE = 'rest'
-    ATTRACTION_TABLE = 'chat_attraction'
-    RESTAURANT_TABLE = 'chat_restaurant'
-    SHOPPING_TABLE = 'chat_shopping'
+    S_TYPE = 'attr'
+    ATTRACTION_TABLE = 'chat_attraction_new'
+    RESTAURANT_TABLE = 'chat_restaurant_new'
+    SHOPPING_TABLE = 'chat_shopping_new'
 
     # -----------------------------
     if S_TYPE == 'attr':
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         db = 'shop_merge'
     else:
         raise TypeError("Error Key Type " + S_TYPE)
-    conn = pymysql.connect(host='10.10.189.213', user='yanlihua', passwd='yanlihua', db='update_img', charset="utf8")
+    conn = pymysql.connect(host='10.10.189.213', user='hourong', passwd='hourong', db='update_img', charset="utf8")
     id_img = get_id_img(S_TYPE)
     datas = []
     count = 0
@@ -112,12 +112,12 @@ if __name__ == '__main__':
         for mid in get_task(S_TYPE):
             if mid in id_img:
                 file_name, _ = id_img[mid]
-                datas.append((file_name, mid))
+                datas.append((file_name, file_name, mid))
                 count += 1
                 if count % 1000 == 0:
                     print(count)
             else:
-                datas.append(("", mid))
+                datas.append(("", "", mid))
 
             if count % 10000 == 0:
                 print('#' * 100)

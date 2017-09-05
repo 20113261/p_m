@@ -43,7 +43,7 @@ def getCandOnlineData(update_cid_file):
     name_en_idx = 2
     map_info_idx = 3
     city_idx = 4
-    first_img_idx = 36
+    first_img_idx = 35
     source_idx = 38
     norm_tag_idx = 33
     open_time_idx = 20
@@ -132,11 +132,11 @@ def getCandOnlineData(update_cid_file):
                 right_data = False
 
             # first_img
-            # if word_list[first_img_idx].lower() in ('', 'null', '0'):
-            #     first_img_null_fail_count += 1
-            #     right_data = False
-            # else:
-            #     img_succeed_count += 1
+            if word_list[first_img_idx].lower() in ('', 'null', '0'):
+                first_img_null_fail_count += 1
+                right_data = False
+            else:
+                img_succeed_count += 1
 
             if 'daodao' in word_list[source_idx]:
                 daodao_succeed_count += 1
@@ -175,7 +175,7 @@ def getCandOnlineData(update_cid_file):
             len(datas),
             len(cand_data),
             "{0:04f}%".format(100 * len(cand_data) / float(len(datas))) if len(datas) != 0 else '无穷大',
-            "{0:04f}%".format(100 * img_succeed_count / float(len(datas))) if len(datas) != 0 else '无穷大',
+            "{0:04f}%".format(100 * img_succeed_count / float(len(cand_data))) if len(cand_data) != 0 else '无穷大',
             daodao_count,
             daodao_succeed_count,
             "{0:04f}%".format(
@@ -201,3 +201,15 @@ if __name__ == '__main__':
 
     cid_file = 'cid_file'
     getCandOnlineData(cid_file)
+
+    '''
+    SELECT *
+FROM hotel
+WHERE city_mid IN
+      (51469, 50531, 51466, 51468, 50777, 51481, 51474, 51467, 51470, 50598, 50595, 51482, 51487, 51486, 51483, 51484, 51488, 50118, 50206, 50810, 51480, 51498, 50197, 51495, 50231, 51492, 50145, 51485, 51493, 51497, 50402, 50528, 50008, 51494, 51496, 50616, 51479, 50637, 51501, 51500, 51471, 51472, 51477, 51478, 51475, 51473, 50265, 51491, 51476, 51489, 51499, 51490)
+      AND all_source LIKE '%touricoAPI%' AND (
+        all_source LIKE '%Booking%' OR all_source LIKE '%Ctrip%' OR all_source LIKE '%Expedia%' OR
+        all_source LIKE '%Agoda%' OR all_source LIKE '%Hotels%' OR all_source LIKE '%elong%')
+ORDER BY rand()
+LIMIT 10;
+    '''

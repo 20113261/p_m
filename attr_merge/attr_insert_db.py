@@ -172,6 +172,11 @@ if __name__ == '__main__':
                     new_data_dict[norm_name] = get_key.get_key_by_priority_or_default(data_dict[norm_name], norm_name,
                                                                                       '')
 
+                # daodao url 处理
+                if 'daodao' in data_dict['url']:
+                    data_dict['url']['daodao'] = data_dict['url']['daodao'].replace('www.tripadvisor.com.hk',
+                                                                                    'www.tripadvisor.cn')
+
                 for json_name in json_name_list:
                     new_data_dict[json_name] = json.dumps(data_dict[json_name])
 

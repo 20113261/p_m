@@ -19,7 +19,7 @@ local_tag_conf = {
     'user': 'hourong',
     'password': 'hourong',
     'charset': 'utf8',
-    'db': 'hourong'
+    'db': 'tag'
 }
 
 dev_conf = {

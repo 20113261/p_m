@@ -1,7 +1,7 @@
 import datetime
 import re
 import unittest
-from multi_days_check import multi_days_handling
+from .multi_days_check import multi_days_handling
 
 S2F = {
     '一': '周一',

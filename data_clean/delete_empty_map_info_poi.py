@@ -1,5 +1,7 @@
 import db_localhost as db
-
+import pymysql
+from pymysql.cursors import DictCursor
+# todo
 ATTR_TABLE = 'data_prepare.attraction_tmp'
 REST_TABLE = 'data_prepare.restaurant_tmp'
 SHOP_TABLE = 'data_prepare.shopping_tmp'

@@ -172,7 +172,7 @@ def getCandOnlineData(update_cid_file):
             len(datas),
             len(cand_data),
             "{0:04f}%".format(100 * len(cand_data) / float(len(datas))) if len(datas) != 0 else '无穷大',
-            "{0:04f}%".format(100 * img_succeed_count / float(len(datas))) if len(datas) != 0 else '无穷大',
+            "{0:04f}%".format(100 * img_succeed_count / float(len(cand_data))) if len(cand_data) != 0 else '无穷大',
             daodao_count,
             daodao_succeed_count,
             "{0:04f}%".format(

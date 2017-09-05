@@ -4,6 +4,7 @@
 # import db_114_35_shop
 # import db_img
 import pymysql
+import copy
 from pymysql.cursors import DictCursor
 
 __img_sql_dict = {
@@ -15,7 +16,7 @@ __img_sql_dict = {
 }
 
 __merge_dict = {
-    'host': '10.10.114.35',
+    'host': '10.10.180.145',
     'user': 'hourong',
     'passwd': 'hourong',
     'charset': 'utf8'
@@ -52,7 +53,7 @@ def get_task(s_type, is_empty=True):
         raise TypeError()
     if is_empty:
         sql += ' where image_list=""'
-    conn = pymysql.connect(db=db, **__merge_dict)
+    conn = pymysql.connect(db=db_name, **__merge_dict)
     with conn as cursor:
         cursor.execute(sql)
         for line in cursor.fetchall():
@@ -62,14 +63,17 @@ def get_task(s_type, is_empty=True):
 
 def update_db(args, s_type):
     if s_type == 'attr':
-        sql = 'update ignore {} set image_list=%s where id=%s'.format(ATTRACTION_TABLE)
+        sql = 'update ignore {} set first_image=%s,image_list=%s where id=%s'.format(ATTRACTION_TABLE)
+        db_name = 'attr_merge'
     elif s_type == 'rest':
-        sql = 'update ignore {} set image_list=%s where id=%s'.format(RESTAURANT_TABLE)
+        sql = 'update ignore {} set first_image=%s,image_list=%s where id=%s'.format(RESTAURANT_TABLE)
+        db_name = 'rest_merge'
     elif s_type == 'shop':
-        sql = 'update ignore {} set image_list=%s where id=%s'.format(SHOPPING_TABLE)
+        sql = 'update ignore {} set first_image=%s,image_list=%s where id=%s'.format(SHOPPING_TABLE)
+        db_name = 'shop_merge'
     else:
         raise TypeError()
-    conn = pymysql.connect(db=db, **__merge_dict)
+    conn = pymysql.connect(db=db_name, **__merge_dict)
     with conn as cursor:
         res = cursor.executemany(sql, args)
     conn.close()
@@ -80,23 +84,23 @@ if __name__ == '__main__':
     # -------- Variables ----------
 
     S_TYPE = 'attr'
-    ATTRACTION_TABLE = 'chat_attraction'
-    RESTAURANT_TABLE = 'chat_restaurant'
-    SHOPPING_TABLE = 'chat_shopping'
+    ATTRACTION_TABLE = 'chat_attraction_new'
+    RESTAURANT_TABLE = 'chat_restaurant_new'
+    SHOPPING_TABLE = 'chat_shopping_new'
 
     # -----------------------------
     if S_TYPE == 'attr':
         BUCKET_TABLE = 'attr_bucket_relation'
-        db = 'attr_merge'
+        db_name = 'attr_merge'
     elif S_TYPE == 'rest':
         BUCKET_TABLE = 'rest_bucket_relation'
-        db = 'rest_merge'
+        db_name = 'rest_merge'
     elif S_TYPE == 'shop':
         BUCKET_TABLE = 'shop_bucket_relation'
-        db = 'shop_merge'
+        db_name = 'shop_merge'
     else:
         raise TypeError("Error Key Type " + S_TYPE)
-    conn = pymysql.connect(host='10.10.189.213', user='yanlihua', passwd='yanlihua', db='update_img', charset="utf8")
+    conn = pymysql.connect(host='10.10.189.213', user='hourong', passwd='hourong', db='update_img', charset="utf8")
     id_img = get_id_img(S_TYPE)
     datas = []
     count = 0
@@ -114,12 +118,12 @@ if __name__ == '__main__':
                 for line in cursor.fetchall():
                     final_img_list.append(line[0])
                 final_img_list.sort()
-                datas.append(('|'.join(final_img_list), mid))
+                datas.append((final_img_list[0], '|'.join(final_img_list), mid))
                 count += 1
                 if count % 1000 == 0:
                     print(count)
             else:
-                datas.append(("", mid))
+                datas.append(("", "", mid))
 
             if count % 10000 == 0:
                 print('#' * 100)
