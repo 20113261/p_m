@@ -236,7 +236,7 @@ if __name__ == '__main__':
                     data_dict['phone'],
                     data_dict['introduction'], norm_open_time,
                     data_dict['opentime'], data_dict['recommend_lv'], data_dict['prize'],
-                    data_dict['traveler_choice'], alias, data_dict['imgurl'], data_dict['grade'])
+                    data_dict['traveler_choice'], alias, data_dict['imgurl'], data_dict['ori_grade'])
                 )
 
                 if count % 3000 == 0:
