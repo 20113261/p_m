@@ -193,6 +193,9 @@ if __name__ == '__main__':
                                         )
                                  )
 
+                # ori_grade modify
+                new_data_dict['ori_grade'] = json.dumps(data_dict['grade'])
+
                 # todo modify opentime, norm_tagid, comment and so on
 
                 if 'daodao' in data_dict['opentime']:
