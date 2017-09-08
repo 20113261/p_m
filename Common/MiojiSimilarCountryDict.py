@@ -52,13 +52,14 @@ class MiojiSimilarCountryDict(object):
         db_test = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
         country_info = [
             i for i in db_test.query('''SELECT
-  country.mid            AS id,
-  country.name AS country_name,
+  country.mid           AS id,
+  country.name          AS country_name,
   country.name_en       AS country_name_en,
   country.alias         AS country_alias,
+  country.country_code  AS country_code,
   country.short_name_cn AS country_short_name_cn,
   country.short_name_en AS country_short_name_en
-FROM country''')
+FROM country;''')
         ]
         for __line in country_info:
             for key in self.get_keys(__line):
@@ -75,4 +76,5 @@ FROM country''')
 
 if __name__ == '__main__':
     mioji_similar_dict = MiojiSimilarCountryDict()
+    print(mioji_similar_dict.get_mioji_country_id("usa"))
     print('Hello World')
