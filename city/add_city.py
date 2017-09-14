@@ -40,11 +40,12 @@ def get_continent_max_id_dict() -> dict:
     conn = pymysql.connect(**SQL_DICT)
     with conn as cursor:
         cursor.execute('''SELECT
-  continent_id,
+  country.continent_id,
   MAX(id) AS max_id
 FROM `city`
-WHERE id NOT LIKE '9%'
-GROUP BY continent_id''')
+  JOIN country ON city.country_id = country.mid
+WHERE id NOT LIKE '9%' AND id != 60002
+GROUP BY country.continent_id;''')
         for continent, max_id in cursor.fetchall():
             _dict[str(continent)] = int(max_id)
     return _dict
@@ -100,11 +101,13 @@ if __name__ == '__main__':
     # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
     # xlsx_path = '/tmp/new_city.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
-    xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
+    # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
+    xlsx_path = '/Users/hourong/Downloads/new_city_0912.xlsx'
 
     need_change_map_info = True
     global change_map_info_key
-    change_map_info_key = ['border_map_1', 'border_map_2']
+    # change_map_info_key = ['border_map_1', 'border_map_2']
+    change_map_info_key = ['map_info']
 
     debug = False
     target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT)
@@ -114,7 +117,7 @@ if __name__ == '__main__':
     cols = get_columns()
     country_id_dict = get_country_id_dict()
     header = 1
-    sheetname = 'city'
+    sheetname = '工作表 1'
     table = pandas.read_excel(
         xlsx_path,
         header=header,
@@ -144,8 +147,6 @@ if __name__ == '__main__':
                 # 去除中英文名为空的
                 # if line['name'] in ALL_NULL and line['name_en'] in ALL_NULL:
                 #     continue
-                data['country'] = '美国'
-                data['continent_id'] = '50'
                 # 判断字段是否符合规范
                 res, value = check_and_modify_columns(key, line[key])
                 if res:
@@ -157,11 +158,13 @@ if __name__ == '__main__':
                 data['id'] = generate_id(data['continent_id'])
             if 'country_id' not in data.keys():
                 data['country_id'] = country_id_dict[data['country']]
-            if 'city_type' not in data.keys():
-                data['city_type'] = 'Regular'
 
             if 'visit_num' not in data.keys():
                 data['visit_num'] = '0'
+
+            # 补全必须字段
+            if 'region_id' not in data.keys():
+                data['region_id'] = 'NULL'
 
             if debug:
                 print(data)
