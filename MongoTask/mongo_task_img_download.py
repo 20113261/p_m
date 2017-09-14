@@ -9,21 +9,22 @@ import pymongo
 import datetime
 import json
 import hashlib
+import pymysql
 import toolbox.Date
 
 toolbox.Date.DATE_FORMAT = "%Y%m%d"
 
 client = pymongo.MongoClient(host='10.10.231.105')
 collections = client['MongoTask']['Task']
+conn = pymysql.connect(host='10.19.118.147', user='reader', password='mioji1109', charset='utf8', db='source_info')
 
 
 def task_enter():
-    _count = 0
-    for line in open('/tmp/target_url'):
-        s_l = line.strip().split('###')
-        yield s_l
-        _count += 1
-    print(_count)
+    f = open('/tmp/task_file_new')
+    for line in f:
+        url, file_name = line.strip().split('\t')
+        if url != 'pic_url':
+            yield url, file_name
 
 
 if __name__ == '__main__':
@@ -31,19 +32,25 @@ if __name__ == '__main__':
     _count = 0
     _finished = 0
     exc_set = set()
-    for url, flag, table_name in task_enter():
+    for url, file_name in task_enter():
         _count += 1
         task_info = {
-            'worker': 'proj.tasks.craw_html',
-            'queue': 'hotel_task',
-            'routing_key': 'hotel_task',
-            'task_name': 'google_drive_0905',
+            'worker': 'proj.tasks.get_images',
+            'queue': 'file_downloader',
+            'routing_key': 'file_downloader',
+            'task_name': 'file_downloader_{0}'.format("lost_img"),
             'args': {
-                'url': url,
-                'flag': flag,
-                'table_name': table_name
+                'source': 'lost_img',
+                'source_id': '',
+                'target_url': url,
+                'part': 'lost_img',
+                'file_path': '/data/nfs/image/0910',
+                'desc_path': '/data/nfs/image/0910_filter',
+                'is_poi_task': False,
+                'need_insert_db': False,
+                'special_file_name': file_name
             },
-            'priority': 6,
+            'priority': 10,
             'running': 0,
             'used_times': 0,
             'finished': 0,
