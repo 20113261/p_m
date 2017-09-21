@@ -11,7 +11,7 @@ sleep 1
 mysql -uhourong -phourong update_img -e "select distinct pic_md5 from pic_relation limit 10" > all_hotel
 echo "End Output Ks Img: "$DATE
 sleep 1
-sort all_hotel ks_hotel_file ks_hotel_file |uniq -u > /search/lost_img_output/$FILE_NAME
+sort -T /search/tmpdir all_hotel ks_hotel_file ks_hotel_file |uniq -u > /search/lost_img_output/$FILE_NAME
 echo "Get not uploaded img finished: "$DATE
 
 lost_count=`cat /search/lost_img_output/$FILE_NAME|wc -l`

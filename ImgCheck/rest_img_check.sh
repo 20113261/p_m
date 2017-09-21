@@ -11,7 +11,7 @@ sleep 1
 mysql -uhourong -phourong update_img -e "select distinct file_name from rest_bucket_relation" > all_rest
 echo "End Output Ks Img: "$DATE
 sleep 1
-sort all_rest ks_rest_file ks_rest_file |uniq -u > /search/lost_img_output/$FILE_NAME
+sort -T /search/tmpdir all_rest ks_rest_file ks_rest_file |uniq -u > /search/lost_img_output/$FILE_NAME
 echo "Get not uploaded img finished: "$DATE
 
 lost_count=`cat /search/lost_img_output/$FILE_NAME|wc -l`
