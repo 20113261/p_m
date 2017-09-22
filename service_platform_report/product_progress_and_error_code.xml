@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--注释内容-->
+<report name="基础数据任务统计（按天）">
+    <interval>1440</interval>
+    <group name="进度统计">
+        <item name="任务进度统计" type="2" table="service_platform_product_report" showystday="true" limit="1000">
+            <field key="true" extend="false" name="任务批次">`tag`</field>
+            <field key="true" extend="false" name="抓取源">`source`</field>
+            <field name="列表页完成进度(包含 6 次重试)">round(`list_done`/10, 2)</field>
+            <field name="列表页 6 次失败">round(`list_final_failed`/10, 2)</field>
+            <field name="列表页最终失败">round(`list_failed`/10, 2)</field>
+            <field name="列表页全部">round(`list_all`/10, 2)</field>
+            <field name="详情页完成进度(包含 6 次重试)">`detail_done`</field>
+            <field name="详情页 6 次失败">`detail_final_failed`</field>
+            <field name="详情页最终失败">`detail_failed`</field>
+            <field name="详情页全部">`detail_all`</field>
+            <field name="图片完成进度(包含 6 次重试)">`img_done`</field>
+            <field name="图片 6 次失败">`img_final_failed`</field>
+            <field name="图片最终失败">`img_failed`</field>
+            <field name="图片全部">`img_all`</field>
+        </item>
+    </group>
+    <group name="错误分类统计">
+        <item name="全量错误分类统计" type="2" table="service_platform_product_error_code_report" desc="false" showystday="true"
+              limit="1000">
+            <field key="true" extend="false" name="任务批次">`tag`</field>
+            <field key="true" extend="false" name="抓取源">`source`</field>
+            <field key="true" extend="false" name="类型">`type`</field>
+            <field name="总量">`total`</field>
+            <field name="任务错误">`12`</field>
+            <field name="代理异常">`21+22+23`</field>
+            <field name="未知错误">`25`</field>
+            <field name="爬虫解析错误">`27`</field>
+            <field name="房间无票">`29`</field>
+            <field name="数据库入库错误">`33`</field>
+            <field name="翻页错误">`36`</field>
+            <field name="全部解析出错">`37`</field>
+            <field name="请求参数出现异常">`101`</field>
+            <field name="关键字段未成功抓取">`102`</field>
+            <field name="未返回错误码">`103`</field>
+            <field name="保存页面异常">`104`</field>
+            <field name="图像不完整">`105`</field>
+            <field name="图像太大  超过10M">`106`</field>
+            <field name="图片因尺寸被过滤">`107`</field>
+            <field name="文件写入异常">`108`</field>
+        </item>
+    </group>
+</report>
