@@ -6,15 +6,16 @@
         <item name="任务进度统计" type="2" table="service_platform_product_report" showystday="true" limit="1000">
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
-            <field name="列表页完成进度(包含 6 次重试)">round(`list_done`/10, 2)</field>
+            <field key="true" extend="false" name="使用日期数目">10</field>
+            <field name="列表页完成进度(包含 6 次重试)">round((`list_final_failed`+`list_done`)/10, 2)</field>
             <field name="列表页 6 次失败">round(`list_final_failed`/10, 2)</field>
             <field name="列表页最终失败">round(`list_failed`/10, 2)</field>
             <field name="列表页全部">round(`list_all`/10, 2)</field>
-            <field name="详情页完成进度(包含 6 次重试)">`detail_done`</field>
+            <field name="详情页完成进度(包含 6 次重试)">`detail_done`+`detail_final_failed`</field>
             <field name="详情页 6 次失败">`detail_final_failed`</field>
             <field name="详情页最终失败">`detail_failed`</field>
             <field name="详情页全部">`detail_all`</field>
-            <field name="图片完成进度(包含 6 次重试)">`img_done`</field>
+            <field name="图片完成进度(包含 6 次重试)">`img_done`+`img_final_failed`</field>
             <field name="图片 6 次失败">`img_final_failed`</field>
             <field name="图片最终失败">`img_failed`</field>
             <field name="图片全部">`img_all`</field>
