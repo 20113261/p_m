@@ -34,8 +34,6 @@ ori_db_name = 'ServicePlatform'
 city_id_count = defaultdict(int)
 city_map_info_error_id_set = set()
 distance_set = set()
-map_info_set = set()
-duplicate_map_info_set = set()
 
 filter_dist = 500
 
@@ -187,6 +185,13 @@ FROM {};'''.format(cand_table)
         datas = local_cursor.fetchall()
         local_cursor.close()
 
+        # 经纬度记录集合，用于判定重复内容
+        map_info_set = set()
+
+        # 重复经纬度集合，用于提取重复经纬度，以及在经纬度重复的值的最后添加 len(duplicate_map_info_set) 值，
+        # 以保证返回值不会丢失第一次出现的 map_info
+        duplicate_map_info_set = set()
+
         total = 0
         success = 0
         for data in datas:
@@ -244,11 +249,13 @@ FROM {};'''.format(cand_table)
             elif not map_info_legal(map_info):
                 error_dict['坐标错误(坐标为空或坐标格式错误，除去NULL)'] += 1
                 right = False
-            elif map_info in map_info_set:
-                error_dict["经纬度重复"] += 1
-                duplicate_map_info_set.add(map_info)
-                right = False
             else:
+                # 经纬度重复情况判定
+                if map_info in map_info_set:
+                    error_dict["经纬度重复"] += 1
+                    duplicate_map_info_set.add(map_info)
+                    right = False
+
                 # 当前情况为 map_info 为正确的情况，经纬度集合添加 map_info
                 map_info_set.add(map_info)
 
@@ -276,6 +283,10 @@ FROM {};'''.format(cand_table)
                 pass
 
             success += 1 if right else 0
+
+        # 经纬度重复的值的最后添加 len(duplicate_map_info_set) 值
+        # 以保证返回值不会丢失第一次出现的 map_info
+        error_count['经纬度重复'] += len(duplicate_map_info_set)
 
         print(total, error_count, success, cand_table)
         print(cand_source, 'hotel', total, success)
