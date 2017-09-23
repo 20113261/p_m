@@ -3,7 +3,8 @@
 <report name="基础数据任务统计（按天）">
     <interval>1440</interval>
     <group name="进度统计">
-        <item name="任务进度统计" type="2" table="service_platform_product_report" showystday="true" limit="1000">
+        <item name="任务进度统计" type="2" table="service_platform_product_report" orderby="tag,source" showystday="true"
+              limit="1000">
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field key="true" extend="false" name="使用日期数目">10</field>
@@ -22,7 +23,8 @@
         </item>
     </group>
     <group name="错误分类统计">
-        <item name="全量错误分类统计" type="2" table="service_platform_product_error_code_report" desc="false" showystday="true"
+        <item name="全量错误分类统计" type="2" table="service_platform_product_error_code_report" orderby="tag,source,type"
+              showystday="true"
               limit="1000">
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
@@ -47,7 +49,8 @@
         </item>
     </group>
     <group name="抓取数据质量统计">
-        <item name="抓取数据质量统计" type="2" table="service_platform_crawl_error_report" desc="false" showystday="true"
+        <item name="抓取数据质量统计" type="2" table="service_platform_crawl_error_report" orderby="tag,source,type"
+              showystday="true"
               limit="1000">
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
