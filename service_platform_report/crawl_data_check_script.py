@@ -286,7 +286,7 @@ FROM {};'''.format(cand_table)
 
         # 经纬度重复的值的最后添加 len(duplicate_map_info_set) 值
         # 以保证返回值不会丢失第一次出现的 map_info
-        error_count['经纬度重复'] += len(duplicate_map_info_set)
+        error_dict['经纬度重复'] += len(duplicate_map_info_set)
 
         print(total, error_count, success, cand_table)
         print(cand_source, 'hotel', total, success)
