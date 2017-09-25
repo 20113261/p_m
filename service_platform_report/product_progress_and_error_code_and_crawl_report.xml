@@ -7,18 +7,17 @@
               limit="1000">
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
-            <field key="true" extend="false" name="使用日期数目">10</field>
-            <field name="列表页完成进度(包含最大重试失败)">round((`list_final_failed`+`list_done`)/10, 2)</field>
-            <field name="列表页最大重试失败">round(`list_final_failed`/10, 2)</field>
-            <field name="列表页失败">round(`list_failed`/10, 2)</field>
-            <field name="列表页全部">round(`list_all`/10, 2)</field>
-            <field name="详情页完成进度(包含最大重试失败)">`detail_done`+`detail_final_failed`</field>
-            <field name="详情页最大重试失败">`detail_final_failed`</field>
-            <field name="详情页失败">`detail_failed`</field>
+            <field name="列表页完成有数据">concat(round(`list_done`/`list_all`*100,2),'%')</field>
+            <field name="列表页完成无数据">concat(round(`list_final_failed`/`list_all`*100,2),'%')</field>
+            <field name="列表页失败">concat(round(`list_failed`/`list_all`*100,2),'%')</field>
+            <field name="列表页全部">`list_all`</field>
+            <field name="详情页完成有数据">concat(round(`detail_done`/`detail_all`*100,2),'%')</field>
+            <field name="详情页完成无数据">concat(round(`detail_final_failed`/`detail_all`*100,2),'%')</field>
+            <field name="详情页失败">concat(round(`detail_failed`/`detail_all`*100,2),'%')</field>
             <field name="详情页全部">`detail_all`</field>
-            <field name="图片完成进度(包含最大重试失败">`img_done`+`img_final_failed`</field>
-            <field name="图片最大重试失败">`img_final_failed`</field>
-            <field name="图片失败">`img_failed`</field>
+            <field name="图片完成有数据">concat(round(`img_done`/`img_all`*100,2),'%')</field>
+            <field name="图片完成无数据">concat(round(`img_final_failed`/`img_all`*100,2),'%')</field>
+            <field name="图片失败">concat(round(`img_failed`/`img_all`*100,2),'%')</field>
             <field name="图片全部">`img_all`</field>
         </item>
     </group>
@@ -225,7 +224,8 @@
             <field name="opentime_ratio">concat(round(`opentime`/`total`*100,2),'%')</field>
         </item>
 
-        <item name="全类型（当前只有 qyer）字段覆盖率统计" type="2" table="service_platform_attr_data_coverage_report" orderby="tag,source"
+        <item name="全类型（当前只有 qyer）字段覆盖率统计" type="2" table="service_platform_attr_data_coverage_report"
+              orderby="tag,source"
               showystday="true"
               limit="1000">
             <field key="true" extend="false" name="任务批次">`tag`</field>
