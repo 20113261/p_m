@@ -21,7 +21,7 @@
             <field name="图片全部">`img_all`</field>
         </item>
     </group>
-    <group name="错误分类统计">
+    <group name="(子任务级别)错误分类统计">
         <item name="全量错误分类统计" type="2" table="service_platform_product_error_code_report" orderby="tag,source,type"
               showystday="true"
               limit="1000">
@@ -47,7 +47,7 @@
             <field name="文件写入异常">`108`</field>
         </item>
     </group>
-    <group name="抓取数据质量统计">
+    <group name="(成功入库数据)抓取数据质量统计">
         <item name="抓取数据质量统计" type="2" table="service_platform_crawl_error_report" orderby="tag,source,type"
               showystday="true"
               limit="1000">
@@ -63,10 +63,6 @@
             <field name="中英文名字相反比率">concat(round(`中英文名字相反`/`全量`*100,2),'%')</field>
             <field name="中文名中含有英文名">`中文名中含有英文名`</field>
             <field name="中文名中含有英文名比率">concat(round(`中文名中含有英文名`/`全量`*100,2),'%')</field>
-            <field name="坐标错误(NULL)">`坐标错误(NULL)`</field>
-            <field name="坐标错误(NULL)比率">concat(round(`坐标错误(NULL)`/`全量`*100,2),'%')</field>
-            <field name="坐标错误(坐标为空或坐标格式错误，除去NULL)">`坐标错误(坐标为空或坐标格式错误，除去NULL)`</field>
-            <field name="坐标错误(坐标为空或坐标格式错误，除去NULL)比率">concat(round(`坐标错误(坐标为空或坐标格式错误，除去NULL)`/`全量`*100,2),'%')</field>
             <field name="经纬度重复">`经纬度重复`</field>
             <field name="经纬度重复比率">concat(round(`经纬度重复`/`全量`*100,2),'%')</field>
             <field name="坐标与所属城市距离过远">`坐标与所属城市距离过远`</field>
@@ -77,7 +73,7 @@
             <field name="静态评分异常(评分高于10分)比率">concat(round(`静态评分异常(评分高于10分)`/`全量`*100,2),'%')</field>
         </item>
     </group>
-    <group name="数据字段覆盖率统计">
+    <group name="(成功入库数据)数据字段覆盖率统计">
         <item name="酒店字段覆盖率统计" type="2" table="service_platform_hotel_data_coverage_report" orderby="tag,source"
               showystday="true"
               limit="1000">
