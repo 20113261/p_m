@@ -50,15 +50,46 @@ def mk_sql(c_type, table_name):
         'check_in_time': ('NULL', ''),
         'check_out_time': ('NULL', ''),
     }
-    poi_dict = {
 
+    attr_shop_qyer_dict = {
+        'name': ('NULL', '', '0'),
+        'name_en': ('NULL', '', '0'),
+        'map_info': ('NULL', '', '0'),
+        'address': ('NULL', '', '0'),
+        'star': ('NULL', '', '0', '-1'),
+        'ranking': ('NULL', '', '0', '-1'),
+        'grade': ('NULL', '', '0', '-1'),
+        'commentcounts': ('NULL', '', '0', '-1'),
+        'tagid': ('NULL', '', '0'),
+        'phone': ('NULL', '', '0'),
+        'site': ('NULL', '', '0'),
+        'imgurl': ('NULL', '', '0'),
+        'introduction': ('NULL', '', '0'),
+        'opentime': ('NULL', '', '0')
     }
-    qyer_dict = {
 
+    rest_dict = {
+        'name': ('NULL', '', '0'),
+        'name_en': ('NULL', '', '0'),
+        'map_info': ('NULL', '', '0'),
+        'address': ('NULL', '', '0'),
+        'ranking': ('NULL', '', '0', '-1'),
+        'grade': ('NULL', '', '0', '-1'),
+        'commentcounts': ('NULL', '', '0', '-1'),
+        'cuisines': ('NULL', '', '0'),
+        'phone': ('NULL', '', '0'),
+        'site': ('NULL', '', '0'),
+        'imgurl': ('NULL', '', '0'),
+        'introduction': ('NULL', '', '0'),
+        'opentime': ('NULL', '', '0')
     }
 
     if c_type == 'hotel':
         k_dict = hotel_dict
+    elif c_type in ('attr', 'shop', 'total'):
+        k_dict = attr_shop_qyer_dict
+    elif c_type == 'rest':
+        k_dict = rest_dict
     else:
         # unknown type
         return None
