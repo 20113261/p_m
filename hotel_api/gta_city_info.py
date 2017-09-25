@@ -42,7 +42,7 @@ if __name__ == '__main__':
                 (key_modify(line['country_code']), key_modify(line['city_name'])))
             # 当前由于对方城市没有提供相应的经纬度，可先由唯一判定，如果提供经纬度，可由经纬度进行距离判定，例如选择最近的，同时距离小于某一数值的城市进行匹配
             if len(city_id_set) == 1:
-                city_id = city_id_set[0]
+                city_id = list(city_id_set)[0]
 
         # 按国家名和城市名进行匹配
         if city_id is None:
@@ -50,7 +50,7 @@ if __name__ == '__main__':
                 city_id_set = mioji_similar_dict.get_mioji_city_id(
                     (key_modify(line['country_name']), key_modify(line['city_name'])))
                 if len(city_id_set) == 1:
-                    city_id = city_id_set[0]
+                    city_id = list(city_id_set)[0]
 
         if city_id is not None:
             print(table.update(
@@ -60,3 +60,4 @@ if __name__ == '__main__':
                 },
                 keys=['city_code']
             ))
+    db.commit()
