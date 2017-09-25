@@ -5,13 +5,6 @@
 # @Site    : 
 # @File    : crawl_data_check_script.py
 # @Software: PyCharm
-# !/usr/bin/env python
-# -*- coding: utf-8 -*-
-# @Time    : 2017/9/15 上午11:38
-# @Author  : Hou Rong
-# @Site    :
-# @File    : hotel_check.py
-# @Software: PyCharm
 import pymysql
 import datetime
 import dataset
