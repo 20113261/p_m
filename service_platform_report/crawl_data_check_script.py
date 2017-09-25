@@ -170,20 +170,41 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
         error_count = {}
         error_dict = defaultdict(int)
 
-        sql = '''SELECT
-  hotel_name,
-  hotel_name_en,
-  source,
-  source_id,
-  city_id,
-  map_info,
-  grade
-FROM {};'''.format(cand_table)
+        if task_type == 'hotel':
+            # 酒店类型
+            sql = '''SELECT
+      hotel_name,
+      hotel_name_en,
+      source,
+      source_id,
+      city_id,
+      map_info,
+      grade
+    FROM {};'''.format(cand_table)
 
-        local_cursor = local_conn.cursor()
-        local_cursor.execute(sql)
-        datas = local_cursor.fetchall()
-        local_cursor.close()
+            local_cursor = local_conn.cursor()
+            local_cursor.execute(sql)
+            datas = local_cursor.fetchall()
+            local_cursor.close()
+        elif task_type in ('attr', 'shop', 'rest', 'total'):
+            # 景点、购物，餐厅当前 daodao 使用，以及全部 POI，qyer 使用
+            sql = '''SELECT
+      name,
+      name_en,
+      source,
+      id,
+      city_id,
+      map_info,
+      grade
+    FROM {};'''.format(cand_table)
+
+            local_cursor = local_conn.cursor()
+            local_cursor.execute(sql)
+            datas = local_cursor.fetchall()
+            local_cursor.close()
+        else:
+            # 未知类型，当前跳过
+            continue
 
         # 经纬度记录集合，用于判定重复内容
         map_info_set = set()
