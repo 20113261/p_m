@@ -25,21 +25,23 @@ if __name__ == '__main__':
         key_list = key.decode().split('|_|')
         count = r.get(key)
 
-        if len(key_list) == 4:
-            task_tag, task_source, task_type, report_key = key_list
-            product_count[(task_tag, task_source, task_type, report_key)] = int(count)
-        elif len(key_list) == 5:
-            task_tag, task_source, task_type, report_key, task_error_code = key_list
-            product_error_count[(task_tag, task_source, task_type, report_key, task_error_code)] = int(count)
+        if len(key_list) == 5:
+            task_tag, crawl_type, task_source, task_type, report_key = key_list
+            product_count[(task_tag, crawl_type, task_source, task_type, report_key)] = int(count)
+        elif len(key_list) == 6:
+            task_tag, crawl_type, task_source, task_type, report_key, task_error_code = key_list
+            product_error_count[(task_tag, crawl_type, task_source, task_type, report_key, task_error_code)] = int(
+                count)
         else:
             continue
 
     # 更新产品统计
     for key, value in product_count.items():
-        task_tag, task_source, task_type, report_key = key
+        task_tag, crawl_type, task_source, task_type, report_key = key
         data = {
             'tag': task_tag,
             'source': task_source,
+            'crawl_type': crawl_type,
             'type': task_type,
             'report_key': report_key,
             'num': value,
@@ -49,7 +51,7 @@ if __name__ == '__main__':
         }
 
         try:
-            product_table.upsert(data, keys=['tag', 'source', 'type', 'report_key', 'date'],
+            product_table.upsert(data, keys=['tag', 'source', 'crawl_type', 'type', 'report_key', 'date'],
                                  ensure=None)
         except Exception:
             pass
@@ -58,10 +60,11 @@ if __name__ == '__main__':
 
     # 更新产品错误统计
     for key, value in product_error_count.items():
-        task_tag, task_source, task_type, report_key, product_error_count = key
+        task_tag, crawl_type, task_source, task_type, report_key, product_error_count = key
         data = {
             'tag': task_tag,
             'source': task_source,
+            'crawl_type': crawl_type,
             'type': task_type,
             'error_code': product_error_count,
             'num': value,
@@ -71,7 +74,8 @@ if __name__ == '__main__':
         }
 
         try:
-            product_error_table.upsert(data, keys=['tag', 'source', 'type', 'error_code', 'date'], ensure=None)
+            product_error_table.upsert(data, keys=['tag', 'crawl_type', 'source', 'type', 'error_code', 'date'],
+                                       ensure=None)
         except Exception:
             pass
 
