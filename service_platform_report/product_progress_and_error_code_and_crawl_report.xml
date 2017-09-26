@@ -59,21 +59,13 @@
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field key="true" extend="false" name="类型">`type`</field>
             <field name="总量">`全量`</field>
-            <field name="数据源错误">`数据源错误`</field>
             <field name="数据源错误比率">concat(round(`数据源错误`/`全量`*100,2),'%')</field>
-            <field name="无 name、name_en">`无 name、name_en`</field>
             <field name="无 name、name_en 比率">concat(round(`无 name、name_en`/`全量`*100,2),'%')</field>
-            <field name="中英文名字相反">`中英文名字相反`</field>
             <field name="中英文名字相反比率">concat(round(`中英文名字相反`/`全量`*100,2),'%')</field>
-            <field name="中文名中含有英文名">`中文名中含有英文名`</field>
             <field name="中文名中含有英文名比率">concat(round(`中文名中含有英文名`/`全量`*100,2),'%')</field>
-            <field name="经纬度重复">`经纬度重复`</field>
             <field name="经纬度重复比率">concat(round(`经纬度重复`/`全量`*100,2),'%')</field>
-            <field name="坐标与所属城市距离过远">`坐标与所属城市距离过远`</field>
             <field name="坐标与所属城市距离过远比率">concat(round(`坐标与所属城市距离过远`/`全量`*100,2),'%')</field>
-            <field name="距离过远坐标翻转后属于所属城市">`距离过远坐标翻转后属于所属城市`</field>
             <field name="距离过远坐标翻转后属于所属城市比率">concat(round(`距离过远坐标翻转后属于所属城市`/`全量`*100,2),'%')</field>
-            <field name="静态评分异常(评分高于10分)">`静态评分异常(评分高于10分)`</field>
             <field name="静态评分异常(评分高于10分)比率">concat(round(`静态评分异常(评分高于10分)`/`全量`*100,2),'%')</field>
         </item>
     </group>
