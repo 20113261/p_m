@@ -76,5 +76,6 @@ FROM country;''')
 
 if __name__ == '__main__':
     mioji_similar_dict = MiojiSimilarCountryDict()
-    print(mioji_similar_dict.get_mioji_country_id("usa"))
-    print('Hello World')
+    print(mioji_similar_dict.get_mioji_country_id("中国"))
+    # print(mioji_similar_dict.get_mioji_country_id("usa"))
+    # print('Hello World')
