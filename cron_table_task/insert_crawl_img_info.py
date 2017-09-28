@@ -75,6 +75,21 @@ GROUP BY source, sid;''')
             s_sid[(source, sid)] = max(s_sid[(source, sid)], num)
         print('poi_bucket_relation', _count)
         cursor.close()
+
+    with conn as cursor:
+            cursor.execute('''SELECT
+      source,
+      sid,
+      count(*) AS num
+    FROM poi_bucket_relation_0925
+    GROUP BY source, sid;''')
+            for source, sid, num in iter(lambda: cursor.fetchone(), None):
+                _count += 1
+                if _count % 10000 == 0:
+                    print('poi_bucket_relation_0925', _count)
+                s_sid[(source, sid)] = max(s_sid[(source, sid)], num)
+            print('poi_bucket_relation_0925', _count)
+            cursor.close()
     conn.close()
 
     _count = 0
