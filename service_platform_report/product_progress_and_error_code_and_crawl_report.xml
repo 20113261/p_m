@@ -3,7 +3,7 @@
 <report name="基础数据任务统计（按天）">
     <interval>1440</interval>
     <group name="进度统计">
-        <item name="任务进度统计" type="2" table="service_platform_product_report" orderby="tag,source,crawl_type"
+        <item name="任务进度统计(总数统计)" type="2" table="service_platform_product_mongo_report" orderby="tag,source,crawl_type"
               showystday="true"
               limit="1000">
             <field key="true" extend="false" name="任务批次">`tag`</field>
@@ -11,18 +11,35 @@
             <field key="true" extend="false" name="抓取类型">`crawl_type`</field>
             <field name="列表页完成有数据">concat(round(`list_done`/`list_all`*100,2),'%')</field>
             <field name="列表页完成无数据">concat(round(`list_final_failed`/`list_all`*100,2),'%')</field>
-            <field name="列表页失败">concat(round(`list_failed`/`list_all`*100,2),'%')</field>
             <field name="列表页未完成城市">concat(round(100-`list_city_done`/`list_all`*100,2),'%')</field>
             <field name="列表页全部">`list_all`</field>
             <field name="详情页完成有数据">concat(round(`detail_done`/`detail_all`*100,2),'%')</field>
             <field name="详情页完成无数据">concat(round(`detail_final_failed`/`detail_all`*100,2),'%')</field>
-            <field name="详情页失败">concat(round(`detail_failed`/`detail_all`*100,2),'%')</field>
             <field name="详情页全部">`detail_all`</field>
             <field name="图片完成有数据">concat(round(`img_done`/`img_all`*100,2),'%')</field>
             <field name="图片完成无数据">concat(round(`img_final_failed`/`img_all`*100,2),'%')</field>
-            <field name="图片失败">concat(round(`img_failed`/`img_all`*100,2),'%')</field>
             <field name="图片全部">`img_all`</field>
         </item>
+        <!--<item name="任务进度统计(快速统计)" type="2" table="service_platform_product_report" orderby="tag,source,crawl_type"-->
+              <!--showystday="true"-->
+              <!--limit="1000">-->
+            <!--<field key="true" extend="false" name="任务批次">`tag`</field>-->
+            <!--<field key="true" extend="false" name="抓取源">`source`</field>-->
+            <!--<field key="true" extend="false" name="抓取类型">`crawl_type`</field>-->
+            <!--<field name="列表页完成有数据">concat(round(`list_done`/`list_all`*100,2),'%')</field>-->
+            <!--<field name="列表页完成无数据">concat(round(`list_final_failed`/`list_all`*100,2),'%')</field>-->
+            <!--<field name="列表页失败">concat(round(`list_failed`/`list_all`*100,2),'%')</field>-->
+            <!--<field name="列表页未完成城市">concat(round(100-`list_city_done`/`list_all`*100,2),'%')</field>-->
+            <!--<field name="列表页全部">`list_all`</field>-->
+            <!--<field name="详情页完成有数据">concat(round(`detail_done`/`detail_all`*100,2),'%')</field>-->
+            <!--<field name="详情页完成无数据">concat(round(`detail_final_failed`/`detail_all`*100,2),'%')</field>-->
+            <!--<field name="详情页失败">concat(round(`detail_failed`/`detail_all`*100,2),'%')</field>-->
+            <!--<field name="详情页全部">`detail_all`</field>-->
+            <!--<field name="图片完成有数据">concat(round(`img_done`/`img_all`*100,2),'%')</field>-->
+            <!--<field name="图片完成无数据">concat(round(`img_final_failed`/`img_all`*100,2),'%')</field>-->
+            <!--<field name="图片失败">concat(round(`img_failed`/`img_all`*100,2),'%')</field>-->
+            <!--<field name="图片全部">`img_all`</field>-->
+        <!--</item>-->
     </group>
     <group name="(子任务级别)错误分类统计">
         <item name="全量错误分类统计" type="2" table="service_platform_product_error_code_report"

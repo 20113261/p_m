@@ -16,6 +16,24 @@ CREATE TABLE `serviceplatform_product_summary` (
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
+DROP TABLE IF EXISTS serviceplatform_product_mongo_summary;
+CREATE TABLE `serviceplatform_product_mongo_summary` (
+  `id`         INT(11) NOT NULL AUTO_INCREMENT,
+  `tag`        VARCHAR(64)      DEFAULT 'NULL',
+  `source`     VARCHAR(64)      DEFAULT 'NULL',
+  `crawl_type` VARCHAR(64)      DEFAULT 'NULL',
+  `type`       VARCHAR(64)      DEFAULT 'NULL',
+  `report_key` VARCHAR(64)      DEFAULT 'NULL',
+  `num`        INT(11)          DEFAULT '0',
+  `date`       CHAR(8)          DEFAULT NULL,
+  `datetime`   CHAR(12)         DEFAULT 'NULL',
+  `hour`       TEXT,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `source_type_date_hour` (`tag`, `source`, `type`, `crawl_type`, `report_key`, `date`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+
 
 DROP TABLE IF EXISTS serviceplatform_product_error_summary;
 CREATE TABLE `serviceplatform_product_error_summary` (
@@ -107,6 +125,73 @@ CREATE VIEW service_platform_product_report AS
   FROM serviceplatform_product_summary
   GROUP BY tag, source, crawl_type, date
   ORDER BY tag, source, crawl_type;
+
+# 任务统计 ( Mongo )
+DROP VIEW IF EXISTS service_platform_product_mongo_report;
+CREATE VIEW service_platform_product_mongo_report AS
+  SELECT
+    tag,
+    source,
+    crawl_type,
+
+    # 列表页统计函数
+    CASE WHEN crawl_type = 'hotel'
+      THEN round(sum(CASE WHEN type = 'List' AND report_key = 'Done'
+        THEN num
+                     ELSE 0 END) / 10, 2)
+    ELSE sum(CASE WHEN type = 'List' AND report_key = 'Done'
+      THEN num
+             ELSE 0 END) END AS list_done,
+
+    CASE WHEN crawl_type = 'hotel'
+      THEN round(sum(CASE WHEN type = 'List' AND report_key = 'FinalFailed'
+        THEN num
+                     ELSE 0 END) / 10, 2)
+    ELSE sum(CASE WHEN type = 'List' AND report_key = 'FinalFailed'
+      THEN num
+             ELSE 0 END) END AS list_final_failed,
+
+    sum(CASE WHEN type = 'List' AND report_key = 'CityDone'
+      THEN num
+        ELSE 0 END)          AS list_city_done,
+
+    CASE WHEN crawl_type = 'hotel'
+      THEN round(sum(CASE WHEN type = 'List' AND report_key = 'All'
+        THEN num
+                     ELSE 0 END) / 10, 2)
+    ELSE sum(CASE WHEN type = 'List' AND report_key = 'All'
+      THEN num
+             ELSE 0 END) END AS list_all,
+
+
+    # 详情页统计函数
+
+    sum(CASE WHEN type = 'Detail' AND report_key = 'Done'
+      THEN num
+        ELSE 0 END)          AS detail_done,
+    sum(CASE WHEN type = 'Detail' AND report_key = 'FinalFailed'
+      THEN num
+        ELSE 0 END)          AS detail_final_failed,
+    sum(CASE WHEN type = 'Detail' AND report_key = 'All'
+      THEN num
+        ELSE 0 END)          AS detail_all,
+
+    # 图片页统计函数
+    sum(CASE WHEN type = 'Images' AND report_key = 'Done'
+      THEN num
+        ELSE 0 END)          AS img_done,
+    sum(CASE WHEN type = 'Images' AND report_key = 'FinalFailed'
+      THEN num
+        ELSE 0 END)          AS img_final_failed,
+    sum(CASE WHEN type = 'Images' AND report_key = 'All'
+      THEN num
+        ELSE 0 END)          AS img_all,
+    date
+  FROM serviceplatform_product_mongo_summary
+  GROUP BY tag, source, crawl_type, date
+  ORDER BY tag, source, crawl_type;
+
+SELECT * FROM service_platform_product_mongo_report;
 
 
 SELECT *
