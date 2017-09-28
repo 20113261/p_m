@@ -12,6 +12,7 @@
             <field name="列表页完成有数据">concat(round(`list_done`/`list_all`*100,2),'%')</field>
             <field name="列表页完成无数据">concat(round(`list_final_failed`/`list_all`*100,2),'%')</field>
             <field name="列表页失败">concat(round(`list_failed`/`list_all`*100,2),'%')</field>
+            <field name="列表页未完成城市">concat(round(100-`list_city_done`/`list_all`*100,2),'%')</field>
             <field name="列表页全部">`list_all`</field>
             <field name="详情页完成有数据">concat(round(`detail_done`/`detail_all`*100,2),'%')</field>
             <field name="详情页完成无数据">concat(round(`detail_final_failed`/`detail_all`*100,2),'%')</field>

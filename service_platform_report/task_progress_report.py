@@ -9,9 +9,15 @@ import redis
 import datetime
 import dataset
 import json
+import pymysql
 from collections import defaultdict
 
 if __name__ == '__main__':
+    ori_ip = '10.10.228.253'
+    ori_user = 'mioji_admin'
+    ori_password = 'mioji1109'
+    ori_db_name = 'ServicePlatform'
+
     db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/Report?charset=utf8')
     product_table = db['serviceplatform_product_summary']
     product_error_table = db['serviceplatform_product_error_summary']
@@ -34,6 +40,30 @@ if __name__ == '__main__':
                 count)
         else:
             continue
+
+    # 列表页城市统计相关内容
+    local_conn = pymysql.connect(host=ori_ip, user=ori_user, charset='utf8', passwd=ori_password, db=ori_db_name)
+
+    local_cursor = local_conn.cursor()
+    local_cursor.execute('''SELECT TABLE_NAME
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = 'ServicePlatform' AND TABLE_NAME LIKE 'list_%';''')
+    table_list = list(map(lambda x: x[0], local_cursor.fetchall()))
+    local_cursor.close()
+
+    for table_name in table_list:
+        key_list = table_name.split('_')
+
+        if len(key_list) == 4:
+            # 总量计数
+            local_cursor = local_conn.cursor()
+            local_cursor.execute('''SELECT count(DISTINCT city_id)
+                    FROM {0};'''.format(table_name))
+            _count = local_cursor.fetchone()[0]
+            local_cursor.close()
+
+            task_type, crawl_type, task_source, task_tag = key_list
+            product_count[(task_tag, crawl_type.title(), task_source.title(), task_type.title(), "CityDone")] = _count
 
     # 更新产品统计
     for key, value in product_count.items():
