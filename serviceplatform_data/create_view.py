@@ -374,6 +374,7 @@ CREATE VIEW {0} AS
             detail_name = '_'.join(['detail', _crawl_type, _task_source, _tag_id])
             list_name = '_'.join(['list', _crawl_type, _task_source, _tag_id])
             view_name = '_'.join(['view', _crawl_type, _task_source, _tag_id])
+            view_final_name = '_'.join(['view', 'final', _crawl_type, _task_source, _tag_id])
 
             logger.debug("create view {0}".format(view_name))
             logger.debug("create view {0}".format(view_final_name))
@@ -435,6 +436,61 @@ CREATE VIEW {0} AS
                 view_name,
                 detail_name,
                 list_name)
+
+            view_final_sql = '''DROP VIEW IF EXISTS {0};
+            CREATE VIEW {0} AS
+              SELECT
+                {1}.id,
+                {1}.source,
+                {1}.name,
+                {1}.name_en,
+                name_py,
+                {1}.alias,
+                {1}.map_info,
+                {2}.city_id,
+                source_city_id,
+                source_city_name,
+                source_city_name_en,
+                source_country_id,
+                source_country_name,
+                address,
+                star,
+                recommend_lv,
+                pv,
+                plantocounts,
+                beentocounts,
+                overall_rank,
+                ranking,
+                {1}.grade,
+                grade_distrib,
+                commentcounts,
+                tips,
+                tagid,
+                related_pois,
+                nomissed,
+                keyword,
+                cateid,
+                url,
+                phone,
+                site,
+                imgurl,
+                commenturl,
+                introduction,
+                opentime,
+                price,
+                recommended_time,
+                wayto,
+                crawl_times,
+                {1}.status,
+                insert_time,
+                flag
+              FROM {1}
+                JOIN {2} ON {1}.source = {2}.source AND
+                                                  {1}.id = {2}.source_id;;'''.format(
+                view_final_name,
+                detail_name,
+                list_name)
+
             local_cursor = local_conn.cursor()
             local_cursor.execute(view_sql)
             local_cursor.execute(view_final_sql)

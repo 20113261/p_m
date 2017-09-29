@@ -48,8 +48,10 @@ if __name__ == '__main__':
         filter(lambda x: not x.endswith('test') and x.startswith('view_final_'),
                table_list))
     for table in table_name:
-        if 'hotel' in table:
-            # 跳过 hotel 类型
+        # if 'hotel' in table:
+        #     # 跳过 hotel 类型
+        #     continue
+        if 'qyer' not in table:
             continue
         start = time.time()
         logger.debug("start dump case csv : {0}".format(table))
@@ -57,9 +59,9 @@ if __name__ == '__main__':
         data_frame = pandas.read_sql('SELECT * FROM {} ORDER BY rand() LIMIT 100;'.format(table), engine)
 
         data_frame['country'] = data_frame['city_id'].map(
-            lambda x: country_dict.get(int(x), 'NULL'))
+            lambda x: country_dict.get(int(x), 'NULL') if x != 'NULL' else 'NULL')
         data_frame['city'] = data_frame['city_id'].map(
-            lambda x: city_dict.get(int(x), 'NULL'))
+            lambda x: city_dict.get(int(x), 'NULL') if x != 'NULL' else 'NULL')
 
         data_frame.to_csv(
             '/tmp/crawled_data/{}.csv'.format(table))
