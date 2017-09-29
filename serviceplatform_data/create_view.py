@@ -53,8 +53,10 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
             detail_name = '_'.join(['detail', _crawl_type, _task_source, _tag_id])
             list_name = '_'.join(['list', _crawl_type, _task_source, _tag_id])
             view_name = '_'.join(['view', _crawl_type, _task_source, _tag_id])
+            view_final_name = '_'.join(['view', 'final', _crawl_type, _task_source, _tag_id])
 
             logger.debug("create view {0}".format(view_name))
+            logger.debug("create view {0}".format(view_final_name))
 
             view_sql = '''DROP VIEW IF EXISTS {0};
         CREATE VIEW {0} AS
@@ -92,12 +94,51 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
               ON {1}.source = {2}.source AND
                  {1}.source_id = {2}.source_id
             JOIN base_data.city ON {2}.city_id = base_data.city.id
-            JOIN base_data.country ON base_data.city.country_id = base_data.country.mid ORDER BY update_time DESC LIMIT 100;'''.format(
+            JOIN base_data.country ON base_data.city.country_id = base_data.country.mid;'''.format(
                 view_name,
                 detail_name,
                 list_name)
+
+            view_final_sql = '''DROP VIEW IF EXISTS {0};
+CREATE VIEW {0} AS
+SELECT
+  hotel_name,
+  hotel_name_en,
+{1}.source,
+{1}.source_id,
+brand_name,
+{1}.map_info,
+address,
+{2}.city_id,
+postal_code,
+star,
+{1}.grade,
+review_num,
+has_wifi,
+is_wifi_free,
+has_parking,
+is_parking_free,
+service,
+img_items,
+description,
+accepted_cards,
+check_in_time,
+check_out_time,
+{1}.hotel_url,
+update_time,
+continent,
+{2}.country_id
+FROM {1}
+JOIN {2}
+ON {1}.source = {2}.source AND
+{1}.source_id = {2}.source_id;'''.format(
+                view_final_name,
+                detail_name,
+                list_name)
+
             local_cursor = local_conn.cursor()
             local_cursor.execute(view_sql)
+            local_cursor.execute(view_final_sql)
             local_conn.commit()
             local_cursor.close()
 
@@ -105,6 +146,7 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
             detail_name = '_'.join(['detail', _crawl_type, _task_source, _tag_id])
             list_name = '_'.join(['list', _crawl_type, _task_source, _tag_id])
             view_name = '_'.join(['view', _crawl_type, _task_source, _tag_id])
+            view_final_name = '_'.join(['view', 'final', _crawl_type, _task_source, _tag_id])
 
             logger.debug("create view {0}".format(view_name))
 
@@ -161,8 +203,62 @@ CREATE VIEW {0} AS
                 view_name,
                 detail_name,
                 list_name)
+
+            view_final_sql = '''DROP VIEW IF EXISTS {0};
+CREATE VIEW {0} AS
+SELECT
+{1}.id,
+{1}.source,
+{1}.name,
+{1}.name_en,
+{1}.alias,
+{1}.map_info,
+{2}.city_id,
+source_city_id,
+address,
+star,
+recommend_lv,
+pv,
+plantocounts,
+beentocounts,
+overall_rank,
+ranking,
+{1}.grade,
+grade_distrib,
+commentcounts,
+tips,
+tagid,
+related_pois,
+nomissed,
+keyword,
+cateid,
+url,
+phone,
+site,
+imgurl,
+commenturl,
+introduction,
+first_review_id,
+opentime,
+price,
+recommended_time,
+wayto,
+prize,
+traveler_choice,
+{1}.utime
+FROM {1}
+JOIN {2} ON
+{1}.source = {2}.source AND
+{1}.id = {2}.source_id
+JOIN base_data.city ON base_data.city.id = {2}.city_id
+JOIN base_data.country ON base_data.country.mid = base_data.city.country_id;'''.format(
+                view_final_name,
+                detail_name,
+                list_name)
+
             local_cursor = local_conn.cursor()
             local_cursor.execute(view_sql)
+            local_cursor.execute(view_final_sql)
             local_conn.commit()
             local_cursor.close()
 
@@ -170,8 +266,10 @@ CREATE VIEW {0} AS
             detail_name = '_'.join(['detail', _crawl_type, _task_source, _tag_id])
             list_name = '_'.join(['list', _crawl_type, _task_source, _tag_id])
             view_name = '_'.join(['view', _crawl_type, _task_source, _tag_id])
+            view_final_name = '_'.join(['view', 'final', _crawl_type, _task_source, _tag_id])
 
             logger.debug("create view {0}".format(view_name))
+            logger.debug("create view {0}".format(view_final_name))
 
             view_sql = '''DROP VIEW IF EXISTS {0};
 CREATE VIEW {0} AS
@@ -221,6 +319,52 @@ CREATE VIEW {0} AS
                 view_name,
                 detail_name,
                 list_name)
+
+            view_final_sql = '''DROP VIEW IF EXISTS {0};
+            CREATE VIEW {0} AS
+              SELECT
+                {1}.id,
+                {1}.source,
+                {1}.name,
+                {1}.name_en,
+                {1}.map_info,
+                {2}.city_id,
+                source_city_id,
+                address,
+                ranking,
+                {1}.grade,
+                commentcounts,
+                cuisines,
+                dining_options,
+                payment,
+                service,
+                level,
+                michelin_star,
+                recommend,
+                rating_by_category,
+                menu,
+                {1}.status,
+                flag,
+                url,
+                phone,
+                site,
+                imgurl,
+                commenturl,
+                introduction,
+                first_review_id,
+                opentime,
+                price,
+                price_level,
+                prize,
+                traveler_choice,
+                {1}.utime
+              FROM {1}
+                JOIN {2} ON {1}.source = {2}.source AND
+                                                   {1}.id = {2}.source_id;'''.format(
+                view_final_name,
+                detail_name,
+                list_name)
+
             local_cursor = local_conn.cursor()
             local_cursor.execute(view_sql)
             local_conn.commit()
@@ -232,6 +376,7 @@ CREATE VIEW {0} AS
             view_name = '_'.join(['view', _crawl_type, _task_source, _tag_id])
 
             logger.debug("create view {0}".format(view_name))
+            logger.debug("create view {0}".format(view_final_name))
 
             view_sql = '''DROP VIEW IF EXISTS {0};
 CREATE VIEW {0} AS
@@ -292,6 +437,7 @@ CREATE VIEW {0} AS
                 list_name)
             local_cursor = local_conn.cursor()
             local_cursor.execute(view_sql)
+            local_cursor.execute(view_final_sql)
             local_conn.commit()
             local_cursor.close()
         else:
