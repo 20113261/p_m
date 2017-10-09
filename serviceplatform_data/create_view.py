@@ -43,7 +43,8 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
     local_cursor.close()
 
     table_name = list(
-        filter(lambda x: not x.endswith('test') and x.startswith('detail_'),
+        filter(lambda x: not x.endswith('test') and x.startswith('detail_') and x.replace('detail_',
+                                                                                          'list_') in table_list,
                table_list))
 
     for name in table_name:
@@ -429,7 +430,7 @@ CREATE VIEW {0} AS
     insert_time,
     flag
   FROM {1}
-    JOIN list_total_qyer_20170928a ON {1}.source = {2}.source AND
+    JOIN {2} ON {1}.source = {2}.source AND
                                       {1}.id = {2}.source_id
     JOIN base_data.city ON base_data.city.id = {2}.city_id
     JOIN base_data.country ON base_data.country.mid = base_data.city.country_id;'''.format(
@@ -486,7 +487,7 @@ CREATE VIEW {0} AS
                 flag
               FROM {1}
                 JOIN {2} ON {1}.source = {2}.source AND
-                                                  {1}.id = {2}.source_id;;'''.format(
+                                                  {1}.id = {2}.source_id;'''.format(
                 view_final_name,
                 detail_name,
                 list_name)
