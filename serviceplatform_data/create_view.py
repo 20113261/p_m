@@ -14,7 +14,8 @@ logger.level = logging.DEBUG
 s_handler = StreamHandler()
 logger.addHandler(s_handler)
 
-if __name__ == '__main__':
+
+def create_all_view():
     logger.debug("start create view")
     local_conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', charset='utf8', passwd='mioji1109',
                                  db='ServicePlatform')
@@ -22,8 +23,8 @@ if __name__ == '__main__':
     logger.debug("get all view name")
     local_cursor = local_conn.cursor()
     local_cursor.execute('''SELECT TABLE_NAME
-FROM information_schema.VIEWS
-WHERE TABLE_SCHEMA = 'ServicePlatform';''')
+    FROM information_schema.VIEWS
+    WHERE TABLE_SCHEMA = 'ServicePlatform';''')
     view_list = list(map(lambda x: x[0], local_cursor.fetchall()))
     local_cursor.close()
 
@@ -37,8 +38,8 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
     # get all table name
     local_cursor = local_conn.cursor()
     local_cursor.execute('''SELECT TABLE_NAME
-    FROM information_schema.TABLES
-    WHERE TABLE_SCHEMA = 'ServicePlatform';''')
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = 'ServicePlatform';''')
     table_list = list(map(lambda x: x[0], local_cursor.fetchall()))
     local_cursor.close()
 
@@ -60,79 +61,79 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
             logger.debug("create view {0}".format(view_final_name))
 
             view_sql = '''DROP VIEW IF EXISTS {0};
-        CREATE VIEW {0} AS
-          SELECT
-            hotel_name,
-            hotel_name_en,
-            {1}.source,
-            {1}.source_id,
-            brand_name,
-            {1}.map_info,
-            address,
-            city.name    AS city,
-            country.name AS country,
-            {2}.city_id,
-            postal_code,
-            star,
-            {1}.grade,
-            review_num,
-            has_wifi,
-            is_wifi_free,
-            has_parking,
-            is_parking_free,
-            service,
-            img_items,
-            description,
-            accepted_cards,
-            check_in_time,
-            check_out_time,
-            {1}.hotel_url,
-            update_time,
-            continent,
-            {2}.country_id
-          FROM {1}
-            JOIN {2}
-              ON {1}.source = {2}.source AND
-                 {1}.source_id = {2}.source_id
-            JOIN base_data.city ON {2}.city_id = base_data.city.id
-            JOIN base_data.country ON base_data.city.country_id = base_data.country.mid;'''.format(
+            CREATE VIEW {0} AS
+              SELECT
+                hotel_name,
+                hotel_name_en,
+                {1}.source,
+                {1}.source_id,
+                brand_name,
+                {1}.map_info,
+                address,
+                city.name    AS city,
+                country.name AS country,
+                {2}.city_id,
+                postal_code,
+                star,
+                {1}.grade,
+                review_num,
+                has_wifi,
+                is_wifi_free,
+                has_parking,
+                is_parking_free,
+                service,
+                img_items,
+                description,
+                accepted_cards,
+                check_in_time,
+                check_out_time,
+                {1}.hotel_url,
+                update_time,
+                continent,
+                {2}.country_id
+              FROM {1}
+                JOIN {2}
+                  ON {1}.source = {2}.source AND
+                     {1}.source_id = {2}.source_id
+                JOIN base_data.city ON {2}.city_id = base_data.city.id
+                JOIN base_data.country ON base_data.city.country_id = base_data.country.mid;'''.format(
                 view_name,
                 detail_name,
                 list_name)
 
             view_final_sql = '''DROP VIEW IF EXISTS {0};
-CREATE VIEW {0} AS
-SELECT
-  hotel_name,
-  hotel_name_en,
-{1}.source,
-{1}.source_id,
-brand_name,
-{1}.map_info,
-address,
-{2}.city_id,
-postal_code,
-star,
-{1}.grade,
-review_num,
-has_wifi,
-is_wifi_free,
-has_parking,
-is_parking_free,
-service,
-img_items,
-description,
-accepted_cards,
-check_in_time,
-check_out_time,
-{1}.hotel_url,
-update_time,
-continent,
-{2}.country_id
-FROM {1}
-JOIN {2}
-ON {1}.source = {2}.source AND
-{1}.source_id = {2}.source_id;'''.format(
+    CREATE VIEW {0} AS
+    SELECT
+      hotel_name,
+      hotel_name_en,
+    {1}.source,
+    {1}.source_id,
+    brand_name,
+    {1}.map_info,
+    address,
+    {2}.city_id,
+    postal_code,
+    star,
+    {1}.grade,
+    review_num,
+    has_wifi,
+    is_wifi_free,
+    has_parking,
+    is_parking_free,
+    service,
+    img_items,
+    description,
+    accepted_cards,
+    check_in_time,
+    check_out_time,
+    {1}.hotel_url,
+    update_time,
+    continent,
+    {2}.country_id
+    FROM {1}
+    JOIN {2}
+    ON {1}.source = {2}.source AND
+    {1}.source_id = {2}.source_id;'''.format(
                 view_final_name,
                 detail_name,
                 list_name)
@@ -152,16 +153,68 @@ ON {1}.source = {2}.source AND
             logger.debug("create view {0}".format(view_name))
 
             view_sql = '''DROP VIEW IF EXISTS {0};
-CREATE VIEW {0} AS
-  SELECT
+    CREATE VIEW {0} AS
+      SELECT
+        {1}.id,
+        {1}.source,
+        {1}.name,
+        {1}.name_en,
+        {1}.alias,
+        {1}.map_info,
+        country.name AS country_name,
+        city.name    AS city_name,
+        {2}.city_id,
+        source_city_id,
+        address,
+        star,
+        recommend_lv,
+        pv,
+        plantocounts,
+        beentocounts,
+        overall_rank,
+        ranking,
+        {1}.grade,
+        grade_distrib,
+        commentcounts,
+        tips,
+        tagid,
+        related_pois,
+        nomissed,
+        keyword,
+        cateid,
+        url,
+        phone,
+        site,
+        imgurl,
+        commenturl,
+        introduction,
+        first_review_id,
+        opentime,
+        price,
+        recommended_time,
+        wayto,
+        prize,
+        traveler_choice,
+        {1}.utime
+      FROM {1}
+        JOIN {2} ON
+                                          {1}.source = {2}.source AND
+                                          {1}.id = {2}.source_id
+        JOIN base_data.city ON base_data.city.id = {2}.city_id
+        JOIN base_data.country ON base_data.country.mid = base_data.city.country_id;'''.format(
+                view_name,
+                detail_name,
+                list_name)
+
+            view_final_sql = '''DROP VIEW IF EXISTS {0};
+    CREATE VIEW {0} AS
+    SELECT
     {1}.id,
     {1}.source,
     {1}.name,
     {1}.name_en,
     {1}.alias,
     {1}.map_info,
-    country.name AS country_name,
-    city.name    AS city_name,
     {2}.city_id,
     source_city_id,
     address,
@@ -195,64 +248,12 @@ CREATE VIEW {0} AS
     prize,
     traveler_choice,
     {1}.utime
-  FROM {1}
+    FROM {1}
     JOIN {2} ON
-                                      {1}.source = {2}.source AND
-                                      {1}.id = {2}.source_id
+    {1}.source = {2}.source AND
+    {1}.id = {2}.source_id
     JOIN base_data.city ON base_data.city.id = {2}.city_id
     JOIN base_data.country ON base_data.country.mid = base_data.city.country_id;'''.format(
-                view_name,
-                detail_name,
-                list_name)
-
-            view_final_sql = '''DROP VIEW IF EXISTS {0};
-CREATE VIEW {0} AS
-SELECT
-{1}.id,
-{1}.source,
-{1}.name,
-{1}.name_en,
-{1}.alias,
-{1}.map_info,
-{2}.city_id,
-source_city_id,
-address,
-star,
-recommend_lv,
-pv,
-plantocounts,
-beentocounts,
-overall_rank,
-ranking,
-{1}.grade,
-grade_distrib,
-commentcounts,
-tips,
-tagid,
-related_pois,
-nomissed,
-keyword,
-cateid,
-url,
-phone,
-site,
-imgurl,
-commenturl,
-introduction,
-first_review_id,
-opentime,
-price,
-recommended_time,
-wayto,
-prize,
-traveler_choice,
-{1}.utime
-FROM {1}
-JOIN {2} ON
-{1}.source = {2}.source AND
-{1}.id = {2}.source_id
-JOIN base_data.city ON base_data.city.id = {2}.city_id
-JOIN base_data.country ON base_data.country.mid = base_data.city.country_id;'''.format(
                 view_final_name,
                 detail_name,
                 list_name)
@@ -273,95 +274,95 @@ JOIN base_data.country ON base_data.country.mid = base_data.city.country_id;'''.
             logger.debug("create view {0}".format(view_final_name))
 
             view_sql = '''DROP VIEW IF EXISTS {0};
-CREATE VIEW {0} AS
-  SELECT
-    {1}.id,
-    {1}.source,
-    {1}.name,
-    {1}.name_en,
-    {1}.map_info,
-    country.name AS country_name,
-    city.name    AS city_name,
-    {2}.city_id,
-    source_city_id,
-    address,
-    ranking,
-    {1}.grade,
-    commentcounts,
-    cuisines,
-    dining_options,
-    payment,
-    service,
-    level,
-    michelin_star,
-    recommend,
-    rating_by_category,
-    menu,
-    {1}.status,
-    flag,
-    url,
-    phone,
-    site,
-    imgurl,
-    commenturl,
-    introduction,
-    first_review_id,
-    opentime,
-    price,
-    price_level,
-    prize,
-    traveler_choice,
-    {1}.utime
-  FROM {1}
-    JOIN {2} ON {1}.source = {2}.source AND
-                                       {1}.id = {2}.source_id
-    JOIN base_data.city ON {2}.city_id = base_data.city.id
-    JOIN base_data.country ON base_data.city.country_id = base_data.country.mid;'''.format(
+    CREATE VIEW {0} AS
+      SELECT
+        {1}.id,
+        {1}.source,
+        {1}.name,
+        {1}.name_en,
+        {1}.map_info,
+        country.name AS country_name,
+        city.name    AS city_name,
+        {2}.city_id,
+        source_city_id,
+        address,
+        ranking,
+        {1}.grade,
+        commentcounts,
+        cuisines,
+        dining_options,
+        payment,
+        service,
+        level,
+        michelin_star,
+        recommend,
+        rating_by_category,
+        menu,
+        {1}.status,
+        flag,
+        url,
+        phone,
+        site,
+        imgurl,
+        commenturl,
+        introduction,
+        first_review_id,
+        opentime,
+        price,
+        price_level,
+        prize,
+        traveler_choice,
+        {1}.utime
+      FROM {1}
+        JOIN {2} ON {1}.source = {2}.source AND
+                                           {1}.id = {2}.source_id
+        JOIN base_data.city ON {2}.city_id = base_data.city.id
+        JOIN base_data.country ON base_data.city.country_id = base_data.country.mid;'''.format(
                 view_name,
                 detail_name,
                 list_name)
 
             view_final_sql = '''DROP VIEW IF EXISTS {0};
-            CREATE VIEW {0} AS
-              SELECT
-                {1}.id,
-                {1}.source,
-                {1}.name,
-                {1}.name_en,
-                {1}.map_info,
-                {2}.city_id,
-                source_city_id,
-                address,
-                ranking,
-                {1}.grade,
-                commentcounts,
-                cuisines,
-                dining_options,
-                payment,
-                service,
-                level,
-                michelin_star,
-                recommend,
-                rating_by_category,
-                menu,
-                {1}.status,
-                flag,
-                url,
-                phone,
-                site,
-                imgurl,
-                commenturl,
-                introduction,
-                first_review_id,
-                opentime,
-                price,
-                price_level,
-                prize,
-                traveler_choice,
-                {1}.utime
-              FROM {1}
-                JOIN {2} ON {1}.source = {2}.source AND
-                                                   {1}.id = {2}.source_id;'''.format(
+                CREATE VIEW {0} AS
+                  SELECT
+                    {1}.id,
+                    {1}.source,
+                    {1}.name,
+                    {1}.name_en,
+                    {1}.map_info,
+                    {2}.city_id,
+                    source_city_id,
+                    address,
+                    ranking,
+                    {1}.grade,
+                    commentcounts,
+                    cuisines,
+                    dining_options,
+                    payment,
+                    service,
+                    level,
+                    michelin_star,
+                    recommend,
+                    rating_by_category,
+                    menu,
+                    {1}.status,
+                    flag,
+                    url,
+                    phone,
+                    site,
+                    imgurl,
+                    commenturl,
+                    introduction,
+                    first_review_id,
+                    opentime,
+                    price,
+                    price_level,
+                    prize,
+                    traveler_choice,
+                    {1}.utime
+                  FROM {1}
+                    JOIN {2} ON {1}.source = {2}.source AND
+                                                       {1}.id = {2}.source_id;'''.format(
                 view_final_name,
                 detail_name,
                 list_name)
@@ -381,113 +382,113 @@ CREATE VIEW {0} AS
             logger.debug("create view {0}".format(view_final_name))
 
             view_sql = '''DROP VIEW IF EXISTS {0};
-CREATE VIEW {0} AS
-  SELECT
-    {1}.id,
-    {1}.source,
-    {1}.name,
-    {1}.name_en,
-    name_py,
-    {1}.alias,
-    {1}.map_info,
-    country.name AS country_name,
-    city.name    AS city_name,
-    {2}.city_id,
-    source_city_id,
-    source_city_name,
-    source_city_name_en,
-    source_country_id,
-    source_country_name,
-    address,
-    star,
-    recommend_lv,
-    pv,
-    plantocounts,
-    beentocounts,
-    overall_rank,
-    ranking,
-    {1}.grade,
-    grade_distrib,
-    commentcounts,
-    tips,
-    tagid,
-    related_pois,
-    nomissed,
-    keyword,
-    cateid,
-    url,
-    phone,
-    site,
-    imgurl,
-    commenturl,
-    introduction,
-    opentime,
-    price,
-    recommended_time,
-    wayto,
-    crawl_times,
-    {1}.status,
-    insert_time,
-    flag
-  FROM {1}
-    JOIN {2} ON {1}.source = {2}.source AND
-                                      {1}.id = {2}.source_id
-    JOIN base_data.city ON base_data.city.id = {2}.city_id
-    JOIN base_data.country ON base_data.country.mid = base_data.city.country_id;'''.format(
+    CREATE VIEW {0} AS
+      SELECT
+        {1}.id,
+        {1}.source,
+        {1}.name,
+        {1}.name_en,
+        name_py,
+        {1}.alias,
+        {1}.map_info,
+        country.name AS country_name,
+        city.name    AS city_name,
+        {2}.city_id,
+        source_city_id,
+        source_city_name,
+        source_city_name_en,
+        source_country_id,
+        source_country_name,
+        address,
+        star,
+        recommend_lv,
+        pv,
+        plantocounts,
+        beentocounts,
+        overall_rank,
+        ranking,
+        {1}.grade,
+        grade_distrib,
+        commentcounts,
+        tips,
+        tagid,
+        related_pois,
+        nomissed,
+        keyword,
+        cateid,
+        url,
+        phone,
+        site,
+        imgurl,
+        commenturl,
+        introduction,
+        opentime,
+        price,
+        recommended_time,
+        wayto,
+        crawl_times,
+        {1}.status,
+        insert_time,
+        flag
+      FROM {1}
+        JOIN {2} ON {1}.source = {2}.source AND
+                                          {1}.id = {2}.source_id
+        JOIN base_data.city ON base_data.city.id = {2}.city_id
+        JOIN base_data.country ON base_data.country.mid = base_data.city.country_id;'''.format(
                 view_name,
                 detail_name,
                 list_name)
 
             view_final_sql = '''DROP VIEW IF EXISTS {0};
-            CREATE VIEW {0} AS
-              SELECT
-                {1}.id,
-                {1}.source,
-                {1}.name,
-                {1}.name_en,
-                name_py,
-                {1}.alias,
-                {1}.map_info,
-                {2}.city_id,
-                source_city_id,
-                source_city_name,
-                source_city_name_en,
-                source_country_id,
-                source_country_name,
-                address,
-                star,
-                recommend_lv,
-                pv,
-                plantocounts,
-                beentocounts,
-                overall_rank,
-                ranking,
-                {1}.grade,
-                grade_distrib,
-                commentcounts,
-                tips,
-                tagid,
-                related_pois,
-                nomissed,
-                keyword,
-                cateid,
-                url,
-                phone,
-                site,
-                imgurl,
-                commenturl,
-                introduction,
-                opentime,
-                price,
-                recommended_time,
-                wayto,
-                crawl_times,
-                {1}.status,
-                insert_time,
-                flag
-              FROM {1}
-                JOIN {2} ON {1}.source = {2}.source AND
-                                                  {1}.id = {2}.source_id;'''.format(
+                CREATE VIEW {0} AS
+                  SELECT
+                    {1}.id,
+                    {1}.source,
+                    {1}.name,
+                    {1}.name_en,
+                    name_py,
+                    {1}.alias,
+                    {1}.map_info,
+                    {2}.city_id,
+                    source_city_id,
+                    source_city_name,
+                    source_city_name_en,
+                    source_country_id,
+                    source_country_name,
+                    address,
+                    star,
+                    recommend_lv,
+                    pv,
+                    plantocounts,
+                    beentocounts,
+                    overall_rank,
+                    ranking,
+                    {1}.grade,
+                    grade_distrib,
+                    commentcounts,
+                    tips,
+                    tagid,
+                    related_pois,
+                    nomissed,
+                    keyword,
+                    cateid,
+                    url,
+                    phone,
+                    site,
+                    imgurl,
+                    commenturl,
+                    introduction,
+                    opentime,
+                    price,
+                    recommended_time,
+                    wayto,
+                    crawl_times,
+                    {1}.status,
+                    insert_time,
+                    flag
+                  FROM {1}
+                    JOIN {2} ON {1}.source = {2}.source AND
+                                                      {1}.id = {2}.source_id;'''.format(
                 view_final_name,
                 detail_name,
                 list_name)
@@ -499,3 +500,7 @@ CREATE VIEW {0} AS
             local_cursor.close()
         else:
             logger.debug("could not create view : {0}".format(name))
+
+
+if __name__ == '__main__':
+    create_all_view()
