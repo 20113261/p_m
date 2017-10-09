@@ -111,11 +111,19 @@ def create_all_view():
     brand_name,
     {1}.map_info,
     address,
+    city,
+    country,
     {2}.city_id,
     postal_code,
-    star,
-    {1}.grade,
-    review_num,
+    CASE WHEN star IS NOT NULL
+      THEN star
+    ELSE -1 END,
+    CASE WHEN {1}.grade IS NOT NULL
+      THEN {1}.grade
+    ELSE -1.0 END,
+    CASE WHEN review_num IS NOT NULL
+      THEN review_num
+    ELSE -1 END,
     has_wifi,
     is_wifi_free,
     has_parking,
