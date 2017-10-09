@@ -15,7 +15,7 @@ from warnings import filterwarnings
 # ignore pymysql warnings
 filterwarnings('ignore', category=pymysql.err.Warning)
 
-logger = getLogger("create_view")
+logger = getLogger("insert_data")
 logger.level = logging.DEBUG
 s_handler = StreamHandler()
 f_handler = FileHandler(
