@@ -7,12 +7,16 @@
 # @Software: PyCharm
 import pymysql
 import logging
-from logging import getLogger, StreamHandler
+from logging import getLogger, StreamHandler, FileHandler
 
 logger = getLogger("create_view")
 logger.level = logging.DEBUG
 s_handler = StreamHandler()
+f_handler = FileHandler(
+    filename='/search/log/cron/create_view.log'
+)
 logger.addHandler(s_handler)
+logger.addHandler(f_handler)
 
 
 def create_all_view():
@@ -243,7 +247,7 @@ def create_all_view():
     keyword,
     cateid,
     url,
-    phone,
+    CASE WHEN phone!='+ 添加电话号码' THEN phone ELSE '' END as phone,
     site,
     imgurl,
     commenturl,
@@ -259,9 +263,7 @@ def create_all_view():
     FROM {1}
     JOIN {2} ON
     {1}.source = {2}.source AND
-    {1}.id = {2}.source_id
-    JOIN base_data.city ON base_data.city.id = {2}.city_id
-    JOIN base_data.country ON base_data.country.mid = base_data.city.country_id;'''.format(
+    {1}.id = {2}.source_id;'''.format(
                 view_final_name,
                 detail_name,
                 list_name)
@@ -356,7 +358,7 @@ def create_all_view():
                     {1}.status,
                     flag,
                     url,
-                    phone,
+                    CASE WHEN phone!='+ 添加电话号码' THEN phone ELSE '' END as phone,
                     site,
                     imgurl,
                     commenturl,
@@ -377,6 +379,7 @@ def create_all_view():
 
             local_cursor = local_conn.cursor()
             local_cursor.execute(view_sql)
+            local_cursor.execute(view_final_sql)
             local_conn.commit()
             local_cursor.close()
 
