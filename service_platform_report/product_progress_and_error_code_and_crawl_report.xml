@@ -177,7 +177,7 @@
             <field name="opentime_ratio">concat(round(`opentime`/`total`*100,2),'%')</field>
         </item>
 
-        <item name="全类型（当前只有 qyer）字段覆盖率统计" type="2" table="service_platform_attr_data_coverage_report"
+        <item name="全类型（当前只有 qyer）字段覆盖率统计" type="2" table="service_platform_total_data_coverage_report"
               orderby="tag,source"
               showystday="true"
               limit="1000">
