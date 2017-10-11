@@ -135,6 +135,22 @@ def map_info_legal(_map_info):
         return False
 
 
+def is_legal(s):
+    if s:
+        if isinstance(s, str):
+            if s.strip():
+                if s.lower() != 'null':
+                    return True
+        elif isinstance(s, int):
+            if s > -1:
+                return True
+
+        elif isinstance(s, float):
+            if s > -1.0:
+                return True
+    return False
+
+
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
@@ -175,6 +191,8 @@ WHERE map_info IN ({});'''.format(task_table, ",".join(
 
         # get all data
         for line in _cursor.fetchall():
+            if not is_legal(line[2]):
+                continue
             data.append(
                 (
                     task_table,
