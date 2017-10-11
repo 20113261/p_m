@@ -211,8 +211,6 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
 
     report_data = []
     for cand_table in table_list:
-        if 'qyer' not in cand_table:
-            continue
         cand_list = cand_table.split('_')
         # 跳过不为 4 的表
         if len(cand_list) != 4:
