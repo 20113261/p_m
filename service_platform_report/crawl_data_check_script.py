@@ -8,6 +8,7 @@
 import pymysql
 import datetime
 import dataset
+import json
 from math import radians, cos, sin, asin, sqrt
 from collections import defaultdict
 
@@ -134,6 +135,68 @@ def map_info_legal(_map_info):
         return False
 
 
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
+    _conn = pymysql.connect(host=ori_ip, user=ori_user, charset='utf8', passwd=ori_password, db=ori_db_name)
+    data = []
+    # get all task info
+    for duplicate_map_info in chunks(list(duplicate_map_info_set), 5000):
+        _cursor = _conn.cursor()
+        if task_type == 'hotel':
+            query_sql = '''SELECT
+  source,
+  source_id,
+  address
+FROM {}
+WHERE map_info IN ({});'''.format(task_table, ",".join(
+                map(lambda x: "'{}'".format(x),
+                    filter(lambda x: map_info_legal(x), duplicate_map_info)
+                    )
+            ))
+        elif task_type in ('attr', 'shop', 'rest', 'total'):
+            query_sql = '''SELECT
+  source,
+  id,
+  address
+FROM {}
+WHERE map_info IN ({});'''.format(task_table, ",".join(
+                map(lambda x: "'{}'".format(x),
+                    filter(lambda x: map_info_legal(x), duplicate_map_info)
+                    )
+            ))
+        else:
+            continue
+        _cursor.execute(query_sql)
+
+        # get all data
+        for line in _cursor.fetchall():
+            data.append(
+                (
+                    task_table,
+                    line[0],
+                    line[1],
+                    json.dumps({
+                        'address': line[2]
+                    })
+                )
+            )
+        _cursor.close()
+
+    # insert all data
+    _cursor = _conn.cursor()
+    _cursor.executemany(
+        '''INSERT IGNORE INTO supplement_field (`table_name`, `type`, `source`, `sid`, `other_info`) VALUES (%s, 'map_info', %s, %s, %s)''',
+        data)
+    _conn.commit()
+    _cursor.close()
+    _conn.close()
+
+
 def detectOriData():
     local_conn = pymysql.connect(host=ori_ip, user=ori_user, charset='utf8', passwd=ori_password, db=ori_db_name)
     city_map_info_dict = get_city_map()
@@ -148,6 +211,8 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
 
     report_data = []
     for cand_table in table_list:
+        if 'qyer' not in cand_table:
+            continue
         cand_list = cand_table.split('_')
         # 跳过不为 4 的表
         if len(cand_list) != 4:
@@ -301,6 +366,11 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
         # 经纬度重复的值的最后添加 len(duplicate_map_info_set) 值
         # 以保证返回值不会丢失第一次出现的 map_info
         error_dict['经纬度重复'] += len(duplicate_map_info_set)
+
+        # 生成经纬度重复任务，当前只有 qyer
+        if task_type == 'total':
+            insert_error_map_info_task(duplicate_map_info_set=duplicate_map_info_set, task_table=cand_table,
+                                       task_type=task_type)
 
         print(total, error_count, success, cand_table)
         print(cand_source, 'hotel', total, success)
