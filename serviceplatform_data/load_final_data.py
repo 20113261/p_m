@@ -77,6 +77,9 @@ def load_data(limit=400):
     local_cursor.close()
 
     for each_table in table_list:
+        if each_table.split('_')[-1] < '20170929a':
+            logger.debug('[skip table][name: {}]'.format(each_table))
+            continue
         u_time = ''
         finished = False
 
