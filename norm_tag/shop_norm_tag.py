@@ -7,7 +7,7 @@ from Config.settings import local_tag_conf
 from .lang_convert import tradition2simple
 
 SHOP_TABLE = 'data_prepare.shopping_tmp'
-split_pattern = re.compile('[|与]')
+split_pattern = re.compile('[|与,]')
 
 
 def get_tagid_dict():

@@ -8,7 +8,7 @@ from norm_tag.lang_convert import tradition2simple
 
 ATTR_TABLE = 'data_prepare.attraction_tmp'
 
-split_pattern = re.compile('[|与]')
+split_pattern = re.compile('[|与,]')
 
 key_words_dict = {
     '水上乐园和游乐场': '游乐园',
