@@ -18,6 +18,7 @@ from add_open_time.fix_daodao_time import fix_daodao_open_time
 from norm_tag.attr_norm_tag import tradition2simple, get_norm_tag as attr_get_norm_tag
 from norm_tag.rest_norm_tag import get_norm_tag as rest_get_norm_tag
 from norm_tag.shop_norm_tag import get_norm_tag as shop_get_norm_tag
+from get_near_city.get_near_city import get_nearby_city
 
 need_cid_file = True
 
@@ -188,23 +189,23 @@ def insert_data(_poi_type):
               '`map_info`,`address`,`star`,`plantocount`,`beentocount`,`real_ranking`,' \
               '`grade`,`commentcount`,`tagid`,`norm_tagid`,`norm_tagid_en`,`url`,`website_url`,`phone`,`introduction`,' \
               '`open`, `open_desc`,`recommend_lv`,`prize`,`traveler_choice`, `alias`, ' \
-              '`image`, `ori_grade`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-              '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+              '`image`, `ori_grade`,`nearCity`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
+              '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
     elif _poi_type == 'rest':
         sql = 'replace into chat_restaurant(`id`,`name`,`name_en`,' \
               '`source`,`city_id`,`map_info`,`address`,`real_ranking`,' \
               '`grade`,`res_url`,`telphone`,`introduction`,`open_time`,`open_time_desc`,`prize`,' \
               '`traveler_choice`,`review_num`,`price`,`price_level`,`cuisines`, ' \
-              '`image_urls`,`tagid`,`norm_tagid`,`norm_tagid_en`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-              '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+              '`image_urls`,`tagid`,`norm_tagid`,`norm_tagid_en`,`nearCity`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
+              '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
     elif _poi_type == 'shop':
         sql = 'replace into ' \
               'chat_shopping(`id`,`name`,`name_en`,`data_source`,`city_id`,' \
               '`map_info`,`address`,`star`,`plantocount`,`beentocount`,' \
               '`real_ranking`,`grade`,`commentcount`,`tagid`,`norm_tagid`,`norm_tagid_en`,`url`,`website_url`,' \
               '`phone`,`introduction`,`open`,`open_desc`,`recommend_lv`,`prize`,' \
-              '`traveler_choice`,`image`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-              '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+              '`traveler_choice`,`image`,`nearCity`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
+              '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
     else:
         raise TypeError("Unknown Type: {}".format(poi_type))
 
@@ -344,6 +345,9 @@ def insert_data(_poi_type):
                 if poi_type == 'rest':
                     data_dict['price_level'] = W2N.get(data_dict.get('price_level', ''), '0')
 
+                # 添加 nearCity 字段
+                nearby_city = get_nearby_city(poi_city_id=city_id, poi_map_info=data_dict['map_info'])
+
                 if poi_type == 'attr':
                     data.append((
                         miaoji_id, data_dict['name'], data_dict['name_en'], source, city_id,
@@ -355,7 +359,7 @@ def insert_data(_poi_type):
                         data_dict['phone'],
                         data_dict['introduction'], norm_open_time,
                         data_dict['opentime'], data_dict['recommend_lv'], data_dict['prize'],
-                        data_dict['traveler_choice'], alias, data_dict['imgurl'], data_dict['ori_grade'])
+                        data_dict['traveler_choice'], alias, data_dict['imgurl'], data_dict['ori_grade'], nearby_city)
                     )
                 elif poi_type == 'rest':
                     data.append((
@@ -368,7 +372,7 @@ def insert_data(_poi_type):
                         data_dict['prize'], data_dict['traveler_choice'],
                         data_dict['commentcounts'], data_dict['price'], data_dict['price_level'],
                         data_dict['cuisines'],
-                        data_dict['imgurl'], data_dict['tagid'], norm_tag, norm_tag_en))
+                        data_dict['imgurl'], data_dict['tagid'], norm_tag, norm_tag_en, nearby_city))
                 elif poi_type == 'shop':
                     data.append((
                         miaoji_id, data_dict['name'], data_dict['name_en'], source, city_id,
@@ -381,7 +385,7 @@ def insert_data(_poi_type):
                         data_dict['introduction'], norm_open_time,
                         data_dict['opentime'], data_dict['recommend_lv'], data_dict['prize'],
                         data_dict['traveler_choice'],
-                        data_dict['imgurl']))
+                        data_dict['imgurl'], nearby_city))
                 else:
                     raise TypeError("Unknown Type: {}".format(poi_type))
 
