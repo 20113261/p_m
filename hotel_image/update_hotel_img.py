@@ -47,6 +47,8 @@ WHERE source = %s AND source_id = %s GROUP BY file_md5;''', each)
 
             for line in cursor.fetchall():
                 img_result.append(line[0])
+
+        img_result = list(set(img_result))
         if img_result:
             data.append(('|'.join(img_result), img_result[0], uid))
         cursor.close()
