@@ -15,11 +15,11 @@ from warnings import filterwarnings
 # ignore pymysql warnings
 filterwarnings('ignore', category=pymysql.err.Warning)
 
-logger = getLogger("insert_data")
+logger = getLogger("image_insert_data")
 logger.level = logging.DEBUG
 s_handler = StreamHandler()
 f_handler = FileHandler(
-    filename='/search/log/cron/insert_data.log'
+    filename='/search/log/cron/image_insert_data.log'
 )
 logger.addHandler(s_handler)
 logger.addHandler(f_handler)
