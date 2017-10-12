@@ -1,4 +1,5 @@
 import pymysql
+from pymysql.cursors import SSCursor
 
 __img_sql_dict = {
     'host': '10.10.189.213',
@@ -87,7 +88,7 @@ def update_db(args, s_type):
 if __name__ == '__main__':
     # -------- Variables ----------
 
-    S_TYPE = 'attr'
+    S_TYPE = 'rest'
     ATTRACTION_TABLE = 'chat_attraction_new'
     RESTAURANT_TABLE = 'chat_restaurant_new'
     SHOPPING_TABLE = 'chat_shopping_new'

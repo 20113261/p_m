@@ -54,7 +54,7 @@ get_key.update_priority({
     },
 })
 
-poi_type = 'rest'
+poi_type = 'shop'
 
 if poi_type == 'attr':
     merge_conf = attr_merge_conf
