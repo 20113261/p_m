@@ -8,8 +8,7 @@
 # coding=utf-8
 import math
 import pymysql
-
-# from city_info import cid2map, special_city
+from .city_info import cid2map, special_city
 
 # distance
 EARTH_RADIUS = 6378137
@@ -57,7 +56,7 @@ def get_map_diff(map_info_1, map_info_2):
     return diff
 
 
-def get_nearby_city(poi_id, poi_city_id, poi_map_info):
+def get_nearby_city(poi_city_id, poi_map_info):
     try:
         poi_lgt, poi_lat = poi_map_info.strip().split(',')
         poi_lgt_lat = (float(poi_lgt), float(poi_lat))
@@ -95,10 +94,3 @@ def get_nearby_city(poi_id, poi_city_id, poi_map_info):
     near_cid = '|'.join(near_cid_set)
 
     return near_cid
-
-
-if __name__ == '__main__':
-    poi_id = 'v223168'
-    city_id = '30010'
-    map_info = '151.212531,-33.866978'
-    nearby_city = get_nearby_city(poi_id, city_id, map_info)
