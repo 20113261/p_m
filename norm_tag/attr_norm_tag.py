@@ -37,7 +37,7 @@ tag_dict = get_tagid_dict()
 def get_norm_tag(tag_id):
     norm_tag_list = []
     norm_tag_en = []
-    lines = tradition2simple(tag_id['daodao']).decode()
+    lines = tradition2simple(tag_id).decode()
     for raw_tag in split_pattern.split(lines):
         tag = raw_tag.strip()
         if tag in tag_dict:

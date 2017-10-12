@@ -7,7 +7,7 @@ from .lang_convert import tradition2simple
 from Config.settings import local_tag_conf
 
 REST_TABLE = 'data_prepare.restaurant_tmp'
-split_pattern = re.compile('[|与/]')
+split_pattern = re.compile('[|与/,]')
 key_words_dict = {'\u9ece\u5df4\u5ae9\u83dc': '\u9ece\u5df4\u5ae9', '\u79d8\u9c81\u83dc': '\u79d8\u9c81',
                   '\u4e9a\u6d32\u6599\u7406': '\u4e9a\u6d32', '\u745e\u5178\u83dc': '\u745e\u5178',
                   '\u6ce2\u65af\u98ce\u5473': '\u6ce2\u65af', '\u5496\u5561\u9986': '\u5496\u5561\u5385',
@@ -82,7 +82,7 @@ tag_dict = get_tagid_dict()
 def get_norm_tag(tag_id):
     norm_tag = []
     norm_tag_en = []
-    lines = tradition2simple(tag_id['daodao']).decode()
+    lines = tradition2simple(tag_id).decode()
     for raw_tag in split_pattern.split(lines):
         tag = raw_tag.strip()
         if tag in tag_dict:

@@ -21,6 +21,13 @@ from norm_tag.shop_norm_tag import get_norm_tag as shop_get_norm_tag
 
 need_cid_file = True
 
+W2N = {
+    '¥¥-¥¥¥': '23',
+    '¥': '1',
+    '': '0',
+    '¥¥¥¥': '4'
+}
+
 get_key = toolbox.Common.GetKey()
 get_key.update_priority({
     'default': {
@@ -296,12 +303,12 @@ def insert_data(_poi_type):
                 # add norm tag
                 # todo change make qyer and other can be used
                 if 'daodao' in data_dict['tagid']:
-                    daodao_tagid, daodao_tagid_en = get_norm_tag(data_dict['tagid'])
+                    daodao_tagid, daodao_tagid_en = get_norm_tag(data_dict['tagid']['daodao'])
                 else:
                     daodao_tagid, daodao_tagid_en = '', ''
 
                 if 'qyer' in data_dict['tagid']:
-                    qyer_tagid, qyer_tagid_en = get_norm_tag(data_dict['tagid'])
+                    qyer_tagid, qyer_tagid_en = get_norm_tag(data_dict['tagid']['qyer'])
                 else:
                     qyer_tagid, qyer_tagid_en = '', ''
 
@@ -312,8 +319,9 @@ def insert_data(_poi_type):
                 l_norm_tag.extend(qyer_tagid.split('|'))
                 l_norm_tag_en.extend(qyer_tagid_en.split('|'))
 
-                norm_tag = '|'.join(l_norm_tag)
-                norm_tag_en = '|'.join(l_norm_tag_en)
+                # 去除空 tag 以及重复 tag
+                norm_tag = '|'.join(filter(lambda x: is_legal(x), set(l_norm_tag)))
+                norm_tag_en = '|'.join(filter(lambda x: is_legal(x), set(l_norm_tag_en)))
 
                 # 数据入库部分
                 # 替换旧的 data_dict
@@ -331,6 +339,10 @@ def insert_data(_poi_type):
                 # phone 处理
                 if data_dict['phone'] in ('+ 新增電話號碼', '+ 新增电话号码'):
                     data_dict['phone'] = ''
+
+                # 餐厅的 price_level 单独处理
+                if poi_type == 'rest':
+                    data_dict['price_level'] = W2N.get(data_dict.get('price_level', ''), '0')
 
                 if poi_type == 'attr':
                     data.append((
