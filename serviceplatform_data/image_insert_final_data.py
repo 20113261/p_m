@@ -53,7 +53,8 @@ def create_table(image_type, image_table_tag):
     sql_name = final_table.get(image_type, None)
     if sql_name is None:
         raise TypeError("[Unknown View Type: {}]".format(image_type))
-    final_sql = open('./sql/{}'.format(sql_name)).read()
+    final_sql = open(
+        '/search/hourong/PycharmProjects/PoiCommonScript/serviceplatform_data/sql/{}'.format(sql_name)).read()
     table_name = "{}_images_final_{}".format(image_type_dict[image_type], image_table_tag)
     final_cursor.execute(final_sql % (table_name,))
     logger.debug('[create table][name: {}]'.format(table_name))

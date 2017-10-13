@@ -49,7 +49,7 @@ def create_table():
                                  db=final_database)
     final_cursor = final_conn.cursor()
     for k, v in final_table.items():
-        final_sql = open('./sql/{}'.format(v)).read()
+        final_sql = open('/search/hourong/PycharmProjects/PoiCommonScript/serviceplatform_data/sql/{}'.format(v)).read()
         table_name = "{}_final".format(k)
         final_cursor.execute(final_sql % (table_name,))
         logger.debug('[create table][name: {}]'.format(table_name))
@@ -152,6 +152,10 @@ def load_data(limit=400):
             u_time = final_update_time
 
 
-if __name__ == '__main__':
+def main():
     create_table()
     load_data(limit=2000)
+
+
+if __name__ == '__main__':
+    main()

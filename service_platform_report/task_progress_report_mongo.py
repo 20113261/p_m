@@ -21,7 +21,9 @@ logger.addHandler(handler)
 
 client = pymongo.MongoClient(host='10.10.231.105')
 collections = client['MongoTask']['Task']
-if __name__ == '__main__':
+
+
+def main():
     dt = datetime.datetime.now()
     product_count = defaultdict(int)
     db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/Report?charset=utf8')
@@ -81,3 +83,7 @@ if __name__ == '__main__':
             pass
 
         print(json.dumps(data, indent=4, sort_keys=True))
+
+
+if __name__ == '__main__':
+    main()

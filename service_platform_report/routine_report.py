@@ -10,7 +10,8 @@ import datetime
 import dataset
 from collections import defaultdict
 
-if __name__ == '__main__':
+
+def main():
     db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/Report?charset=utf8')
     table = db['serviceplatform_routine_task_summary']
 
@@ -55,3 +56,7 @@ if __name__ == '__main__':
               datetime.datetime.strftime(dt, '%H'), datetime.datetime.strftime(dt, '%Y%m%d%H00'))
 
         r.flushdb()
+
+
+if __name__ == '__main__':
+    main()

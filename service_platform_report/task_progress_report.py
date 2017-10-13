@@ -12,7 +12,8 @@ import json
 import pymysql
 from collections import defaultdict
 
-if __name__ == '__main__':
+
+def main():
     ori_ip = '10.10.228.253'
     ori_user = 'mioji_admin'
     ori_password = 'mioji1109'
@@ -46,8 +47,8 @@ if __name__ == '__main__':
 
     local_cursor = local_conn.cursor()
     local_cursor.execute('''SELECT TABLE_NAME
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'ServicePlatform' AND TABLE_NAME LIKE 'list_%';''')
+    FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = 'ServicePlatform' AND TABLE_NAME LIKE 'list_%';''')
     table_list = list(map(lambda x: x[0], local_cursor.fetchall()))
     local_cursor.close()
 
@@ -58,7 +59,7 @@ WHERE TABLE_SCHEMA = 'ServicePlatform' AND TABLE_NAME LIKE 'list_%';''')
             # 总量计数
             local_cursor = local_conn.cursor()
             local_cursor.execute('''SELECT count(DISTINCT city_id)
-                    FROM {0};'''.format(table_name))
+                        FROM {0};'''.format(table_name))
             _count = local_cursor.fetchone()[0]
             local_cursor.close()
 
@@ -110,3 +111,7 @@ WHERE TABLE_SCHEMA = 'ServicePlatform' AND TABLE_NAME LIKE 'list_%';''')
             pass
 
         print(json.dumps(data, indent=4, sort_keys=True))
+
+
+if __name__ == '__main__':
+    main()
