@@ -5,6 +5,7 @@ import datetime
 import jinja2
 from .send_email import send_email
 
+IMG_DICT = dict(host='10.10.228.253', user='mioji_admin', passwd='mioji1109', charset="utf8")
 SQL_DICT = dict(host='10.10.189.213', user='hourong', passwd='hourong', charset="utf8")
 
 mail_list = ["hourong@mioji.com", ]
@@ -25,7 +26,7 @@ def get_uid_set():
 
 if __name__ == '__main__':
     uid_set = get_uid_set()
-    conn = pymysql.connect(db='update_img', **SQL_DICT)
+    conn = pymysql.connect(db='BaseDataFinal', **IMG_DICT)
     online_conn = pymysql.connect(db='onlinedb', **SQL_DICT)
     _count = 0
     data = []
@@ -42,7 +43,7 @@ WHERE uid = %s;''', (uid,))
         img_result = []
         for each in online_cursor.fetchall():
             cursor.execute('''SELECT pic_md5
-FROM pic_relation
+FROM hotel_images
 WHERE source = %s AND source_id = %s GROUP BY file_md5;''', each)
 
             for line in cursor.fetchall():
