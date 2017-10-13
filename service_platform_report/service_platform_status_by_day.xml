@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--注释内容-->
-<report name="抓取平台例行任务统计">
-    <interval>60</interval>
+<report name="抓取平台例行任务统计(按天)">
+    <interval>1440</interval>
     <group name="按任务名统计">
-        <item name="type source 统计" type="2" table="service_platform_routine_source_type" desc="false" showystday="true"
+        <item name="type source 统计" type="2" table="service_platform_routine_source_type_by_day" desc="false" showystday="true"
               limit="1000">
             <field key="true" extend="false" name="TaskName">`task_name`</field>
             <field key="true" extend="false" name="Type">`type`</field>
@@ -29,7 +29,7 @@
         </item>
     </group>
     <group name="分 ip 统计">
-        <item name="分 ip 统计" type="2" table="service_platform_routine_source_type_ip" desc="false" showystday="true"
+        <item name="分 ip 统计" type="2" table="service_platform_routine_source_type_ip_by_day" desc="false" showystday="true"
               limit="1000">
             <field key="true" extend="false" name="TaskName">`task_name`</field>
             <field key="true" extend="false" name="Source">`source`</field>

@@ -66,7 +66,8 @@
             <field name="图像不完整">`105`</field>
             <field name="图像太大  超过10M">`106`</field>
             <field name="图片因尺寸被过滤">`107`</field>
-            <field name="文件写入异常">`108`</field>
+            <field name="文件写入或上传异常">`108`</field>
+            <field name="对方 POI 已停业">`109`</field>
         </item>
     </group>
     <group name="(成功入库数据)抓取数据质量统计">
