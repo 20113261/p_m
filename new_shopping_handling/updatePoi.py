@@ -118,11 +118,6 @@ def getCandOnlineData(update_cid_file):
                 city_null_fail_count += 1
                 right_data = False
 
-            # norm_tag
-            if word_list[norm_tag_idx].lower() in ('', 'null', '0'):
-                norm_tag_null_fail_count += 1
-                right_data = False
-
             # map_info
             try:
                 lat = float(word_list[map_info_idx].strip().split(',')[0])
@@ -130,13 +125,6 @@ def getCandOnlineData(update_cid_file):
             except:
                 map_fail_count += 1
                 right_data = False
-
-            # first_img
-            if word_list[first_img_idx].lower() in ('', 'null', '0'):
-                first_img_null_fail_count += 1
-                right_data = False
-            else:
-                img_succeed_count += 1
 
             if 'daodao' in word_list[source_idx]:
                 daodao_succeed_count += 1
@@ -156,12 +144,13 @@ def getCandOnlineData(update_cid_file):
 
             # open time
             if word_list[open_time_idx].lower() in ('', 'null', '0'):
-                word_list[open_time_idx] = '<*><*><00:00-23:55><SURE>'
+                word_list[open_time_idx] = '<*><*><08:00-20:00><SURE>'
 
             word_list[online_idx] = 'Open'
             word_list[test_idx] = 'Open'
 
-            cand_data.append(word_list)
+            if right_data:
+                cand_data.append(word_list)
 
         if len(cand_data) > 0:
             csv_writer.writerows(cand_data)
