@@ -85,3 +85,11 @@ merge_data_target_db = {
     'charset': 'utf8',
     'db': 'data_prepare'
 }
+
+attr_final_conf = {
+    'host': '10.10.228.253',
+    'user': 'mioji_admin',
+    'password': 'mioji1109',
+    'charset': 'utf8',
+    'db': 'attr_merge'
+}
