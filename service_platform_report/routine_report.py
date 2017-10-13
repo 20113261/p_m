@@ -11,7 +11,7 @@ import dataset
 from collections import defaultdict
 
 if __name__ == '__main__':
-    db = dataset.connect('mysql+pymysql://hourong:hourong@10.10.180.145/Task?charset=utf8')
+    db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/Report?charset=utf8')
     table = db['serviceplatform_routine_task_summary']
 
     r = redis.Redis(host='10.10.180.145', db=15)
@@ -24,18 +24,16 @@ if __name__ == '__main__':
         if len(key_list) != 6:
             continue
         else:
-            worker, local_ip, task_source, task_type, task_error_code, result = key_list
+            worker, local_ip, task_source, task_type, task_error_code, task_name = key_list
         count = r.get(key)
 
-        if result == 'failure':
-            work_count[(worker, local_ip, task_source, task_type, '27')] += int(count)
-        elif result == 'success':
-            work_count[(worker, local_ip, task_source, task_type, task_error_code)] += int(count)
+        work_count[(worker, task_name, local_ip, task_source, task_type, task_error_code)] += int(count)
 
     for key in work_count.keys():
-        worker, local_ip, task_source, task_type, task_error_code = key
+        worker, task_name, local_ip, task_source, task_type, task_error_code = key
         data = {
             'worker_name': worker,
+            'task_name': task_name,
             'slave_ip': local_ip,
             'source': task_source,
             'type': task_type,
@@ -52,8 +50,8 @@ if __name__ == '__main__':
         except Exception:
             pass
 
-        print(worker, local_ip, task_source, task_type, work_count[key],
+        print(worker, task_name, local_ip, task_source, task_type, work_count[key],
               datetime.datetime.strftime(dt, '%Y%m%d'),
               datetime.datetime.strftime(dt, '%H'), datetime.datetime.strftime(dt, '%Y%m%d%H00'))
 
-    r.flushdb()
+        r.flushdb()
