@@ -56,11 +56,11 @@ def on_exc_send_email(func):
     def wrapper():
         func_name = func.__name__
         try:
-            func_file = inspect.getfile(func)
+            func_file = inspect.getabsfile(func)
         except Exception as exc:
             logger.exception(msg="[get file exc]", exc_info=exc)
             try:
-                func_file = inspect.getabsfile(func)
+                func_file = inspect.getfile(func)
             except Exception as exc:
                 logger.exception(msg="[get local file exc]", exc_info=exc)
                 func_file = 'may be local func: {}'.format(func_name)
