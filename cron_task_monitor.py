@@ -9,6 +9,7 @@ import traceback
 import logging
 import requests
 import functools
+import inspect
 from logging import getLogger, StreamHandler, FileHandler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from service_platform_report.task_progress_report_mongo import main as task_progress_report_mongo
@@ -53,12 +54,23 @@ def send_email(title, mail_info, mail_list, want_send_html=False):
 def on_exc_send_email(func):
     @functools.wraps(func)
     def wrapper():
+        func_name = func.__name__
+        try:
+            func_file = inspect.getfile(func)
+        except Exception as exc:
+            logger.exception(msg="[get file exc]", exc_info=exc)
+            try:
+                func_file = inspect.getabsfile(func)
+            except Exception as exc:
+                logger.exception(msg="[get local file exc]", exc_info=exc)
+                func_file = 'may be local func: {}'.format(func_name)
         try:
             func()
-            send_email('[异常监控]统计及数据入库例行 执行', '{}'.format(func.__name__, ), SEND_TO)
-        except Exception:
-            logger.error(traceback.format_exc())
-            send_email('[异常监控]统计及数据入库例行 异常', '{} \n\n {}'.format(func.__name__, traceback.format_exc()), SEND_TO)
+            send_email('[异常监控]统计及数据入库例行 执行', '[file: {}][func: {}]'.format(func_file, func_name), SEND_TO)
+        except Exception as exc:
+            logger.exception(msg="[run func or send email exc]", exc_info=exc)
+            send_email('[异常监控]统计及数据入库例行 异常',
+                       '[file: {}][func: {}] \n\n\n {}'.format(func_file, func_name, traceback.format_exc()), SEND_TO)
 
     return wrapper
 
@@ -75,10 +87,10 @@ def image_insert_final_data():
 def test_exc():
     raise Exception()
 
+
 '''
 #1 * * * * /usr/local/bin/python3 /search/hourong/PycharmProjects/PoiCommonScript/service_platform_report/routine_report.py >> /root/data/PycharmProjects/PoiCommonScript/service_platform_report/task_routine_log
 '''
-
 
 schedule = BlockingScheduler()
 schedule.add_job(on_exc_send_email(task_progress_report_mongo), 'cron', hour='*/2', id='task_progress_report_mongo')
