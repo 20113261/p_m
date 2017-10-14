@@ -12,7 +12,7 @@ import json
 from math import radians, cos, sin, asin, sqrt
 from collections import defaultdict
 from data_source import MysqlSource
-from service_platform_conn_pool import service_platform_pool
+from service_platform_conn_pool import service_platform_pool, base_data_final_pool
 
 dev_ip = '10.10.69.170'
 dev_user = 'reader'
@@ -159,10 +159,10 @@ def chunks(l, n):
 
 def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
     # todo 当前由于 qyer 的数据表小，可以全量扫描，之后增加其他表的时候，需要修改此方法
-    _conn = service_platform_pool.connection()
     data = []
     # get all task info
     for duplicate_map_info in chunks(list(duplicate_map_info_set), 5000):
+        _conn = base_data_final_pool.connection()
         _cursor = _conn.cursor()
         if task_type == 'hotel':
             query_sql = '''SELECT
@@ -205,8 +205,10 @@ WHERE map_info IN ({});'''.format(task_table, ",".join(
                 )
             )
         _cursor.close()
+        _conn.close()
 
     # insert all data
+    _conn = service_platform_pool.connection()
     _cursor = _conn.cursor()
     _cursor.executemany(
         '''INSERT IGNORE INTO supplement_field (`table_name`, `type`, `source`, `sid`, `other_info`) VALUES (%s, 'map_info', %s, %s, %s)''',
