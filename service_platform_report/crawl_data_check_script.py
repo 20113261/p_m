@@ -16,9 +16,8 @@ dev_ip = '10.10.69.170'
 dev_user = 'reader'
 dev_passwd = 'miaoji1109'
 dev_db = 'base_data'
-
-dev_conn = pymysql.connect(host=dev_ip, user=dev_user, charset='utf8', passwd=dev_passwd, db=dev_db)
-dev_cursor = dev_conn.cursor()
+# dev_conn = pymysql.connect(host=dev_ip, user=dev_user, charset='utf8', passwd=dev_passwd, db=dev_db)
+# dev_cursor = dev_conn.cursor()
 
 ori_ip = '10.10.228.253'
 ori_user = 'mioji_admin'

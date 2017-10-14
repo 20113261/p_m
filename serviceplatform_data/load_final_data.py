@@ -11,6 +11,7 @@ import time
 import pymysql.err
 from logging import getLogger, StreamHandler, FileHandler
 from warnings import filterwarnings
+from service_platform_conn_pool import base_data_final_pool
 
 # ignore pymysql warnings
 filterwarnings('ignore', category=pymysql.err.Warning)
@@ -40,9 +41,6 @@ time_key = {
     "total": "insert_time"
 }
 
-local_conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', charset='utf8', passwd='mioji1109',
-                             db='BaseDataFinal')
-
 
 def create_table():
     final_conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', charset='utf8', passwd='mioji1109',
@@ -58,6 +56,7 @@ def create_table():
 
 
 def load_data(limit=400):
+    local_conn = base_data_final_pool.connection()
     local_cursor = local_conn.cursor()
     local_cursor.execute('''SELECT TABLE_NAME
         FROM information_schema.TABLES
@@ -150,6 +149,7 @@ def load_data(limit=400):
                 ))
 
             u_time = final_update_time
+    local_conn.close()
 
 
 def main():

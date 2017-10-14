@@ -11,6 +11,7 @@ import time
 import pymysql.err
 from logging import getLogger, StreamHandler, FileHandler
 from warnings import filterwarnings
+from service_platform_conn_pool import service_platform_pool
 
 # ignore pymysql warnings
 filterwarnings('ignore', category=pymysql.err.Warning)
@@ -40,8 +41,8 @@ time_key = {
     "total": "insert_time"
 }
 
-local_conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', charset='utf8', passwd='mioji1109',
-                             db='ServicePlatform')
+# local_conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', charset='utf8', passwd='mioji1109',
+#                              db='ServicePlatform')
 
 all_seek_dict = None
 
@@ -63,12 +64,14 @@ def create_table(view_type, view_tag):
 
 
 def init_all_seek_dict():
+    local_conn = service_platform_pool.connection()
     local_cursor = local_conn.cursor()
     local_cursor.execute('''SELECT *
 FROM data_insert_seek;''')
     global all_seek_dict
     all_seek_dict = {k: v for k, v in local_cursor.fetchall()}
     local_cursor.close()
+    local_conn.close()
 
 
 def get_seek(table_name):
@@ -79,16 +82,19 @@ def get_seek(table_name):
 
 
 def update_seek_table(table_name, update_time):
+    local_conn = service_platform_pool.connection()
     local_cursor = local_conn.cursor()
     local_cursor.execute('''REPLACE INTO data_insert_seek VALUES (%s, %s);''', (table_name, update_time))
     logger.debug("[update seek table][table_name: {}][update_time: {}]".format(table_name, update_time))
     local_cursor.close()
+    local_conn.close()
 
 
 def insert_data(limit=1000):
     logger.debug("start insert data")
     logger.debug("get all view name")
 
+    local_conn = service_platform_pool.connection()
     local_cursor = local_conn.cursor()
     local_cursor.execute('''SELECT TABLE_NAME
     FROM information_schema.VIEWS
@@ -176,6 +182,7 @@ def insert_data(limit=1000):
                 replace_count,
                 time.time() - start
             ))
+    local_conn.close()
 
 
 if __name__ == '__main__':

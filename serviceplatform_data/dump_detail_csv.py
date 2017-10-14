@@ -51,7 +51,9 @@ if __name__ == '__main__':
         # if 'hotel' in table:
         #     # 跳过 hotel 类型
         #     continue
-        if 'qyer' not in table:
+        # if 'qyer' not in table:
+        #     continue
+        if 'expedia' not in table and 'agoda' not in table:
             continue
         start = time.time()
         logger.debug("start dump case csv : {0}".format(table))
