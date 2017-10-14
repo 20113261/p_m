@@ -135,7 +135,7 @@ def insert_data(limit=1000):
             else:
                 update_time_sql = '''SELECT {0}
     FROM {1}
-    WHERE {0} > '{2}'
+    WHERE {0} >= '{2}'
     ORDER BY {0}
     LIMIT {3};'''.format(time_key[view_type], each_view_final, u_time, limit)
             line_count = local_cursor.execute(update_time_sql)
@@ -150,7 +150,7 @@ def insert_data(limit=1000):
             if u_time != '':
                 query_sql = '''REPLACE INTO {1}.{2} SELECT *
     FROM {3}
-    WHERE {0} > '{4}'
+    WHERE {0} >= '{4}'
     ORDER BY {0}
     LIMIT {5};'''.format(time_key[view_type], final_database, to_table_name, each_view_final, u_time, limit)
             else:
