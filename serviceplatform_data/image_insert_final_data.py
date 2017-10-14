@@ -11,7 +11,7 @@ import time
 import pymysql.err
 from logging import getLogger, StreamHandler, FileHandler
 from warnings import filterwarnings
-from service_platform_conn_pool import service_platform_pool
+from service_platform_conn_pool import service_platform_pool, base_data_final_pool
 
 # ignore pymysql warnings
 filterwarnings('ignore', category=pymysql.err.Warning)
@@ -45,8 +45,7 @@ all_seek_dict = None
 
 
 def create_table(image_type, image_table_tag):
-    final_conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', charset='utf8', passwd='mioji1109',
-                                 db=final_database)
+    final_conn = base_data_final_pool.connection()
     final_cursor = final_conn.cursor()
     sql_name = final_table.get(image_type, None)
     if sql_name is None:
