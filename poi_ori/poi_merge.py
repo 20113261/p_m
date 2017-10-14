@@ -7,12 +7,13 @@
 # @Software: PyCharm
 import logging
 import time
-import redis
 import pymysql
-from logging import getLogger, StreamHandler
+import redis
 from collections import defaultdict
+from logging import getLogger, StreamHandler
 from toolbox.Common import is_legal
-from poi_ori.data_source import MysqlSource
+
+from data_source import MysqlSource
 
 logger = getLogger("poi_ori")
 logger.level = logging.DEBUG

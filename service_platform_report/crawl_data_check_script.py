@@ -12,6 +12,7 @@ import json
 from math import radians, cos, sin, asin, sqrt
 from collections import defaultdict
 from data_source import MysqlSource
+from service_platform_conn_pool import service_platform_pool
 
 dev_ip = '10.10.69.170'
 dev_user = 'reader'
@@ -158,7 +159,7 @@ def chunks(l, n):
 
 def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
     # todo 当前由于 qyer 的数据表小，可以全量扫描，之后增加其他表的时候，需要修改此方法
-    _conn = pymysql.connect(host=ori_ip, user=ori_user, charset='utf8', passwd=ori_password, db=ori_db_name)
+    _conn = service_platform_pool.connection()
     data = []
     # get all task info
     for duplicate_map_info in chunks(list(duplicate_map_info_set), 5000):
@@ -236,7 +237,6 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
             continue
 
         task_type, _, task_tag = cand_list
-
 
         # 跳过非这四种抓取任务类型
         if task_type not in ('attr', 'rest', 'hotel', 'total'):
