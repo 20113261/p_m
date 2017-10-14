@@ -11,6 +11,7 @@ import dataset
 import json
 from math import radians, cos, sin, asin, sqrt
 from collections import defaultdict
+from data_source import MysqlSource
 
 dev_ip = '10.10.69.170'
 dev_user = 'reader'
@@ -22,7 +23,7 @@ dev_db = 'base_data'
 ori_ip = '10.10.228.253'
 ori_user = 'mioji_admin'
 ori_password = 'mioji1109'
-ori_db_name = 'ServicePlatform'
+ori_db_name = 'BaseDataFinal'
 
 city_id_count = defaultdict(int)
 city_map_info_error_id_set = set()
@@ -57,7 +58,6 @@ def getDistByMap(map_info_1, map_info_2):
         lat2 = float(map_info_2.split(',')[1])
 
         return haversine(lon1, lat1, lon2, lat2)
-
     except Exception as e:
         return None
 
@@ -157,6 +157,7 @@ def chunks(l, n):
 
 
 def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
+    # todo 当前由于 qyer 的数据表小，可以全量扫描，之后增加其他表的时候，需要修改此方法
     _conn = pymysql.connect(host=ori_ip, user=ori_user, charset='utf8', passwd=ori_password, db=ori_db_name)
     data = []
     # get all task info
@@ -222,25 +223,28 @@ def detectOriData():
     local_cursor = local_conn.cursor()
     local_cursor.execute('''SELECT TABLE_NAME
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'ServicePlatform';''')
+WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
     table_list = list(map(lambda x: x[0], local_cursor.fetchall()))
     local_cursor.close()
 
     report_data = []
     for cand_table in table_list:
         cand_list = cand_table.split('_')
-        # 跳过不为 4 的表
-        if len(cand_list) != 4:
+        # 使用 BaseDataFinal 中的数据进行数据校验，跳过不为 3 的表
+        # 其中的数据表名称类似 attr_final_20170929a
+        if len(cand_list) != 3:
             continue
 
-        crawl_type, task_type, cand_source, task_tag = cand_list
+        task_type, _, task_tag = cand_list
 
-        # 跳过不是详情页的表
-        if crawl_type != 'detail':
+
+        # 跳过非这四种抓取任务类型
+        if task_type not in ('attr', 'rest', 'hotel', 'total'):
             continue
 
         print(('Begin ' + cand_table))
         error_count = {}
+        source_count = defaultdict(int)
         error_dict = defaultdict(int)
 
         if task_type == 'hotel':
@@ -255,10 +259,6 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
       grade
     FROM {};'''.format(cand_table)
 
-            local_cursor = local_conn.cursor()
-            local_cursor.execute(sql)
-            datas = local_cursor.fetchall()
-            local_cursor.close()
         elif task_type in ('attr', 'shop', 'rest', 'total'):
             # 景点、购物，餐厅当前 daodao 使用，以及全部 POI，qyer 使用
             sql = '''SELECT
@@ -270,14 +270,17 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
       map_info,
       grade
     FROM {};'''.format(cand_table)
-
-            local_cursor = local_conn.cursor()
-            local_cursor.execute(sql)
-            datas = local_cursor.fetchall()
-            local_cursor.close()
         else:
             # 未知类型，当前跳过
             continue
+
+        # 获取数据，使用迭代的方式获得
+        datas = MysqlSource(db_config={
+            'host': ori_ip,
+            'user': ori_user,
+            'passwd': ori_password,
+            'db': ori_db_name
+        }, table_or_query=sql, size=10000, is_table=False)
 
         # 经纬度记录集合，用于判定重复内容
         map_info_set = set()
@@ -315,18 +318,23 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
             map_info = word_list[5]
             grade = word_list[6]
 
-            if source != cand_source:
-                error_dict['数据源错误'] += 1
-                right = False
+            # 增加本表中抓取源的统计
+            source_count[source] += 1
+
+            # # todo 从数据库中读取所有的抓取源
+            # 抓取源错误为大错误，由于爬虫写错导致，应该发报警邮件
+            # if source not in ('agoda', 'booking', 'ctrip', 'elong ', 'expedia', 'hotels'):
+            #     error_dict['数据源错误'] += 1
+            #     right = False
 
             if '' == name and '' == name_en:
-                error_dict['无 name、name_en'] += 1
+                error_dict[(source, '无 name、name_en')] += 1
                 right = False
 
             if '' != name and '' != name_en and is_contain_ch(name_en):
                 if is_full_contain_ch(name_en):
                     if not is_contain_ch(name):
-                        error_dict["中英文名字相反"] += 1
+                        error_dict[(source, "中英文名字相反")] += 1
                         right = False
 
             if name.strip().lower() != name_en.strip().lower() \
@@ -334,19 +342,22 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
                     and not is_contain_ch(name_en) \
                     and len(name_en.split(' ')) >= 2 \
                     and name_en in name:
-                error_dict["中文名中含有英文名"] += 1
+                error_dict[(source, "中文名中含有英文名")] += 1
                 right = False
 
             if 'NULL' == map_info:
-                error_dict['坐标错误(NULL)'] += 1
+                error_dict[(source, '坐标错误(NULL)')] += 1
                 right = False
             elif not map_info_legal(map_info):
-                error_dict['坐标错误(坐标为空或坐标格式错误，除去NULL)'] += 1
+                error_dict[(source, '坐标错误(坐标为空或坐标格式错误，除去NULL)')] += 1
                 right = False
             else:
                 # 经纬度重复情况判定
                 if map_info in map_info_set:
-                    error_dict["经纬度重复"] += 1
+                    error_dict[(source, "经纬度重复")] += 1
+                    if error_dict[(source, "经纬度重复")] == 1:
+                        # 当此经纬度出现 1 次时，经纬度重复加 2 ，之后正常
+                        error_dict[(source, "经纬度重复")] += 1
                     duplicate_map_info_set.add(map_info)
                     right = False
 
@@ -360,18 +371,19 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
                     cand_dist = getDistByMap(city_map_info, map_info)
                     cand_reverse_dist = getDistByMap(city_map_info, ','.join(map_info.strip(',')[::-1]))
 
-                    if cand_dist >= filter_dist:
-                        right = False
-                        error_dict['坐标与所属城市距离过远'] += 1
-                        if cand_reverse_dist <= filter_dist:
-                            error_dict["距离过远坐标翻转后属于所属城市"] += 1
-                        else:
-                            distance_set.add(sid)
+                    if cand_dist and cand_reverse_dist:
+                        if cand_dist >= filter_dist:
+                            right = False
+                            error_dict[(source, '坐标与所属城市距离过远')] += 1
+                            if cand_reverse_dist <= filter_dist:
+                                error_dict[(source, "距离过远坐标翻转后属于所属城市")] += 1
+                            else:
+                                distance_set.add(sid)
 
             try:
                 grade_f = float(grade)
                 if grade_f > 10:
-                    error_dict['静态评分异常(评分高于10分)'] += 1
+                    error_dict[(source, '静态评分异常(评分高于10分)')] += 1
                     right = False
             except:
                 pass
@@ -380,7 +392,8 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
 
         # 经纬度重复的值的最后添加 len(duplicate_map_info_set) 值
         # 以保证返回值不会丢失第一次出现的 map_info
-        error_dict['经纬度重复'] += len(duplicate_map_info_set)
+        # todo duplicate map info fix source
+        # error_dict[(source, '经纬度重复')] += len(duplicate_map_info_set)
 
         # 生成经纬度重复任务，当前只有 qyer
         if task_type == 'total':
@@ -388,32 +401,31 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
                                        task_type=task_type)
 
         print(total, error_count, success, cand_table)
-        print(cand_source, 'hotel', total, success)
-        report_data.append({
-            'tag': task_tag,
-            'source': cand_source,
-            'type': task_type,
-            'error_type': '全量',
-            'num': total,
-            'date': datetime.datetime.strftime(dt, '%Y%m%d'),
-            'hour': datetime.datetime.strftime(dt, '%H'),
-            'datetime': datetime.datetime.strftime(dt, '%Y%m%d%H00')
-        })
 
-        for error_type, num in error_dict.items():
+        for each_source, _c in source_count.items():
             report_data.append({
                 'tag': task_tag,
-                'source': cand_source,
+                'source': each_source,
                 'type': task_type,
-                'error_type': error_type,
+                'error_type': '全量',
+                'num': _c,
+                'date': datetime.datetime.strftime(dt, '%Y%m%d'),
+                'hour': datetime.datetime.strftime(dt, '%H'),
+                'datetime': datetime.datetime.strftime(dt, '%Y%m%d%H00')
+            })
+
+        for s_err_type, num in error_dict.items():
+            _source, _err_type = s_err_type
+            report_data.append({
+                'tag': task_tag,
+                'source': _source,
+                'type': task_type,
+                'error_type': _err_type,
                 'num': num,
                 'date': datetime.datetime.strftime(dt, '%Y%m%d'),
                 'hour': datetime.datetime.strftime(dt, '%H'),
                 'datetime': datetime.datetime.strftime(dt, '%Y%m%d%H00')
             })
-            # os.system('python3 green_report.py {0} hotel {1} {2}'.format(cand_source, total, success))
-            # # 打印距离过远的点
-            # print(distance_set)
 
     # serviceplatform_crawl_report_summary
     db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/Report?charset=utf8')

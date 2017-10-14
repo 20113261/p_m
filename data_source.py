@@ -9,9 +9,12 @@ class MysqlSource:
     数据库data源
     """
 
-    def __init__(self, db_config, table_or_query='', size=500, is_table=True):
+    def __init__(self, db_config, table_or_query='', size=500, is_table=True, is_dict_cursor=False):
         self._db_config = db_config
-        self._db_config['cursorclass'] = SSCursor
+        if is_dict_cursor:
+            self._db_config['cursorclass'] = SSDictCursor
+        else:
+            self._db_config['cursorclass'] = SSCursor
         self._size = size
         self._table = table_or_query
         if is_table:
