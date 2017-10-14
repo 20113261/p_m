@@ -99,7 +99,7 @@ schedule.add_job(on_exc_send_email(detectOriData), 'cron', hour='*/2', id='detec
 schedule.add_job(on_exc_send_email(data_coverage), 'cron', hour='*/2', id='data_coverage')
 schedule.add_job(on_exc_send_email(detail_insert_final_data), 'cron', minute='*/5', id='detail_insert_final_data')
 schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', minute='*/3', id='image_insert_final_data')
-schedule.add_job(on_exc_send_email(load_final_data), 'cron', hour='2', id='load_final_data')
+# schedule.add_job(on_exc_send_email(load_final_data), 'cron', hour='2', id='load_final_data')
 schedule.add_job(on_exc_send_email(routine_report), 'cron', hour='*/1', id='routine_report')
 
 if __name__ == '__main__':
