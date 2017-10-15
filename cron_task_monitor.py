@@ -66,7 +66,7 @@ def on_exc_send_email(func):
                 func_file = 'may be local func: {}'.format(func_name)
         try:
             func()
-            send_email('[异常监控]统计及数据入库例行 执行', '[file: {}][func: {}]'.format(func_file, func_name), SEND_TO)
+            # send_email('[异常监控]统计及数据入库例行 执行', '[file: {}][func: {}]'.format(func_file, func_name), SEND_TO)
         except Exception as exc:
             logger.exception(msg="[run func or send email exc]", exc_info=exc)
             send_email('[异常监控]统计及数据入库例行 异常',
@@ -98,8 +98,8 @@ schedule.add_job(on_exc_send_email(task_progress_report), 'cron', hour='*/2', id
 schedule.add_job(on_exc_send_email(detectOriData), 'cron', hour='*/2', id='detectOriData')
 schedule.add_job(on_exc_send_email(data_coverage), 'cron', hour='*/2', id='data_coverage')
 schedule.add_job(on_exc_send_email(detail_insert_final_data), 'cron', minute='*/5', id='detail_insert_final_data')
-schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', minute='*/3', id='image_insert_final_data')
-schedule.add_job(on_exc_send_email(load_final_data), 'cron', hour='*/5', id='load_final_data')
+schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', minute='*/2', id='image_insert_final_data')
+schedule.add_job(on_exc_send_email(load_final_data), 'cron', minute='*/2', id='load_final_data')
 schedule.add_job(on_exc_send_email(routine_report), 'cron', hour='*/1', id='routine_report')
 
 if __name__ == '__main__':
