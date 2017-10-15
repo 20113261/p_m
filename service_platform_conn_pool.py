@@ -33,3 +33,13 @@ db_config = dict(
 )
 
 base_data_final_pool = init_pool(**db_config)
+
+db_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.228.253',
+    database='poi_merge',
+)
+
+poi_ori_pool = init_pool(**db_config)
+

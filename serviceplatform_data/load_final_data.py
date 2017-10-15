@@ -168,6 +168,7 @@ def load_data(limit=400):
 
         # replace into final data
         local_cursor = local_conn.cursor()
+        query_sql_list = []
         if to_table_name == 'hotel_images':
             query_sql = '''REPLACE INTO {0} (source, source_id, pic_url, pic_md5, part, hotel_id, status, update_date, size, flag, file_md5)
   SELECT
@@ -187,6 +188,7 @@ def load_data(limit=400):
   WHERE update_date >= '{2}'
   ORDER BY update_date
   LIMIT {3};'''.format(to_table_name, each_table, u_time, limit)
+            query_sql_list.append(query_sql)
         elif to_table_name == 'poi_images':
             query_sql = '''REPLACE INTO {0}
             (file_name, source, sid, url, pic_size, bucket_name, url_md5, pic_md5, `use`, part, date)
@@ -207,55 +209,72 @@ def load_data(limit=400):
               WHERE date >= '{2}'
               ORDER BY date
               LIMIT {3};'''.format(to_table_name, each_table, u_time, limit)
+            query_sql_list.append(query_sql)
         elif u_time != '':
             query_sql = '''REPLACE INTO {1} SELECT *
             FROM {2}
             WHERE {0} >= '{3}'
             ORDER BY {0}
             LIMIT {4};'''.format(time_key[_type], to_table_name, each_table, u_time, limit)
+            query_sql_list.append(query_sql)
+            if to_table_name == 'attr_final':
+                query_sql = '''REPLACE INTO poi_merge.attr SELECT *
+                            FROM {2}
+                            WHERE {0} >= '{3}'
+                            ORDER BY {0}
+                            LIMIT {4};'''.format(time_key[_type], to_table_name, each_table, u_time, limit)
+                query_sql_list.append(query_sql)
+                # elif to_table_name == 'rest_final':
+                #     query_sql = '''REPLACE INTO poi_merge.rest SELECT *
+                #                 FROM {2}
+                #                 WHERE {0} >= '{3}'
+                #                 ORDER BY {0}
+                #                 LIMIT {4};'''.format(time_key[_type], to_table_name, each_table, u_time, limit)
+
         else:
             raise TypeError("Unknown Type [u_time: {}][to_table_name: {}]".format(u_time, to_table_name))
 
-        is_replace = True
-        try:
-            replace_count = local_cursor.execute(query_sql)
-        except pymysql.err.IntegrityError as integrity_err:
-            _args = integrity_err.args
-            if 'Duplicate entry' in _args[1]:
-                # 当出现 duplicate entry 时候，使用 Insert Ignore 代替（replace into 会出现 duplicate error，暂时不知道原因）
-                is_replace = False
-                query_sql = query_sql.replace('REPLACE INTO', 'INSERT IGNORE INTO')
-                replace_count = local_cursor.execute(query_sql)
-            else:
-                logger.exception(msg="[table_name: {}][error_sql: {}]".format(each_table, query_sql), exc_info=e)
+        for _each_query_sql in query_sql_list:
+            is_replace = True
+            try:
+                replace_count = local_cursor.execute(_each_query_sql)
+            except pymysql.err.IntegrityError as integrity_err:
+                _args = integrity_err.args
+                if 'Duplicate entry' in _args[1]:
+                    # 当出现 duplicate entry 时候，使用 Insert Ignore 代替（replace into 会出现 duplicate error，暂时不知道原因）
+                    is_replace = False
+                    _each_query_sql = _each_query_sql.replace('REPLACE INTO', 'INSERT IGNORE INTO')
+                    replace_count = local_cursor.execute(_each_query_sql)
+                else:
+                    logger.exception(msg="[table_name: {}][error_sql: {}]".format(each_table, _each_query_sql),
+                                     exc_info=integrity_err)
+                    continue
+            except Exception as e:
+                logger.exception(msg="[table_name: {}][error_sql: {}]".format(each_table, _each_query_sql), exc_info=e)
                 continue
-        except Exception as e:
-            logger.exception(msg="[table_name: {}][error_sql: {}]".format(each_table, query_sql), exc_info=e)
-            continue
+            logger.debug(
+                "[insert data][to: {}][from: {}][update_time: {}][final_update_time: {}][limit: {}][line_count: {}]["
+                "{}: {}][takes: {}]".format(
+                    to_table_name if 'poi_merge' not in _each_query_sql else 'poi_merge.attr' if 'poi_merge.attr' in _each_query_sql else 'poi_merge.rest',
+                    each_table,
+                    u_time,
+                    final_update_time,
+                    limit,
+                    line_count,
+                    'replace_count' if is_replace else 'insert_ignore_count',
+                    replace_count,
+                    time.time() - start
+                ))
         local_conn.commit()
         local_cursor.close()
 
-        logger.debug(
-            "[insert data][to: {}][from: {}][update_time: {}][final_update_time: {}][limit: {}][line_count: {}]["
-            "{}: {}][takes: {}]".format(
-                to_table_name,
-                each_table,
-                u_time,
-                final_update_time,
-                limit,
-                line_count,
-                'replace_count' if is_replace else 'insert_ignore_count',
-                replace_count,
-                time.time() - start
-            ))
         update_seek_table(each_table, final_update_time)
-        # todo update final update time
     local_conn.close()
 
 
 def main():
     create_table()
-    load_data(limit=5000)
+    load_data(limit=2000)
 
 
 if __name__ == '__main__':
