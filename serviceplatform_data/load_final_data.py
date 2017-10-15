@@ -61,7 +61,7 @@ def get_seek(table_name):
     global all_seek_dict
     if all_seek_dict is None:
         init_all_seek_dict()
-    return all_seek_dict.get(table_name, '')
+    return all_seek_dict.get(table_name, '1970-1-1')
 
 
 def update_seek_table(table_name, update_time):
@@ -69,6 +69,7 @@ def update_seek_table(table_name, update_time):
     local_cursor = local_conn.cursor()
     local_cursor.execute('''REPLACE INTO data_insert_seek VALUES (%s, %s);''', (table_name, update_time))
     logger.debug("[update seek table][table_name: {}][update_time: {}]".format(table_name, update_time))
+    local_conn.commit()
     local_cursor.close()
     local_conn.close()
 
@@ -151,17 +152,11 @@ def load_data(limit=400):
 
         # 开始进行数据合并
         local_cursor = local_conn.cursor()
-        if u_time == '':
-            update_time_sql = '''SELECT {0}
-                            FROM {1}
-                            ORDER BY {0}
-                            LIMIT {2};'''.format(time_key[_type], each_table, limit)
-        else:
-            update_time_sql = '''SELECT {0}
-            FROM {1}
-            WHERE {0} >= '{2}'
-            ORDER BY {0}
-            LIMIT {3};'''.format(time_key[_type], each_table, u_time, limit)
+        update_time_sql = '''SELECT {0}
+        FROM {1}
+        WHERE {0} >= '{2}'
+        ORDER BY {0}
+        LIMIT {3};'''.format(time_key[_type], each_table, u_time, limit)
         line_count = local_cursor.execute(update_time_sql)
 
         if line_count == 0:
@@ -174,7 +169,26 @@ def load_data(limit=400):
         # replace into final data
         local_cursor = local_conn.cursor()
         if to_table_name == 'hotel_images':
-            query_sql = '''REPLACE INTO {0}.{1}
+            query_sql = '''REPLACE INTO {0} (source, source_id, pic_url, pic_md5, part, hotel_id, status, update_date, size, flag, file_md5)
+  SELECT
+    source,
+    source_id,
+    pic_url,
+    pic_md5,
+    part,
+    hotel_id,
+    status,
+    update_date,
+    size,
+    flag,
+    file_md5
+  FROM
+    {1}
+  WHERE update_date >= '{2}'
+  ORDER BY update_date
+  LIMIT {3};'''.format(to_table_name, each_table, u_time, limit)
+        elif to_table_name == 'poi_images':
+            query_sql = '''REPLACE INTO {0}
             (file_name, source, sid, url, pic_size, bucket_name, url_md5, pic_md5, `use`, part, date)
               SELECT
                 file_name,
@@ -189,25 +203,32 @@ def load_data(limit=400):
                 part,
                 date
               FROM
-                {2} where id > {3} ORDER BY id LIMIT {4};;'''.format(final_database, to_table_name, each_table_final,
-                                                                     seek, limit)
-        elif to_table_name == 'poi_images':
-            pass
+                {1}
+              WHERE date >= '{2}'
+              ORDER BY date
+              LIMIT {3};'''.format(to_table_name, each_table, u_time, limit)
         elif u_time != '':
-            query_sql = '''REPLACE INTO {1}.{2} SELECT *
-            FROM {3}
-            WHERE {0} >= '{4}'
+            query_sql = '''REPLACE INTO {1} SELECT *
+            FROM {2}
+            WHERE {0} >= '{3}'
             ORDER BY {0}
-            LIMIT {5};'''.format(time_key[_type], final_database, to_table_name, each_table, u_time, limit)
+            LIMIT {4};'''.format(time_key[_type], to_table_name, each_table, u_time, limit)
         else:
-            query_sql = '''REPLACE INTO {1}.{2} SELECT *
-                            FROM {3}
-                            ORDER BY {0}
-                            LIMIT {4};'''.format(time_key[_type], final_database, to_table_name, each_table,
-                                                 limit)
+            raise TypeError("Unknown Type [u_time: {}][to_table_name: {}]".format(u_time, to_table_name))
 
+        is_replace = True
         try:
             replace_count = local_cursor.execute(query_sql)
+        except pymysql.err.IntegrityError as integrity_err:
+            _args = integrity_err.args
+            if 'Duplicate entry' in _args[1]:
+                # 当出现 duplicate entry 时候，使用 Insert Ignore 代替（replace into 会出现 duplicate error，暂时不知道原因）
+                is_replace = False
+                query_sql = query_sql.replace('REPLACE INTO', 'INSERT IGNORE INTO')
+                replace_count = local_cursor.execute(query_sql)
+            else:
+                logger.exception(msg="[table_name: {}][error_sql: {}]".format(each_table, query_sql), exc_info=e)
+                continue
         except Exception as e:
             logger.exception(msg="[table_name: {}][error_sql: {}]".format(each_table, query_sql), exc_info=e)
             continue
@@ -216,24 +237,25 @@ def load_data(limit=400):
 
         logger.debug(
             "[insert data][to: {}][from: {}][update_time: {}][final_update_time: {}][limit: {}][line_count: {}]["
-            "replace_count: {}][takes: {}]".format(
+            "{}: {}][takes: {}]".format(
                 to_table_name,
                 each_table,
                 u_time,
                 final_update_time,
                 limit,
                 line_count,
+                'replace_count' if is_replace else 'insert_ignore_count',
                 replace_count,
                 time.time() - start
             ))
-
+        update_seek_table(each_table, final_update_time)
         # todo update final update time
     local_conn.close()
 
 
 def main():
     create_table()
-    load_data(limit=2000)
+    load_data(limit=5000)
 
 
 if __name__ == '__main__':

@@ -86,6 +86,7 @@ def update_seek_table(table_name, update_time):
     local_cursor = local_conn.cursor()
     local_cursor.execute('''REPLACE INTO data_insert_seek VALUES (%s, %s);''', (table_name, update_time))
     logger.debug("[update seek table][table_name: {}][update_time: {}]".format(table_name, update_time))
+    local_conn.commit()
     local_cursor.close()
     local_conn.close()
 
