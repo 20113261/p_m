@@ -23,3 +23,15 @@ mysqldump -h10.10.189.213 -uhourong -phourong --replace --skip-lock-tables --no-
 
 # poi_bucket_relation_0925
 mysqldump -h10.10.189.213 -uhourong -phourong --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert update_img poi_bucket_relation_0925| sed 's/`poi_bucket_relation_0925`/`poi_images`/g' > poi_bucket_relation_0925.sql
+
+
+# attr detail old
+mysqldump -h10.10.180.145 -uhourong -phourong --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert attr_merge attr| sed 's/`insert_time`/`utime`/g' > attr.sql
+
+# rest detail test
+mysqldump -h10.10.180.145 -uhourong -phourong --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert --where="1 limit 10000" rest_merge rest| sed 's/`description`/`introduction`/g' |sed 's/`insert_time`/`utime`/g'|sed 's/`image_url`/`imgurl`/g'|sed 's/`review_num`/`commentcounts`/g'|sed 's/`real_ranking`/`ranking`/g' > rest.sql
+
+# rest detail old
+
+# shop detail old
+mysqldump -h10.10.180.145 -uhourong -phourong --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert shop_merge shop |sed 's/`insert_time`/`utime`/g'> shop.sql
