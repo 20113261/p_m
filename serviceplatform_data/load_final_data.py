@@ -224,6 +224,53 @@ def load_data(limit=400):
                             ORDER BY {0}
                             LIMIT {4};'''.format(time_key[_type], to_table_name, each_table, u_time, limit)
                 query_sql_list.append(query_sql)
+            elif to_table_name == 'total_final':
+                query_sql = '''REPLACE INTO poi_merge.attr
+  SELECT
+    id,
+    source,
+    name,
+    name_en,
+    alias,
+    map_info,
+    city_id,
+    source_city_id,
+    address,
+    star,
+    recommend_lv,
+    pv,
+    plantocounts,
+    beentocounts,
+    overall_rank,
+    ranking,
+    grade,
+    grade_distrib,
+    commentcounts,
+    tips,
+    tagid,
+    related_pois,
+    nomissed,
+    keyword,
+    cateid,
+    url,
+    phone,
+    site,
+    imgurl,
+    commenturl,
+    introduction,
+    '',
+    opentime,
+    price,
+    recommended_time,
+    wayto,
+    0,
+    0,
+    insert_time
+  FROM {2}
+  WHERE {0} > '{3}'
+  ORDER BY {0}
+  LIMIT {4};'''.format(time_key[_type], to_table_name, each_table, u_time, limit)
+                query_sql_list.append(query_sql)
                 # elif to_table_name == 'rest_final':
                 #     query_sql = '''REPLACE INTO poi_merge.rest SELECT *
                 #                 FROM {2}
