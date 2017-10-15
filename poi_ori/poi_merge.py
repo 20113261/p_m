@@ -20,19 +20,30 @@ logger.level = logging.DEBUG
 handler = StreamHandler()
 logger.addHandler(handler)
 
-poi_type = 'attr'
-data_source_list = ['daodao', 'qyer']
-if poi_type == 'attr':
-    online_table_name = 'chat_attraction'
-    data_source_table = 'attr'
-elif poi_type == 'rest':
-    online_table_name = 'chat_restaurant'
-    data_source_table = 'rest'
-elif poi_type == 'shop':
-    online_table_name = 'chat_shopping'
-    data_source_table = 'shop'
-else:
-    raise TypeError("Unknown Type: {}".format(poi_type))
+poi_type = None
+online_table_name = None
+data_source_table = None
+
+max_id = None
+
+
+def init_global_name(_poi_type):
+    global poi_type
+    global online_table_name
+    global data_source_table
+    poi_type = 'attr'
+    if poi_type == 'attr':
+        online_table_name = 'chat_attraction'
+        data_source_table = 'attr'
+    elif poi_type == 'rest':
+        online_table_name = 'chat_restaurant'
+        data_source_table = 'rest'
+    elif poi_type == 'shop':
+        online_table_name = 'chat_shopping'
+        data_source_table = 'shop'
+    else:
+        raise TypeError("Unknown Type: {}".format(poi_type))
+
 
 onlinedb = {
     'host': '10.10.69.170',
@@ -70,15 +81,14 @@ def get_max_id():
     return _id
 
 
-max_id = get_max_id()
-
-
 def get_max_uid():
     # todo add func get max uid
     # todo each type attr rest shop
     # todo insert id into redis
     # mk final
     global max_id
+    if not max_id:
+        max_id = get_max_id()
     max_id = 'v' + str(int(max_id[1:]) + 1)
     return max_id
 
@@ -93,7 +103,7 @@ def get_data(cid_or_geohash):
     """
 
     # 线上数据，按照优先级排序，先进入的数据优先使用 id
-    sql = '''SELECT *
+    sql = '''SELECT id, name, name_en, alias
 FROM {1}
 WHERE city_id = {0}
 ORDER BY status_online DESC, status_test DESC, official DESC, grade;'''.format(cid_or_geohash, online_table_name)
@@ -106,6 +116,7 @@ ORDER BY status_online DESC, status_test DESC, official DESC, grade;'''.format(c
         for key in data[3].split('|'):
             if is_legal(key):
                 keys.add(key)
+        logger.debug("[source: {}][sid: {}][keys: {}]".format('online', data[0], keys))
         yield 'online', data[0], keys
 
     # 各源数据，暂时不增加排序规则
@@ -122,17 +133,15 @@ WHERE city_id = {0};'''.format(cid_or_geohash, data_source_table)
             keys.add(data[2])
         if is_legal(data[3]):
             keys.add(data[3])
+        logger.debug("[source: {}][sid: {}][keys: {}]".format(data[1], data[0], keys))
         yield data[1], data[0], keys
 
 
-def insert_poi_unid():
+def insert_poi_unid(merged_dict):
     pass
 
 
 def _poi_merge(cid_or_geohash):
-    # todo onlinedb data merge, official > 0
-    # todo onlinedb data merge, official == 0
-    # todo each source merge, priority: daodao > qyer
     # 生成空的用于融合的相似字典存放数据
     similar_dict = defaultdict(set)
     merged_dict = defaultdict(set)
@@ -158,20 +167,26 @@ def _poi_merge(cid_or_geohash):
             else:
                 uid = get_max_uid()
 
+        # 更新相似判断字典
+        similar_dict[uid].update(keys)
+        # 更新融合内容字典
         merged_dict[uid].add((source, sid))
         logger.debug("[finish][city: {}][id: {}][takes: {}]".format(cid_or_geohash, uid, time.time() - start))
     return merged_dict
 
 
 def poi_merge(cid_or_geohash):
+    # 初始化融合需要的数据表名等
+    # todo 修改为可变动的内容
+    init_global_name('attr')
     # 获取融合后的信息
     merged_dict = _poi_merge(cid_or_geohash)
 
-    # 融合入各 poi unid 表
-    insert_poi_unid()
+    # todo 融合入各 poi unid 表
+    insert_poi_unid(merged_dict)
     for k, v in merged_dict.items():
         if len(v) > 1:
-            logger.debug(k, v)
+            logger.debug("[union_info][uid: {}][each_keys: {}]".format(k, v))
 
 
 if __name__ == '__main__':
