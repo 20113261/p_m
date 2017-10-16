@@ -17,7 +17,7 @@ def create_all_view():
                                  db='ServicePlatform')
 
     logger.debug("get all view name")
-    
+
     # get all table name
     local_cursor = local_conn.cursor()
     local_cursor.execute('''SELECT TABLE_NAME
@@ -83,8 +83,7 @@ def create_all_view():
                 detail_name,
                 list_name)
 
-            view_final_sql = '''DROP VIEW IF EXISTS {0};
-    CREATE VIEW {0} AS
+            view_final_sql = '''CREATE OR REPLACE VIEW {0} AS
     SELECT
       hotel_name,
       hotel_name_en,
@@ -99,13 +98,13 @@ def create_all_view():
     postal_code,
     CASE WHEN star IS NOT NULL
       THEN star
-    ELSE -1 END,
+    ELSE -1 END AS star,
     CASE WHEN {1}.grade IS NOT NULL
       THEN {1}.grade
-    ELSE -1.0 END,
+    ELSE -1.0 END as grade,
     CASE WHEN review_num IS NOT NULL
       THEN review_num
-    ELSE -1 END,
+    ELSE -1 END as review_num,
     has_wifi,
     is_wifi_free,
     has_parking,
@@ -142,8 +141,7 @@ def create_all_view():
 
             logger.debug("create view {0}".format(view_name))
 
-            view_sql = '''DROP VIEW IF EXISTS {0};
-    CREATE VIEW {0} AS
+            view_sql = '''CREATE OR REPLACE VIEW {0} AS
       SELECT
         {1}.id,
         {1}.source,
@@ -196,8 +194,7 @@ def create_all_view():
                 detail_name,
                 list_name)
 
-            view_final_sql = '''DROP VIEW IF EXISTS {0};
-    CREATE VIEW {0} AS
+            view_final_sql = '''CREATE OR REPLACE VIEW {0} AS
     SELECT
     {1}.id,
     {1}.source,
@@ -261,8 +258,7 @@ def create_all_view():
             logger.debug("create view {0}".format(view_name))
             logger.debug("create view {0}".format(view_final_name))
 
-            view_sql = '''DROP VIEW IF EXISTS {0};
-    CREATE VIEW {0} AS
+            view_sql = '''CREATE OR REPLACE VIEW {0} AS
       SELECT
         {1}.id,
         {1}.source,
@@ -310,8 +306,7 @@ def create_all_view():
                 detail_name,
                 list_name)
 
-            view_final_sql = '''DROP VIEW IF EXISTS {0};
-                CREATE VIEW {0} AS
+            view_final_sql = '''CREATE OR REPLACE VIEW {0} AS
                   SELECT
                     {1}.id,
                     {1}.source,
@@ -370,8 +365,7 @@ def create_all_view():
             logger.debug("create view {0}".format(view_name))
             logger.debug("create view {0}".format(view_final_name))
 
-            view_sql = '''DROP VIEW IF EXISTS {0};
-    CREATE VIEW {0} AS
+            view_sql = '''CREATE OR REPLACE VIEW {0} AS
       SELECT
         {1}.id,
         {1}.source,
@@ -428,8 +422,7 @@ def create_all_view():
                 detail_name,
                 list_name)
 
-            view_final_sql = '''DROP VIEW IF EXISTS {0};
-                CREATE VIEW {0} AS
+            view_final_sql = '''CREATE OR REPLACE VIEW {0} AS
                   SELECT
                     {1}.id,
                     {1}.source,
