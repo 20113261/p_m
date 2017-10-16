@@ -237,11 +237,15 @@ WHERE id = '{}';'''.format(sid))
   name,
   name_en,
   map_info,
-  CASE WHEN grade != 'NULL'
+  CASE WHEN grade NOT IN ('NULL', '')
     THEN grade
   ELSE -1.0 END AS grade,
-  star,
-  ranking,
+  CASE WHEN star NOT IN ('NULL', '')
+    THEN star
+  ELSE -1.0 END AS star,
+  CASE WHEN ranking NOT IN ('NULL', '')
+    THEN ranking
+  ELSE -1.0 END AS ranking,
   address,
   url
 FROM attr
@@ -312,10 +316,10 @@ def _poi_merge(cid_or_geohash):
     return merged_dict
 
 
-def poi_merge(cid_or_geohash):
+def poi_merge(cid_or_geohash, poi_type):
     # 初始化融合需要的数据表名等
     # todo 修改为可变动的内容
-    init_global_name('attr')
+    init_global_name(poi_type)
     # 获取融合后的信息
     merged_dict = _poi_merge(cid_or_geohash)
 
@@ -327,4 +331,4 @@ def poi_merge(cid_or_geohash):
 
 
 if __name__ == '__main__':
-    poi_merge(10001)
+    poi_merge(10001, 'attr')
