@@ -17,20 +17,7 @@ def create_all_view():
                                  db='ServicePlatform')
 
     logger.debug("get all view name")
-    local_cursor = local_conn.cursor()
-    local_cursor.execute('''SELECT TABLE_NAME
-    FROM information_schema.VIEWS
-    WHERE TABLE_SCHEMA = 'ServicePlatform';''')
-    view_list = list(map(lambda x: x[0], local_cursor.fetchall()))
-    local_cursor.close()
-
-    # drop old view
-    local_cursor = local_conn.cursor()
-    for v_name in view_list:
-        logger.debug("drop view {0}".format(v_name))
-        local_cursor.execute('DROP VIEW IF EXISTS {0};'.format(v_name))
-    local_cursor.close()
-
+    
     # get all table name
     local_cursor = local_conn.cursor()
     local_cursor.execute('''SELECT TABLE_NAME
@@ -56,8 +43,7 @@ def create_all_view():
             logger.debug("create view {0}".format(view_name))
             logger.debug("create view {0}".format(view_final_name))
 
-            view_sql = '''DROP VIEW IF EXISTS {0};
-            CREATE VIEW {0} AS
+            view_sql = '''CREATE OR REPLACE VIEW {0} AS
               SELECT
                 hotel_name,
                 hotel_name_en,
