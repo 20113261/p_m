@@ -32,6 +32,7 @@ mysqldump -h10.10.180.145 -uhourong -phourong --replace --skip-lock-tables --no-
 mysqldump -h10.10.180.145 -uhourong -phourong --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert --where="1 limit 10000" rest_merge rest| sed 's/`description`/`introduction`/g' |sed 's/`insert_time`/`utime`/g'|sed 's/`image_url`/`imgurl`/g'|sed 's/`review_num`/`commentcounts`/g'|sed 's/`real_ranking`/`ranking`/g' > rest.sql
 
 # rest detail old
+mysqldump -h10.10.180.145 -uhourong -phourong --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert rest_merge rest| sed 's/`description`/`introduction`/g' |sed 's/`insert_time`/`utime`/g'|sed 's/`image_url`/`imgurl`/g'|sed 's/`review_num`/`commentcounts`/g'|sed 's/`real_ranking`/`ranking`/g' > rest.sql
 
 # shop detail old
 mysqldump -h10.10.180.145 -uhourong -phourong --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert shop_merge shop |sed 's/`insert_time`/`utime`/g'> shop.sql

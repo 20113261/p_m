@@ -12,18 +12,12 @@ import pymysql.err
 from logging import getLogger, StreamHandler, FileHandler
 from warnings import filterwarnings
 from service_platform_conn_pool import service_platform_pool, base_data_final_pool
+from logger import get_logger
 
 # ignore pymysql warnings
 filterwarnings('ignore', category=pymysql.err.Warning)
 
-logger = getLogger("image_insert_data")
-logger.level = logging.DEBUG
-s_handler = StreamHandler()
-f_handler = FileHandler(
-    filename='/search/log/cron/image_insert_data.log'
-)
-logger.addHandler(s_handler)
-logger.addHandler(f_handler)
+logger = get_logger("image_insert_final_data")
 
 final_database = 'BaseDataFinal'
 

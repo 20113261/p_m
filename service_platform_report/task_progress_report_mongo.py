@@ -7,17 +7,13 @@
 # @Software: PyCharm
 import pymongo
 import time
-import logging
 import datetime
 import dataset
 import json
-from logging import getLogger, StreamHandler
 from collections import defaultdict
+from logger import get_logger
 
-logger = getLogger('task_progress_mongo')
-logger.level = logging.DEBUG
-handler = StreamHandler()
-logger.addHandler(handler)
+logger = get_logger("task_progress_mongo")
 
 client = pymongo.MongoClient(host='10.10.231.105')
 collections = client['MongoTask']['Task']

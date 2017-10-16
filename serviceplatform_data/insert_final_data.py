@@ -6,24 +6,16 @@
 # @File    : insert_final_data.py
 # @Software: PyCharm
 import pymysql
-import logging
 import time
 import pymysql.err
-from logging import getLogger, StreamHandler, FileHandler
 from warnings import filterwarnings
 from service_platform_conn_pool import service_platform_pool
+from logger import get_logger
 
 # ignore pymysql warnings
 filterwarnings('ignore', category=pymysql.err.Warning)
 
-logger = getLogger("insert_data")
-logger.level = logging.DEBUG
-s_handler = StreamHandler()
-f_handler = FileHandler(
-    filename='/search/log/cron/insert_data.log'
-)
-logger.addHandler(s_handler)
-logger.addHandler(f_handler)
+logger = get_logger('insert_data')
 
 final_database = 'BaseDataFinal'
 

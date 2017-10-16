@@ -6,17 +6,9 @@
 # @File    : create_view.py
 # @Software: PyCharm
 import pymysql
-import logging
-from logging import getLogger, StreamHandler, FileHandler
+from logger import get_logger
 
-logger = getLogger("create_view")
-logger.level = logging.DEBUG
-s_handler = StreamHandler()
-f_handler = FileHandler(
-    filename='/search/log/cron/create_view.log'
-)
-logger.addHandler(s_handler)
-logger.addHandler(f_handler)
+logger = get_logger("create_view")
 
 
 def create_all_view():
