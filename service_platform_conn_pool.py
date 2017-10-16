@@ -43,3 +43,11 @@ db_config = dict(
 
 poi_ori_pool = init_pool(**db_config)
 
+db_config = dict(
+    user='reader',
+    password='miaoji1109',
+    host='10.10.69.170',
+    database='base_data',
+)
+
+base_data_pool = init_pool(**db_config)
