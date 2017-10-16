@@ -12,7 +12,7 @@ import functools
 import inspect
 from logging import getLogger, StreamHandler, FileHandler
 from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.schedulers.asyncio import  AsyncIOScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from service_platform_report.task_progress_report_mongo import main as task_progress_report_mongo
 from service_platform_report.task_progress_report import main as task_progress_report
 from service_platform_report.crawl_data_check_script import detectOriData
@@ -21,6 +21,7 @@ from serviceplatform_data.create_view import create_all_view
 from serviceplatform_data.insert_final_data import insert_data as detail_insert_data
 from serviceplatform_data.image_insert_final_data import insert_data as image_insert_data
 from serviceplatform_data.load_final_data import main as load_final_data
+from serviceplatform_data.load_final_data_test import main as load_final_data_qyer
 from service_platform_report.routine_report import main as routine_report
 from logger import get_logger
 
@@ -95,8 +96,10 @@ schedule.add_job(on_exc_send_email(detectOriData), 'cron', hour='*/2', id='detec
 schedule.add_job(on_exc_send_email(data_coverage), 'cron', hour='*/2', id='data_coverage')
 schedule.add_job(on_exc_send_email(detail_insert_final_data), 'cron', minute='*/5', id='detail_insert_final_data')
 schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', minute='*/2', id='image_insert_final_data')
-schedule.add_job(on_exc_send_email(load_final_data), 'cron', minute='*/2', id='load_final_data')
+schedule.add_job(on_exc_send_email(load_final_data), 'cron', minute='*/1', id='load_final_data')
 schedule.add_job(on_exc_send_email(routine_report), 'cron', hour='*/1', id='routine_report')
+schedule.add_job(on_exc_send_email(load_final_data_qyer()), 'cron', second='*/10', id='routine_report')
+
 
 if __name__ == '__main__':
     schedule.start()
