@@ -52,8 +52,8 @@ CREATE TABLE `attr_unid` (
   `city_map_info` varchar(128) NOT NULL DEFAULT '',
   `source` varchar(128) NOT NULL DEFAULT '',
   `source_id` varchar(64) NOT NULL DEFAULT '',
-  `name` varchar(128) NOT NULL DEFAULT '',
-  `name_en` varchar(128) NOT NULL DEFAULT '',
+  `name` varchar(512) NOT NULL DEFAULT '',
+  `name_en` varchar(512) NOT NULL DEFAULT '',
   `map_info` varchar(128) NOT NULL DEFAULT '',
   `grade` float DEFAULT '-1',
   `star` float DEFAULT '-1',
@@ -65,4 +65,12 @@ CREATE TABLE `attr_unid` (
   KEY `source_key` (`source`),
   KEY `id_key` (`id`),
   KEY `utime_key` (`utime`)
-) ENGINE=Innodb DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `already_merged_city` (
+  `type` VARCHAR(12)  NOT NULL,
+  `cid`  VARCHAR(16)  NOT NULL,
+  PRIMARY KEY (`type`,`cid`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;

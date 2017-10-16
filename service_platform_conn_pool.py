@@ -50,4 +50,4 @@ db_config = dict(
     database='base_data',
 )
 
-base_data_pool = init_pool(**db_config)
+base_data_pool = init_pool(**db_config, max_connections=30)

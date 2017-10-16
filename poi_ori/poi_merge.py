@@ -6,20 +6,27 @@
 # @File    : poi_ori.py
 # @Software: PyCharm
 import time
-import pymysql
 import redis
+import threading
 from collections import defaultdict
 from toolbox.Common import is_legal
-from data_source import MysqlSource
+from data_source import MysqlSource, cursor_gen
 from service_platform_conn_pool import base_data_pool, poi_ori_pool
-from logger import get_logger
+from logger import get_logger, func_time_logger
+from poi_ori.already_merged_city import update_already_merge_city
 
 poi_type = None
 online_table_name = None
 data_source_table = None
 
 max_id = None
+lock = threading.Lock()
 logger = get_logger("poi_ori")
+
+
+class BaseDataMysqlSource(MysqlSource):
+    def __iter__(self):
+        return cursor_gen(base_data_pool.connection(), self._sql, self._size)
 
 
 def init_global_name(_poi_type):
@@ -82,13 +89,15 @@ def get_max_uid():
     # todo each type attr rest shop
     # todo insert id into redis
     # mk final
-    global max_id
-    if not max_id:
-        max_id = get_max_id()
-    max_id = 'v' + str(int(max_id[1:]) + 1)
-    return max_id
+    with lock:
+        global max_id
+        if not max_id:
+            max_id = get_max_id()
+        max_id = 'v' + str(int(max_id[1:]) + 1)
+        return max_id
 
 
+@func_time_logger
 def get_data(cid_or_geohash):
     """
     返回各优先级数据，用于融合时使用，按照 线上数据 > 各源数据 ( 暂时无源内部的排序 ) 的提取规则由先向后进行数据提取
@@ -133,6 +142,7 @@ WHERE city_id = {0};'''.format(cid_or_geohash, data_source_table)
         yield data[1], data[0], keys
 
 
+@func_time_logger
 def insert_poi_unid(merged_dict, cid_or_geohash):
     start = time.time()
     # get city country name map_info
@@ -151,72 +161,24 @@ WHERE city.id = {};'''.format(cid_or_geohash))
     _dev_conn.close()
 
     # 去除 total 的写法，费劲但是提升速度不明显，使用 total 后 5.9 秒获取巴黎全部信息，直接获取 6.9 秒，相差可以接受
-    # # init id list
-    # online_ids = set()
-    # data_ids = set()
-    # for _, s_sid_set in merged_dict.items():
-    #     for source, sid in s_sid_set:
-    #         if source == 'online':
-    #             online_ids.add(sid)
-    #         else:
-    #             data_ids.add((source, sid))
-
-    # get data total
-    #     # get online data name name_en map_info grade star ranking address url
-    #     total_data = {}
-    #     _dev_conn = base_data_pool.connection()
-    #     _dev_cursor = _dev_conn.cursor()
-    #     _dev_cursor.execute('''SELECT
-    #   id,
-    #   name,
-    #   name_en,
-    #   map_info,
-    #   grade,
-    #   -1,
-    #   ranking,
-    #   address,
-    #   ''
-    # FROM chat_attraction WHERE id in ({})'''.format(','.join(map(lambda x: "'{}'".format(x), online_ids))))
-    #     for line in _dev_cursor.fetchall():
-    #         total_data[('online', line[0])] = line[1:]
-    #     _dev_cursor.close()
-    #     _dev_conn.close()
-    #
-    #     # todo get poi name name_en map_info grade star ranking address url
-    #     _data_conn = poi_ori_pool.connection()
-    #     _data_cursor = _data_conn.cursor()
-    #     _data_cursor.execute('''SELECT
-    #   source,
-    #   id,
-    #   name,
-    #   name_en,
-    #   map_info,
-    #   grade,
-    #   star,
-    #   ranking,
-    #   address,
-    #   url
-    # FROM attr
-    # WHERE (source, id) IN
-    #       ({});'''.format(','.join(map(lambda x: "('{}','{}')".format(x[0], x[1]), data_ids))))
-    #     for line in _data_cursor.fetchall():
-    #         total_data[(line[0], line[1])] = line[2:]
-    #     _data_cursor.close()
-    #     _data_conn.close()
-    #
-    #     for uid, s_sid_set in merged_dict.items():
-    #         for source, sid in s_sid_set:
-    #             name, name_en, map_info, grade, star, ranking, address, url = total_data[(source, sid)]
-
-    data = []
-    _dev_conn = base_data_pool.connection()
-    _dev_cursor = _dev_conn.cursor()
-    _data_conn = poi_ori_pool.connection()
-    _data_cursor = _data_conn.cursor()
-    for uid, s_sid_set in merged_dict.items():
+    # init id list
+    online_ids = set()
+    data_ids = set()
+    for _, s_sid_set in merged_dict.items():
         for source, sid in s_sid_set:
             if source == 'online':
-                _dev_cursor.execute('''SELECT
+                online_ids.add(sid)
+            else:
+                data_ids.add((source, sid))
+
+                # get data total
+    # get online data name name_en map_info grade star ranking address url
+    total_data = {}
+    _dev_conn = base_data_pool.connection()
+    _dev_cursor = _dev_conn.cursor()
+    try:
+        sql = '''SELECT
+  id,
   name,
   name_en,
   map_info,
@@ -225,43 +187,125 @@ WHERE city.id = {};'''.format(cid_or_geohash))
   ranking,
   address,
   ''
-FROM chat_attraction
-WHERE id = '{}';'''.format(sid))
-                try:
-                    name, name_en, map_info, grade, star, ranking, address, url = _dev_cursor.fetchone()
-                except Exception as exc:
-                    logger.exception("[error sql query][source: {}][sid: {}]".format(source, sid), exc_info=exc)
-                    continue
-            else:
-                _data_cursor.execute('''SELECT
-  name,
-  name_en,
-  map_info,
-  CASE WHEN grade NOT IN ('NULL', '')
-    THEN grade
-  ELSE -1.0 END AS grade,
-  CASE WHEN star NOT IN ('NULL', '')
-    THEN star
-  ELSE -1.0 END AS star,
-  CASE WHEN ranking NOT IN ('NULL', '')
-    THEN ranking
-  ELSE -1.0 END AS ranking,
-  address,
-  url
-FROM attr
-WHERE source = '{}' AND id = '{}';'''.format(source, sid))
-                try:
-                    name, name_en, map_info, grade, star, ranking, address, url = _data_cursor.fetchone()
-                except Exception as exc:
-                    logger.exception("[error sql query][source: {}][sid: {}]".format(source, sid), exc_info=exc)
-                    continue
+FROM chat_attraction WHERE id in ({})'''.format(','.join(map(lambda x: "'{}'".format(x), online_ids)))
+        _dev_cursor.execute(sql)
+    except Exception as exc:
+        logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
 
+    for line in _dev_cursor.fetchall():
+        total_data[('online', line[0])] = line[1:]
+    _dev_cursor.close()
+    _dev_conn.close()
+
+    # todo get poi name name_en map_info grade star ranking address url
+    _data_conn = poi_ori_pool.connection()
+    _data_cursor = _data_conn.cursor()
+    try:
+        sql = '''SELECT
+source,
+id,
+CASE WHEN name NOT IN ('NULL', '', NULL)
+THEN name
+ELSE '' END,
+CASE WHEN name_en NOT IN ('NULL', '', NULL)
+THEN name_en
+ELSE '' END,
+map_info,
+CASE WHEN grade NOT IN ('NULL', '', NULL)
+THEN grade
+ELSE -1.0 END AS grade,
+CASE WHEN star NOT IN ('NULL', '', NULL)
+THEN star
+ELSE -1.0 END AS star,
+CASE WHEN ranking NOT IN ('NULL', '', NULL)
+THEN ranking
+ELSE -1.0 END AS ranking,
+CASE WHEN address NOT IN ('NULL', '', NULL)
+THEN address
+ELSE '' END,
+CASE WHEN url NOT IN ('null', '', NULL)
+THEN url
+ELSE '' END
+FROM attr
+WHERE (source, id) IN
+      ({});'''.format(','.join(map(lambda x: "('{}','{}')".format(x[0], x[1]), data_ids)))
+        _data_cursor.execute(sql)
+    except Exception as exc:
+        logger.exception("[sql exc][sql: {}]".format(exc), exc_info=exc)
+    for line in _data_cursor.fetchall():
+        total_data[(line[0], line[1])] = line[2:]
+    _data_cursor.close()
+    _data_conn.close()
+
+    data = []
+    for uid, s_sid_set in merged_dict.items():
+        for source, sid in s_sid_set:
+            name, name_en, map_info, grade, star, ranking, address, url = total_data[(source, sid)]
             data.append((uid, cid, city_name, country, city_map_info, source, sid, name, name_en, map_info, grade,
                          star, ranking, address, url))
-    _dev_cursor.close()
-    _data_cursor.close()
-    _dev_conn.close()
-    _data_conn.close()
+
+            #     data = []
+            #     _dev_conn = base_data_pool.connection()
+            #     _dev_cursor = _dev_conn.cursor()
+            #     _data_conn = poi_ori_pool.connection()
+            #     _data_cursor = _data_conn.cursor()
+            #     for uid, s_sid_set in merged_dict.items():
+            #         for source, sid in s_sid_set:
+            #             if source == 'online':
+            #                 _dev_cursor.execute('''SELECT
+            #   name,
+            #   name_en,
+            #   map_info,
+            #   grade,
+            #   -1,
+            #   ranking,
+            #   address,
+            #   ''
+            # FROM chat_attraction
+            # WHERE id = '{}';'''.format(sid))
+            #                 try:
+            #                     name, name_en, map_info, grade, star, ranking, address, url = _dev_cursor.fetchone()
+            #                 except Exception as exc:
+            #                     logger.exception("[error sql query][source: {}][sid: {}]".format(source, sid), exc_info=exc)
+            #                     continue
+            #             else:
+            #                 _data_cursor.execute('''SELECT
+            #   CASE WHEN name NOT IN ('NULL', '', NULL)
+            #     THEN name
+            #   ELSE '' END,
+            #   CASE WHEN name_en NOT IN ('NULL', '', NULL)
+            #     THEN name_en
+            #   ELSE '' END,
+            #   map_info,
+            #   CASE WHEN grade NOT IN ('NULL', '', NULL)
+            #     THEN grade
+            #   ELSE -1.0 END AS grade,
+            #   CASE WHEN star NOT IN ('NULL', '', NULL)
+            #     THEN star
+            #   ELSE -1.0 END AS star,
+            #   CASE WHEN ranking NOT IN ('NULL', '', NULL)
+            #     THEN ranking
+            #   ELSE -1.0 END AS ranking,
+            #   CASE WHEN address NOT IN ('NULL', '', NULL)
+            #     THEN address
+            #   ELSE '' END,
+            #   CASE WHEN url NOT IN ('null', '', NULL)
+            #     THEN url
+            #   ELSE '' END
+            # FROM attr
+            # WHERE source = '{}' AND id = '{}';'''.format(source, sid))
+            #                 try:
+            #                     name, name_en, map_info, grade, star, ranking, address, url = _data_cursor.fetchone()
+            #                 except Exception as exc:
+            #                     logger.exception("[error sql query][source: {}][sid: {}]".format(source, sid), exc_info=exc)
+            #                     continue
+            #
+            #             data.append((uid, cid, city_name, country, city_map_info, source, sid, name, name_en, map_info, grade,
+            #                          star, ranking, address, url))
+            #     _dev_cursor.close()
+            #     _data_cursor.close()
+            #     _dev_conn.close()
+            #     _data_conn.close()
 
     _final_conn = poi_ori_pool.connection()
     _final_cursor = _final_conn.cursor()
@@ -278,10 +322,11 @@ WHERE source = '{}' AND id = '{}';'''.format(source, sid))
     _final_cursor.close()
     _final_conn.close()
 
-    # logger.debug("[finish prepare data][city: {}][replace_count: {}][takes: {}]".format(cid_or_geohash, line_count,
-    #                                                                                     time.time() - start))
+    logger.debug("[finish prepare data][city: {}][line_count: {}][takes: {}]".format(cid_or_geohash, len(data),
+                                                                                     time.time() - start))
 
 
+@func_time_logger
 def _poi_merge(cid_or_geohash):
     # 生成空的用于融合的相似字典存放数据
     similar_dict = defaultdict(set)
@@ -325,9 +370,7 @@ def poi_merge(cid_or_geohash, poi_type):
 
     # todo 融合入各 poi unid 表
     insert_poi_unid(merged_dict, cid_or_geohash)
-    for k, v in merged_dict.items():
-        if len(v) > 1:
-            logger.debug("[union_info][uid: {}][each_keys: {}]".format(k, v))
+    update_already_merge_city(poi_type, cid_or_geohash)
 
 
 if __name__ == '__main__':
