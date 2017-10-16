@@ -9,16 +9,19 @@ import toolbox.Common
 import pymysql
 import json
 import copy
+import dataset
 from toolbox.Common import is_legal, is_chinese
 from pymysql.cursors import DictCursor
 from collections import defaultdict
 from Config.settings import attr_data_conf, attr_merge_conf, attr_final_conf, rest_data_conf, rest_merge_conf, \
-    shop_merge_conf, shop_data_conf
+    shop_merge_conf, shop_data_conf, poi_data_conf
 from add_open_time.fix_daodao_time import fix_daodao_open_time
 from norm_tag.attr_norm_tag import tradition2simple, get_norm_tag as attr_get_norm_tag
 from norm_tag.rest_norm_tag import get_norm_tag as rest_get_norm_tag
 from norm_tag.shop_norm_tag import get_norm_tag as shop_get_norm_tag
 from get_near_city.get_near_city import get_nearby_city
+from logger import func_time_logger, get_logger
+from service_platform_conn_pool import poi_ori_pool, data_process_pool, base_data_pool
 
 need_cid_file = True
 
@@ -54,24 +57,25 @@ get_key.update_priority({
     },
 })
 
-poi_type = 'shop'
+poi_type = 'attr'
 
 if poi_type == 'attr':
     merge_conf = attr_merge_conf
-    data_conf = attr_data_conf
+    data_conf = poi_data_conf
     get_norm_tag = attr_get_norm_tag
 elif poi_type == 'rest':
     merge_conf = rest_merge_conf
-    data_conf = rest_data_conf
+    data_conf = poi_data_conf
     get_norm_tag = rest_get_norm_tag
 elif poi_type == 'shop':
     merge_conf = shop_merge_conf
-    data_conf = shop_data_conf
+    data_conf = poi_data_conf
     get_norm_tag = shop_get_norm_tag
 else:
     raise TypeError("Unknown Type: {}".format(poi_type))
 
 
+@func_time_logger
 def get_poi_dict(city_id):
     """
     get all attraction info in the city
@@ -81,44 +85,65 @@ def get_poi_dict(city_id):
 
     # get s sid
     _poi_dict = defaultdict(dict)
-    conn = pymysql.connect(**merge_conf)
-    with conn.cursor() as cursor:
-        sql = '''SELECT
-  source,
-  source_id
+    conn = poi_ori_pool.connection()
+    cursor = conn.cursor()
+    sql = '''SELECT
+source,
+source_id
 FROM {}_unid
 WHERE city_id = %s;'''.format(poi_type)
-        cursor.execute(sql, (city_id,))
-        res = ["('{0}', '{1}')".format(s, sid) for s, sid in cursor.fetchall()]
+    cursor.execute(sql, (city_id,))
+    source_res = []
+    online_res = []
+    for s, sid in cursor.fetchall():
+        if s == 'online':
+            online_res.append(sid)
+        else:
+            source_res.append("('{0}', '{1}')".format(s, sid))
+    cursor.close()
     conn.close()
 
-    # get line old
-    if poi_type != 'rest':
-        conn = pymysql.connect(**merge_conf)
-        with conn.cursor(cursor=DictCursor) as cursor:
-            sql = "select * from {} where (source, id) in ({})".format(poi_type, ','.join(res))
-
-            cursor.execute(sql)
-            for line in cursor.fetchall():
-                source = line['source']
-                source_id = line['id']
-                _poi_dict[(source, source_id)] = line
-
-    # get whole line in per city
-    conn = pymysql.connect(**data_conf)
-    with conn.cursor(cursor=DictCursor) as cursor:
-        sql = "select * from {} where (source, id) in ({})".format(poi_type, ','.join(res))
-        cursor.execute(sql)
-        for line in cursor.fetchall():
-            source = line['source']
-            source_id = line['id']
-            _poi_dict[(source, source_id)] = line
+    _online_data = {}
+    # get whole data process
+    conn = data_process_pool.connection()
+    cursor = conn.cursor(cursor=DictCursor)
+    cursor.execute('''SELECT *
+FROM chat_attraction
+WHERE id IN ({});'''.format(','.join(map(lambda x: "'{}'".format(x), online_res))))
+    for each in cursor.fetchall():
+        _online_data[each['id']] = each
+    cursor.close()
     conn.close()
-    return _poi_dict
+
+    # get whole base data, and update data process result
+    conn = base_data_pool.connection()
+    cursor = conn.cursor(cursor=DictCursor)
+    cursor.execute('''SELECT *
+    FROM chat_attraction
+    WHERE id IN ({});'''.format(','.join(map(lambda x: "'{}'".format(x), online_res))))
+    for each in cursor.fetchall():
+        each.pop('tag_id')
+        _online_data[each['id']].update(each)
+    cursor.close()
+    conn.close()
+
+    # get whole source data
+    conn = poi_ori_pool.connection()
+    cursor = conn.cursor(cursor=DictCursor)
+    sql = "select * from {} where (source, id) in ({})".format(poi_type, ','.join(source_res))
+    cursor.execute(sql)
+    for line in cursor.fetchall():
+        source = line['source']
+        source_id = line['id']
+        _poi_dict[(source, source_id)] = line
+    cursor.close()
+    conn.close()
+    return _poi_dict, _online_data
 
 
+@func_time_logger
 def get_task():
-    conn = pymysql.connect(**merge_conf)
+    conn = poi_ori_pool.connection()
     # 获取所有用于融合的城市 id
     cursor = conn.cursor()
     cursor.execute("select distinct city_id from {}_unid where city_id in ({});".format(poi_type, format(
@@ -144,6 +169,7 @@ GROUP BY id'''.format(poi_type)
             city_poi_dict[city_id].append((miaoji_id, city_id, union_info))
         yield city_poi_dict
         cursor.close()
+    conn.close()
 
 
 def add_open_time_filter(_v):
@@ -158,6 +184,7 @@ def add_open_time_filter(_v):
     return False
 
 
+@func_time_logger
 def insert_data(_poi_type):
     if _poi_type == 'attr':
         others_name_list = ['source']
@@ -209,14 +236,14 @@ def insert_data(_poi_type):
     else:
         raise TypeError("Unknown Type: {}".format(poi_type))
 
-    conn = pymysql.connect(**merge_conf)
+    conn = poi_ori_pool.connection()
     for task_dict in get_task():
         count = 0
         data = []
         # 获取融合城市信息
         for key, values in list(task_dict.items()):
             # get per city rest info
-            _info_dict = get_poi_dict(key)
+            _info_dict, _online_data = get_poi_dict(key)
             for miaoji_id, city_id, union_info in values:
                 # 初始化融合前变量
                 data_dict = defaultdict(dict)
@@ -229,6 +256,9 @@ def insert_data(_poi_type):
                 # 遍历所有需要融合的 source 以及 id，并生成 dict 类融合内容
                 for s_sid in union_info.split('|_||_|'):
                     source, source_id = s_sid.split('|')
+
+                    # todo 增加 online 的处理，先 load data，然后进行数据更新
+                    # todo 使用 online 的 base data 更新 data process 的字段
 
                     # 未获得融合 id 信息
                     if not source_id or not source:

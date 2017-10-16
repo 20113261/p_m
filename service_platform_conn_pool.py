@@ -51,3 +51,12 @@ db_config = dict(
 )
 
 base_data_pool = init_pool(**db_config, max_connections=30)
+
+db_config = dict(
+    user='root',
+    password='shizuo0907',
+    host='10.10.242.173',
+    database='data_process',
+)
+
+data_process_pool = init_pool(**db_config, max_connections=30)
