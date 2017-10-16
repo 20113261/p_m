@@ -60,9 +60,9 @@ def on_exc_send_email(func):
                 logger.exception(msg="[get local file exc]", exc_info=exc)
                 func_file = 'may be local func: {}'.format(func_name)
         try:
-            logger.debug('[异常监控]统计及数据入库例行 执行', '[file: {}][func: {}]'.format(func_file, func_name))
+            logger.debug('[异常监控]统计及数据入库例行 执行 [file: {}][func: {}]'.format(func_file, func_name))
             func()
-            logger.debug('[异常监控]统计及数据入库例行 执行完成', '[file: {}][func: {}]'.format(func_file, func_name))
+            logger.debug('[异常监控]统计及数据入库例行 执行完成 [file: {}][func: {}]'.format(func_file, func_name))
         except Exception as exc:
             logger.exception(msg="[run func or send email exc]", exc_info=exc)
             send_email('[异常监控]统计及数据入库例行 异常',
