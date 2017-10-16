@@ -321,7 +321,7 @@ def load_data(limit=400):
 
 def main():
     create_table()
-    load_data(limit=2000)
+    load_data(limit=5000)
 
 
 if __name__ == '__main__':

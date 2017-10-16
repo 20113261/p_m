@@ -12,6 +12,7 @@ import functools
 import inspect
 from logging import getLogger, StreamHandler, FileHandler
 from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.asyncio import  AsyncIOScheduler
 from service_platform_report.task_progress_report_mongo import main as task_progress_report_mongo
 from service_platform_report.task_progress_report import main as task_progress_report
 from service_platform_report.crawl_data_check_script import detectOriData
@@ -21,17 +22,11 @@ from serviceplatform_data.insert_final_data import insert_data as detail_insert_
 from serviceplatform_data.image_insert_final_data import insert_data as image_insert_data
 from serviceplatform_data.load_final_data import main as load_final_data
 from service_platform_report.routine_report import main as routine_report
+from logger import get_logger
 
 SEND_TO = ['hourong@mioji.com']
 
-logger = getLogger("load_data")
-logger.level = logging.DEBUG
-s_handler = StreamHandler()
-f_handler = FileHandler(
-    filename='/search/log/cron/cron_task_monitor.log'
-)
-logger.addHandler(s_handler)
-logger.addHandler(f_handler)
+logger = get_logger('cron_task_monitor')
 
 
 def send_email(title, mail_info, mail_list, want_send_html=False):
@@ -65,8 +60,9 @@ def on_exc_send_email(func):
                 logger.exception(msg="[get local file exc]", exc_info=exc)
                 func_file = 'may be local func: {}'.format(func_name)
         try:
+            logger.debug('[异常监控]统计及数据入库例行 执行', '[file: {}][func: {}]'.format(func_file, func_name))
             func()
-            # send_email('[异常监控]统计及数据入库例行 执行', '[file: {}][func: {}]'.format(func_file, func_name), SEND_TO)
+            logger.debug('[异常监控]统计及数据入库例行 执行完成', '[file: {}][func: {}]'.format(func_file, func_name))
         except Exception as exc:
             logger.exception(msg="[run func or send email exc]", exc_info=exc)
             send_email('[异常监控]统计及数据入库例行 异常',
