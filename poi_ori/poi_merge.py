@@ -12,8 +12,8 @@ import redis
 from collections import defaultdict
 from logging import getLogger, StreamHandler
 from toolbox.Common import is_legal
-
 from data_source import MysqlSource
+from service_platform_conn_pool import base_data_pool, poi_ori_pool
 
 logger = getLogger("poi_ori")
 logger.level = logging.DEBUG
@@ -62,7 +62,7 @@ data_db = {
 }
 
 '''
-| - city
+| - city 每个函数只融合一个城市，函数中内容从 poi 开始
 | -  -  - poi
 | -  -  -  -  merge_key set(记录全量的融合索引)
 | -  -  -  -  merged_source_and_sid  set(记录原始信息的 source、sid) 
@@ -74,10 +74,11 @@ r = redis.Redis(host='10.10.180.145')
 
 
 def get_max_id():
-    conn = pymysql.connect(**onlinedb)
+    conn = base_data_pool.connection()
     cursor = conn.cursor()
     cursor.execute('''SELECT max(id) FROM {};'''.format(online_table_name))
     _id = cursor.fetchone()[0]
+    conn.close()
     return _id
 
 
@@ -137,8 +138,80 @@ WHERE city_id = {0};'''.format(cid_or_geohash, data_source_table)
         yield data[1], data[0], keys
 
 
-def insert_poi_unid(merged_dict):
-    pass
+def insert_poi_unid(merged_dict, cid_or_geohash):
+    start = time.time()
+    # get city country name map_info
+    _dev_conn = base_data_pool.connection()
+    _dev_cursor = _dev_conn.cursor()
+    _dev_cursor.execute('''SELECT
+  city.id       AS cid,
+  city.name     AS city_name,
+  country.name  AS country_name,
+  city.map_info AS map_info
+FROM city
+  JOIN country ON city.country_id = country.mid
+WHERE city.id = {};'''.format(cid_or_geohash))
+    cid, name, country, map_info = _dev_cursor.fetchone()
+    _dev_cursor.close()
+    _dev_conn.close()
+
+    # init id list
+    online_ids = set()
+    data_ids = set()
+    for _, s_sid_set in merged_dict.items():
+        for source, sid in s_sid_set:
+            if source == 'online':
+                online_ids.add(sid)
+            else:
+                data_ids.add((source, sid))
+
+    # get online data name name_en map_info grade star ranking address url
+    total_data = {}
+    _dev_conn = base_data_pool.connection()
+    _dev_cursor = _dev_conn.cursor()
+    _dev_cursor.execute('''SELECT
+  id,
+  name,
+  name_en,
+  map_info,
+  grade,
+  -1,
+  ranking,
+  address,
+  ''
+FROM chat_attraction WHERE id in ({})'''.format(','.join(map(lambda x: "'{}'".format(x), online_ids))))
+    for line in _dev_cursor.fetchall():
+        total_data[('online', line[0])] = line[1:]
+    _dev_cursor.close()
+    _dev_conn.close()
+
+    # todo get poi name name_en map_info grade star ranking address url
+    _data_conn = poi_ori_pool.connection()
+    _data_cursor = _data_conn.cursor()
+    _data_cursor.execute('''SELECT
+  source,
+  id,
+  name,
+  name_en,
+  map_info,
+  grade,
+  star,
+  ranking,
+  address,
+  url
+FROM attr
+WHERE (source, id) IN
+      ({});'''.format(','.join(map(lambda x: "('{}','{}')".format(x[0], x[1]), data_ids))))
+    for line in _data_cursor.fetchall():
+        total_data[(line[0], line[1])] = line[2:]
+    _data_cursor.close()
+    _data_conn.close()
+
+    for uid, s_sid_set in merged_dict.items():
+        for source, sid in s_sid_set:
+            name, name_en, map_info, grade, star, ranking, address, url = total_data[(source, sid)]
+
+    logger.debug("[finish prepare data][city: {}][takes: {}]".format(cid_or_geohash, time.time() - start))
 
 
 def _poi_merge(cid_or_geohash):
@@ -183,7 +256,7 @@ def poi_merge(cid_or_geohash):
     merged_dict = _poi_merge(cid_or_geohash)
 
     # todo 融合入各 poi unid 表
-    insert_poi_unid(merged_dict)
+    insert_poi_unid(merged_dict, cid_or_geohash)
     for k, v in merged_dict.items():
         if len(v) > 1:
             logger.debug("[union_info][uid: {}][each_keys: {}]".format(k, v))
