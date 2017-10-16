@@ -5,14 +5,17 @@
 # @Site    : 
 # @File    : cron_task_monitor.py
 # @Software: PyCharm
+import time
 import traceback
 import logging
 import requests
 import functools
 import inspect
+import asyncio
 from logging import getLogger, StreamHandler, FileHandler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from service_platform_report.task_progress_report_mongo import main as task_progress_report_mongo
 from service_platform_report.task_progress_report import main as task_progress_report
 from service_platform_report.crawl_data_check_script import detectOriData
@@ -89,17 +92,27 @@ def test_exc():
 #1 * * * * /usr/local/bin/python3 /search/hourong/PycharmProjects/PoiCommonScript/service_platform_report/routine_report.py >> /root/data/PycharmProjects/PoiCommonScript/service_platform_report/task_routine_log
 '''
 
-schedule = BlockingScheduler()
-schedule.add_job(on_exc_send_email(task_progress_report_mongo), 'cron', hour='*/2', id='task_progress_report_mongo')
-schedule.add_job(on_exc_send_email(task_progress_report), 'cron', hour='*/2', id='task_progress_report')
-schedule.add_job(on_exc_send_email(detectOriData), 'cron', hour='*/2', id='detectOriData')
-schedule.add_job(on_exc_send_email(data_coverage), 'cron', hour='*/2', id='data_coverage')
-schedule.add_job(on_exc_send_email(detail_insert_final_data), 'cron', minute='*/2', id='detail_insert_final_data')
-schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', minute='*/2', id='image_insert_final_data')
-schedule.add_job(on_exc_send_email(load_final_data), 'cron', minute='*/1', id='load_final_data')
-schedule.add_job(on_exc_send_email(routine_report), 'cron', hour='*/1', id='routine_report')
-schedule.add_job(on_exc_send_email(load_final_data_qyer), 'cron', second='*/20', id='routine_report_qyer')
-
+schedule = BackgroundScheduler()
+schedule.add_job(on_exc_send_email(task_progress_report_mongo), 'cron', hour='*/2', id='task_progress_report_mongo',
+                 max_instances=10)
+schedule.add_job(on_exc_send_email(task_progress_report), 'cron', hour='*/2', id='task_progress_report',
+                 max_instances=10)
+schedule.add_job(on_exc_send_email(detectOriData), 'cron', hour='*/2', id='detectOriData', max_instances=10)
+schedule.add_job(on_exc_send_email(data_coverage), 'cron', hour='*/2', id='data_coverage', max_instances=10)
+schedule.add_job(on_exc_send_email(detail_insert_final_data), 'cron', minute='*/2', id='detail_insert_final_data',
+                 max_instances=10)
+schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', minute='*/2', id='image_insert_final_data',
+                 max_instances=10)
+schedule.add_job(on_exc_send_email(load_final_data), 'cron', minute='*/1', id='load_final_data', max_instances=10)
+schedule.add_job(on_exc_send_email(routine_report), 'cron', hour='*/1', id='routine_report', max_instances=10)
+schedule.add_job(on_exc_send_email(load_final_data_qyer), 'cron', second='*/20', id='routine_report_qyer',
+                 max_instances=10)
 
 if __name__ == '__main__':
     schedule.start()
+    try:
+        while True:
+            time.sleep(2)
+            logger.debug('[main thread sleep][waiting for task]')
+    except (KeyboardInterrupt, SystemExit):
+        schedule.shutdown()

@@ -99,7 +99,7 @@ def load_data(limit=400):
     local_cursor.close()
 
     for each_table in table_list:
-        if 'total' not in each_table and 'attr_final' in each_table:
+        if 'total' not in each_table:
             continue
         each_table_key_list = each_table.split('_')
         if len(each_table_key_list) == 3:
