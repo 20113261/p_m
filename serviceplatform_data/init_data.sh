@@ -36,3 +36,11 @@ mysqldump -h10.10.180.145 -uhourong -phourong --replace --skip-lock-tables --no-
 
 # shop detail old
 mysqldump -h10.10.180.145 -uhourong -phourong --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert shop_merge shop |sed 's/`insert_time`/`utime`/g'> shop.sql
+
+
+# attr new data init
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert BaseDataFinal attr_final_20170928a > attr_final_20170928a.sql
+
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert BaseDataFinal attr_final_20170929a |sed 's/`attr_final_20170929a`/`attr`/g' > attr_final_20170929a.sql
+
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert BaseDataFinal attr_final_20171010a |sed 's/`attr_final_20171010a`/`attr`/g' > attr_final_20171010a.sql
