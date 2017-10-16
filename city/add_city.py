@@ -54,9 +54,10 @@ GROUP BY country.continent_id;''')
 continent_max_id_dict = get_continent_max_id_dict()
 
 
-def generate_id(continent: str) -> str:
-    continent_max_id_dict[continent] += 1
-    return str(continent_max_id_dict[continent])
+def generate_id(country_id: str) -> str:
+    continent_id = (int(country_id) % 100) * 10
+    continent_max_id_dict[continent_id] += 1
+    return str(continent_max_id_dict[continent_id])
 
 
 def get_country_id_dict() -> dict:
@@ -102,9 +103,9 @@ if __name__ == '__main__':
     # xlsx_path = '/tmp/new_city.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
-    xlsx_path = '/Users/hourong/Downloads/new_city_0912.xlsx'
+    xlsx_path = '/Users/hourong/Downloads/new_city_1016.xlsx'
 
-    need_change_map_info = True
+    need_change_map_info = False
     global change_map_info_key
     # change_map_info_key = ['border_map_1', 'border_map_2']
     change_map_info_key = ['map_info']
@@ -150,14 +151,14 @@ if __name__ == '__main__':
                 # 判断字段是否符合规范
                 res, value = check_and_modify_columns(key, line[key])
                 if res:
-                    if value not in ('NULL', 'null'):
+                    if value not in ('NULL', 'null', ''):
                         data[key] = value
 
             # 补充字段
             if 'id' not in data.keys():
-                data['id'] = generate_id(data['continent_id'])
-            if 'country_id' not in data.keys():
-                data['country_id'] = country_id_dict[data['country']]
+                data['id'] = generate_id(data['country_id'])
+                if 'country_id' not in data.keys():
+                    data['country_id'] = country_id_dict[data['country']]
 
             if 'visit_num' not in data.keys():
                 data['visit_num'] = '0'
