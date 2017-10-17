@@ -121,9 +121,10 @@ def get_data(cid_or_geohash):
     """
 
     # 线上数据，按照优先级排序，先进入的数据优先使用 id
+    _t = time.time()
     sql = '''SELECT id, name, name_en, alias
 FROM {1}
-WHERE city_id = {0}
+WHERE city_id = '{0}'
 ORDER BY status_online DESC, status_test DESC, official DESC, grade;'''.format(cid_or_geohash, online_table_name)
     for data in MysqlSource(onlinedb, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
         keys = set()
@@ -136,15 +137,17 @@ ORDER BY status_online DESC, status_test DESC, official DESC, grade;'''.format(c
                 keys.add(key)
         logger.debug("[source: {}][sid: {}][keys: {}]".format('online', data['id'], keys))
         yield 'online', data['id'], keys
+    logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
 
     # 各源数据，暂时不增加排序规则
+    _t = time.time()
     sql = '''SELECT
   id,
   source,
   name,
   name_en
 FROM {1}
-WHERE city_id = {0};'''.format(cid_or_geohash, data_source_table)
+WHERE city_id = '{0}';'''.format(cid_or_geohash, data_source_table)
     for data in MysqlSource(data_db, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
         keys = set()
         if is_legal(data['name']):
@@ -153,6 +156,7 @@ WHERE city_id = {0};'''.format(cid_or_geohash, data_source_table)
             keys.add(data['name_en'])
         logger.debug("[source: {}][sid: {}][keys: {}]".format(data['source'], data['id'], keys))
         yield data['source'], data['id'], keys
+    logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
 
 
 @func_time_logger
@@ -190,6 +194,7 @@ WHERE city.id = {};'''.format(cid_or_geohash))
     _dev_conn = base_data_pool.connection()
     _dev_cursor = _dev_conn.cursor()
     try:
+        _t = time.time()
         sql = '''SELECT
   id,
   name,
@@ -200,8 +205,9 @@ WHERE city.id = {};'''.format(cid_or_geohash))
   ranking,
   address,
   ''
-FROM chat_attraction WHERE city_id={};'''.format(cid_or_geohash)
+FROM chat_attraction WHERE city_id='{}';'''.format(cid_or_geohash)
         _dev_cursor.execute(sql)
+        logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
     except Exception as exc:
         logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
 
@@ -214,6 +220,7 @@ FROM chat_attraction WHERE city_id={};'''.format(cid_or_geohash)
     _data_conn = poi_ori_pool.connection()
     _data_cursor = _data_conn.cursor()
     try:
+        _t = time.time()
         sql = '''SELECT
 source,
 id,
@@ -226,8 +233,9 @@ ranking,
 address,
 url
 FROM attr
-WHERE city_id={};'''.format(cid_or_geohash)
+WHERE city_id='{}';'''.format(cid_or_geohash)
         _data_cursor.execute(sql)
+        logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
     except Exception as exc:
         logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
     for line in _data_cursor.fetchall():
@@ -323,21 +331,24 @@ WHERE city_id={};'''.format(cid_or_geohash)
 
     _final_conn = poi_ori_pool.connection()
     _final_cursor = _final_conn.cursor()
-    for d in data:
-        try:
-            _final_cursor.execute(
-                '''REPLACE INTO attr_unid (id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info, grade, star, ranking, address, url)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);''',
-                d
-            )
-        except Exception as exc:
-            logger.exception("[insert unid table error][data: {}]".format(d), exc_info=exc)
+    # for d in data:
+    try:
+        _t = time.time()
+        sql = '''REPLACE INTO attr_unid (id, city_id, city_name, country_name, city_map_info, source, source_id, name, name_en, map_info, grade, star, ranking, address, url)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+        _final_cursor.executemany(
+            sql,
+            data
+        )
+        logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
+    except Exception as exc:
+        logger.exception("[insert unid table error]", exc_info=exc)
     _final_conn.commit()
     _final_cursor.close()
     _final_conn.close()
 
-    logger.debug("[finish prepare data][city: {}][line_count: {}][takes: {}]".format(cid_or_geohash, len(data),
-                                                                                     time.time() - start))
+    logger.info("[finish prepare data][city: {}][line_count: {}][takes: {}]".format(cid_or_geohash, len(data),
+                                                                                    time.time() - start))
 
 
 @func_time_logger
@@ -371,7 +382,7 @@ def _poi_merge(cid_or_geohash):
         similar_dict[uid].update(keys)
         # 更新融合内容字典
         merged_dict[uid].add((source, sid))
-        logger.debug("[finish][city: {}][id: {}][takes: {}]".format(cid_or_geohash, uid, time.time() - start))
+        logger.info("[finish][city: {}][id: {}][takes: {}]".format(cid_or_geohash, uid, time.time() - start))
     return merged_dict
 
 
