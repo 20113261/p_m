@@ -10,6 +10,7 @@ import pymysql
 import json
 import copy
 import dataset
+import time
 from toolbox.Common import is_legal, is_chinese
 from pymysql.cursors import DictCursor
 from collections import defaultdict
@@ -22,6 +23,9 @@ from norm_tag.shop_norm_tag import get_norm_tag as shop_get_norm_tag
 from get_near_city.get_near_city import get_nearby_city
 from logger import func_time_logger, get_logger
 from service_platform_conn_pool import poi_ori_pool, data_process_pool, base_data_pool
+from toolbox.Common import is_legal
+
+logger = get_logger("insert_poi_log")
 
 need_cid_file = True
 
@@ -60,22 +64,62 @@ get_key.update_priority({
     },
 })
 
-poi_type = 'attr'
+poi_type = None
+merge_conf = None
+data_conf = None
+get_norm_tag = None
+others_name_list = None
+json_name_list = None
+norm_name_list = None
+data_process_table_name = None
 
-if poi_type == 'attr':
-    merge_conf = attr_merge_conf
-    data_conf = poi_data_conf
-    get_norm_tag = attr_get_norm_tag
-elif poi_type == 'rest':
-    merge_conf = rest_merge_conf
-    data_conf = poi_data_conf
-    get_norm_tag = rest_get_norm_tag
-elif poi_type == 'shop':
-    merge_conf = shop_merge_conf
-    data_conf = poi_data_conf
-    get_norm_tag = shop_get_norm_tag
-else:
-    raise TypeError("Unknown Type: {}".format(poi_type))
+
+def init_global_name(_poi_type):
+    global poi_type
+    global merge_conf
+    global data_conf
+    global get_norm_tag
+    global others_name_list
+    global json_name_list
+    global norm_name_list
+    global data_process_table_name
+
+    poi_type = _poi_type
+    if _poi_type == 'attr':
+        data_process_table_name = 'chat_attraction'
+        merge_conf = attr_merge_conf
+        data_conf = poi_data_conf
+        get_norm_tag = attr_get_norm_tag
+        others_name_list = ['source']
+        json_name_list = ['url', 'ranking', 'star', 'recommend_lv', 'plantocounts', 'beentocounts', 'commentcounts',
+                          'tagid',
+                          'introduction']
+        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'site', 'phone', 'opentime',
+                          'prize',
+                          'traveler_choice', 'imgurl']
+    elif _poi_type == 'rest':
+        data_process_table_name = 'chat_restaurant'
+        merge_conf = rest_merge_conf
+        data_conf = poi_data_conf
+        get_norm_tag = rest_get_norm_tag
+        others_name_list = ['source']
+        json_name_list = ['commentcounts', 'ranking', 'price', 'introduction']
+        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'url', 'phone', 'opentime',
+                          'prize', 'traveler_choice', 'price_level', 'cuisines', 'imgurl']
+    elif _poi_type == 'shop':
+        data_process_table_name = 'chat_shopping'
+        merge_conf = shop_merge_conf
+        data_conf = poi_data_conf
+        get_norm_tag = shop_get_norm_tag
+        others_name_list = ['source']
+
+        json_name_list = ['url', 'ranking', 'star', 'recommend_lv', 'plantocounts', 'beentocounts', 'commentcounts',
+                          'tagid',
+                          'introduction']
+        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'site', 'phone',
+                          'opentime', 'prize', 'traveler_choice', 'imgurl']
+    else:
+        raise TypeError("Unknown Type: {}".format(_poi_type))
 
 
 @func_time_logger
@@ -85,34 +129,36 @@ def get_poi_dict(city_id):
     :param city_id: city mioji id
     :return: city info dict
     """
-
-    # get s sid
     _poi_dict = defaultdict(dict)
-    conn = poi_ori_pool.connection()
-    cursor = conn.cursor()
-    sql = '''SELECT
-source,
-source_id
-FROM {}_unid
-WHERE city_id = %s;'''.format(poi_type)
-    cursor.execute(sql, (city_id,))
-    source_res = []
-    online_res = []
-    for s, sid in cursor.fetchall():
-        if s == 'online':
-            online_res.append(sid)
-        else:
-            source_res.append("('{0}', '{1}')".format(s, sid))
-    cursor.close()
-    conn.close()
+    # get s sid
+    #     conn = poi_ori_pool.connection()
+    #     cursor = conn.cursor()
+    #     sql = '''SELECT
+    # source,
+    # source_id
+    # FROM {}_unid
+    # WHERE city_id = '{}';'''.format(poi_type, city_id)
+    #     cursor.execute(sql)
+    #     source_res = []
+    #     online_res = []
+    #     for s, sid in cursor.fetchall():
+    #         if s == 'online':
+    #             online_res.append(sid)
+    #         else:
+    #             source_res.append("('{0}', '{1}')".format(s, sid))
+    #     cursor.close()
+    #     conn.close()
 
     _online_data = {}
     # get whole data process
     conn = data_process_pool.connection()
     cursor = conn.cursor(cursor=DictCursor)
-    cursor.execute('''SELECT *
-FROM chat_attraction
-WHERE id IN ({});'''.format(','.join(map(lambda x: "'{}'".format(x), online_res))))
+    sql = '''SELECT *
+FROM {}
+WHERE city_id='{}';'''.format(data_process_table_name, city_id)
+    _t = time.time()
+    cursor.execute(sql)
+    logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
     for each in cursor.fetchall():
         _online_data[each['id']] = each
     cursor.close()
@@ -121,9 +167,12 @@ WHERE id IN ({});'''.format(','.join(map(lambda x: "'{}'".format(x), online_res)
     # get whole base data, and update data process result
     conn = base_data_pool.connection()
     cursor = conn.cursor(cursor=DictCursor)
-    cursor.execute('''SELECT *
-    FROM chat_attraction
-    WHERE id IN ({});'''.format(','.join(map(lambda x: "'{}'".format(x), online_res))))
+    sql = '''SELECT *
+    FROM {}
+    WHERE city_id='{}';'''.format(data_process_table_name, city_id)
+    _t = time.time()
+    cursor.execute(sql)
+    logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
     for each in cursor.fetchall():
         each.pop('tag_id')
         _online_data[each['id']].update(each)
@@ -133,8 +182,10 @@ WHERE id IN ({});'''.format(','.join(map(lambda x: "'{}'".format(x), online_res)
     # get whole source data
     conn = poi_ori_pool.connection()
     cursor = conn.cursor(cursor=DictCursor)
-    sql = "select * from {} where (source, id) in ({})".format(poi_type, ','.join(source_res))
+    sql = "select * from {} where city_id='{}'".format(poi_type, city_id)
+    _t = time.time()
     cursor.execute(sql)
+    logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
     for line in cursor.fetchall():
         source = line['source']
         source_id = line['id']
@@ -145,33 +196,29 @@ WHERE id IN ({});'''.format(','.join(map(lambda x: "'{}'".format(x), online_res)
 
 
 @func_time_logger
-def get_task():
+def get_task(cid):
     conn = poi_ori_pool.connection()
     # 获取所有用于融合的城市 id
-    cursor = conn.cursor()
-    cursor.execute("select distinct city_id from {}_unid where city_id in ({});".format(poi_type, format(
-        ','.join((map(lambda x: x.strip(), open('cid_file')))))))
-    total_city_id = list(map(lambda x: x[0], cursor.fetchall()))
-    cursor.close()
 
-    for each_city_id in total_city_id:
-        print("City ID:", each_city_id)
-        cursor = conn.cursor(cursor=DictCursor)
-        city_poi_dict = defaultdict(list)
-        sql = '''SELECT
-  id,
-  city_id,
-  group_concat(concat(source, '|', source_id) SEPARATOR '|_||_|') AS union_info
-FROM {}_unid WHERE city_id=%s
-GROUP BY id'''.format(poi_type)
-        cursor.execute(sql, (each_city_id,))
-        for line in cursor.fetchall():
-            miaoji_id = line['id']
-            city_id = line['city_id']
-            union_info = line['union_info']
-            city_poi_dict[city_id].append((miaoji_id, city_id, union_info))
-        yield city_poi_dict
-        cursor.close()
+    logger.info("[get city task][cid: {}]".format(cid))
+    cursor = conn.cursor(cursor=DictCursor)
+    city_poi_dict = defaultdict(list)
+    sql = '''SELECT
+id,
+city_id,
+group_concat(concat(source, '|', source_id) SEPARATOR '|_||_|') AS union_info
+FROM {}_unid WHERE city_id='{}'
+GROUP BY id'''.format(poi_type, cid)
+    _t = time.time()
+    cursor.execute(sql)
+    logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
+    for line in cursor.fetchall():
+        miaoji_id = line['id']
+        city_id = line['city_id']
+        union_info = line['union_info']
+        city_poi_dict[city_id].append((miaoji_id, city_id, union_info))
+    yield city_poi_dict
+    cursor.close()
     conn.close()
 
 
@@ -188,32 +235,19 @@ def add_open_time_filter(_v):
 
 
 @func_time_logger
-def insert_data(_poi_type):
-    if _poi_type == 'attr':
-        others_name_list = ['source']
-        json_name_list = ['url', 'ranking', 'star', 'recommend_lv', 'plantocounts', 'beentocounts', 'commentcounts',
-                          'tagid',
-                          'introduction']
-        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'site', 'phone', 'opentime',
-                          'prize',
-                          'traveler_choice', 'imgurl']
-    elif _poi_type == 'rest':
-        others_name_list = ['source']
-        json_name_list = ['commentcounts', 'ranking', 'price', 'introduction']
-        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'url', 'phone', 'opentime',
-                          'prize', 'traveler_choice', 'price_level', 'cuisines', 'imgurl']
-    elif _poi_type == 'shop':
-        others_name_list = ['source']
+def insert_data(cid, _poi_type):
+    init_global_name(_poi_type)
+    global poi_type
+    global merge_conf
+    global data_conf
+    global get_norm_tag
+    global others_name_list
+    global json_name_list
+    global norm_name_list
+    global data_process_table_name
 
-        json_name_list = ['url', 'ranking', 'star', 'recommend_lv', 'plantocounts', 'beentocounts', 'commentcounts',
-                          'tagid',
-                          'introduction']
-        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'site', 'phone',
-                          'opentime', 'prize', 'traveler_choice', 'imgurl']
-    else:
-        raise TypeError("Unknown Type: {}".format(poi_type))
-
-    # 数据最终入库表
+    '''
+    数据最终入库表
     if _poi_type == 'attr':
         sql = 'replace into chat_attraction(`id`,`name`,`name_en`,`data_source`,`city_id`,' \
               '`map_info`,`address`,`star`,`plantocount`,`beentocount`,`real_ranking`,' \
@@ -238,11 +272,12 @@ def insert_data(_poi_type):
               '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
     else:
         raise TypeError("Unknown Type: {}".format(poi_type))
+    '''
 
     db = dataset.connect("mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/poi_merge?charset=utf8")
-    table = db['chat_attraction']
+    table = db[data_process_table_name]
     conn = poi_ori_pool.connection()
-    for task_dict in get_task():
+    for task_dict in get_task(cid):
         count = 0
         data = []
         # 获取融合城市信息
@@ -407,6 +442,24 @@ def insert_data(_poi_type):
                 ''''`image`, `ori_grade`,`nearCity`, `ranking`,`rcmd_open`,`add_info`,`address_en`,`event_mark`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
           '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,-1,"","","","")';'''
 
+                # 数据清理以及入库部分
+                # 全量经纬度不符合规范数据清理
+                try:
+                    lng, lat = data_dict['map_info'].split(',')
+                    lng = float(lng)
+                    lat = float(lat)
+                    data_dict['map_info'] = '{},{}'.format(lng, lat)
+                except Exception as exc:
+                    logger.exception(msg="[map_info filter error]", exc_info=exc)
+                    continue
+
+                # 清理名称中的多余字符
+                data_dict['name'] = data_dict['name'].replace('这是您的企业吗？', '').strip()
+                name = data_dict['name']
+                name_en = data_dict['name_en']
+                if name_en in name and name_en != name:
+                    name.replace(name_en, '')
+
                 if poi_type == 'attr':
                     per_data = {
                         'id': miaoji_id,
@@ -447,6 +500,17 @@ def insert_data(_poi_type):
                             'address_en': '',
                             'event_mark': ''
                         })
+
+                    # 景点游览部分清理
+                    try:
+                        tagid_data = json.loads(data_dict['tagid'])
+                        if 'daodao' in tagid_data:
+                            if '游览' in tagid_data['daodao']:
+                                logger.debug("[tour filter][data: {}]".format(per_data))
+                                continue
+                    except Exception as exc:
+                        logger.exception(msg="[tour filter error]", exc_info=exc)
+
                     data.append(per_data)
                 elif poi_type == 'rest':
                     data.append((
@@ -461,28 +525,56 @@ def insert_data(_poi_type):
                         data_dict['cuisines'],
                         data_dict['imgurl'], data_dict['tagid'], norm_tag, norm_tag_en, nearby_city))
                 elif poi_type == 'shop':
-                    data.append((
-                        miaoji_id, data_dict['name'], data_dict['name_en'], source, city_id,
-                        data_dict['map_info'], data_dict['address'],
-                        data_dict['star'], data_dict['plantocounts'], data_dict['beentocounts'],
-                        data_dict['ranking'], data_dict['grade'],
-                        data_dict['commentcounts'],
-                        data_dict['tagid'], norm_tag, norm_tag_en, data_dict['url'], data_dict['site'],
-                        data_dict['phone'],
-                        data_dict['introduction'], norm_open_time,
-                        data_dict['opentime'], data_dict['recommend_lv'], data_dict['prize'],
-                        data_dict['traveler_choice'],
-                        data_dict['imgurl'], nearby_city))
+                    per_data = {
+                        'id': miaoji_id,
+                        'name': data_dict['name'],
+                        'name_en': data_dict['name_en'],
+                        'data_source': source,
+                        'city_id': city_id,
+                        'map_info': data_dict['map_info'],
+                        'address': data_dict['address'],
+                        'star': data_dict['star'],
+                        'plantocount': data_dict['plantocounts'],
+                        'beentocount': data_dict['beentocounts'],
+                        'real_ranking': data_dict['ranking'],
+                        'grade': data_dict['grade'],
+                        'commentcount': data_dict['commentcounts'],
+                        'tagid': data_dict['tagid'],
+                        'norm_tagid': norm_tag,
+                        'norm_tagid_en': norm_tag_en,
+                        'url': data_dict['url'],
+                        'website_url': data_dict['site'],
+                        'phone': data_dict['phone'],
+                        'introduction': data_dict['introduction'],
+                        'open': norm_open_time,
+                        'open_desc': data_dict['opentime'],
+                        'recommend_lv': data_dict['recommend_lv'],
+                        'prize': data_dict['prize'],
+                        'traveler_choice': data_dict['traveler_choice'],
+                        'image': data_dict['imgurl'],
+                        'nearCity': nearby_city,
+                    }
+                    if not o_data:
+                        per_data.update({
+                            'ranking': -1.0,
+                            'rcmd_open': '',
+                            'image_list': '',
+                        })
+                    table.upsert(per_data, keys=['id'])
+                    data.append(per_data)
                 else:
                     raise TypeError("Unknown Type: {}".format(poi_type))
 
                 if count % 3000 == 0:
                     _insert = 0
                     print("Total:", count)
+                    _t = time.time()
                     for d in data:
                         _res = table.upsert(d, keys=['id'])
                         if _res:
                             _insert += 1
+                    logger.debug(
+                        '[data upsert][count: {}][insert: {}][takes: {}]'.format(count, _insert, time.time() - _t))
                     print("Insert:", _insert)
                     db.commit()
                     data = []
@@ -501,4 +593,4 @@ def insert_data(_poi_type):
 
 
 if __name__ == '__main__':
-    insert_data(poi_type)
+    insert_data(10001, 'attr')
