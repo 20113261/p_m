@@ -67,6 +67,31 @@ CREATE TABLE `attr_unid` (
   KEY `utime_key` (`utime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+DROP TABLE IF EXISTS shop_unid;
+CREATE TABLE `shop_unid` (
+  `id` varchar(64) NOT NULL,
+  `city_id` varchar(128) NOT NULL DEFAULT '',
+  `city_name` varchar(128) NOT NULL DEFAULT '',
+  `country_name` varchar(128) NOT NULL DEFAULT '',
+  `city_map_info` varchar(128) NOT NULL DEFAULT '',
+  `source` varchar(128) NOT NULL DEFAULT '',
+  `source_id` varchar(64) NOT NULL DEFAULT '',
+  `name` varchar(512) NOT NULL DEFAULT '',
+  `name_en` varchar(512) NOT NULL DEFAULT '',
+  `map_info` varchar(128) NOT NULL DEFAULT '',
+  `grade` float DEFAULT '-1',
+  `star` float DEFAULT '-1',
+  `ranking` float DEFAULT '-1',
+  `address` text,
+  `url` text NOT NULL,
+  `utime` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`source`,`source_id`,`city_id`),
+  KEY `source_key` (`source`),
+  KEY `id_key` (`id`),
+  KEY `utime_key` (`utime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `already_merged_city` (
   `type` VARCHAR(12)  NOT NULL,
   `cid`  VARCHAR(16)  NOT NULL,

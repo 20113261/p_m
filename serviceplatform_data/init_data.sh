@@ -44,3 +44,16 @@ mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables
 mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert BaseDataFinal attr_final_20170929a |sed 's/`attr_final_20170929a`/`attr`/g' > attr_final_20170929a.sql
 
 mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert BaseDataFinal attr_final_20171010a |sed 's/`attr_final_20171010a`/`attr`/g' > attr_final_20171010a.sql
+
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert BaseDataFinal attr_final_20170929a |sed 's/`attr_final_20170929a`/`shop`/g' > shop_final_20170929a.sql
+
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert BaseDataFinal attr_final_20171010a |sed 's/`attr_final_20171010a`/`shop`/g' > shop_final_20171010a.sql
+
+# elong 更新数据导出
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --set-gtid-purged=OFF --no-create-info --no-create-db --complete-insert --where="source='elong'" BaseDataFinal hotel_final_20170929a |sed 's/`hotel_final_20170929a`/`hotel_final_elong`/g' > hotel_final_elong_20170929a.sql
+
+# elong 1010a 更新数据导出
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --set-gtid-purged=OFF --no-create-info --no-create-db --complete-insert --where="source='elong'" BaseDataFinal hotel_final_20171010a |sed 's/`hotel_final_20171010a`/`hotel_final_elong`/g' > hotel_final_elong_20171010a.sql
+
+# elong data final
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --set-gtid-purged=OFF --no-create-info --no-create-db --complete-insert --where="source='elong'" BaseDataFinal hotel_final_elong  > hotel_final_elong.sql
