@@ -3,8 +3,9 @@ import re
 from pymysql.cursors import DictCursor
 from norm_tag.lang_convert import tradition2simple
 from service_platform_conn_pool import base_data_pool
+from toolbox.Common import is_legal
 
-split_pattern = re.compile('[|与/,，]')
+split_pattern = re.compile('[｜|与/,，]')
 
 attr_key_words_dict = {
     '水上乐园和游乐场': '游乐园',
@@ -115,7 +116,8 @@ def get_norm_tag(tag_id, _poi_type):
                 norm_tag_list.append(rest_key_words_dict[tag])
                 norm_tag_en.append(tag_dict[rest_key_words_dict[tag]])
                 continue
-        unknown.append(tag)
+        if is_legal(tag):
+            unknown.append(tag)
     norm_tag = '|'.join(norm_tag_list)
     norm_tag_en = '|'.join(norm_tag_en)
     return norm_tag, norm_tag_en, unknown

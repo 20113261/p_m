@@ -17,13 +17,15 @@ from collections import defaultdict
 from Config.settings import attr_data_conf, attr_merge_conf, attr_final_conf, rest_data_conf, rest_merge_conf, \
     shop_merge_conf, shop_data_conf, poi_data_conf
 from add_open_time.fix_daodao_time import fix_daodao_open_time
-from norm_tag.attr_norm_tag import tradition2simple, get_norm_tag as attr_get_norm_tag
-from norm_tag.rest_norm_tag import get_norm_tag as rest_get_norm_tag
-from norm_tag.shop_norm_tag import get_norm_tag as shop_get_norm_tag
+from norm_tag.attr_norm_tag import tradition2simple
+# from norm_tag.rest_norm_tag import get_norm_tag as rest_get_norm_tag
+# from norm_tag.shop_norm_tag import get_norm_tag as shop_get_norm_tag
+from norm_tag.norm_tag import get_norm_tag
 from get_near_city.get_near_city import get_nearby_city
 from logger import func_time_logger, get_logger
 from service_platform_conn_pool import poi_ori_pool, data_process_pool, base_data_pool
 from toolbox.Common import is_legal
+from poi_ori.already_merged_city import update_already_merge_city
 
 logger = get_logger("insert_poi_log")
 
@@ -67,7 +69,6 @@ get_key.update_priority({
 poi_type = None
 merge_conf = None
 data_conf = None
-get_norm_tag = None
 others_name_list = None
 json_name_list = None
 norm_name_list = None
@@ -78,7 +79,6 @@ def init_global_name(_poi_type):
     global poi_type
     global merge_conf
     global data_conf
-    global get_norm_tag
     global others_name_list
     global json_name_list
     global norm_name_list
@@ -89,7 +89,6 @@ def init_global_name(_poi_type):
         data_process_table_name = 'chat_attraction'
         merge_conf = attr_merge_conf
         data_conf = poi_data_conf
-        get_norm_tag = attr_get_norm_tag
         others_name_list = ['source']
         json_name_list = ['url', 'ranking', 'star', 'recommend_lv', 'plantocounts', 'beentocounts', 'commentcounts',
                           'tagid',
@@ -101,7 +100,6 @@ def init_global_name(_poi_type):
         data_process_table_name = 'chat_restaurant'
         merge_conf = rest_merge_conf
         data_conf = poi_data_conf
-        get_norm_tag = rest_get_norm_tag
         others_name_list = ['source']
         json_name_list = ['commentcounts', 'ranking', 'price', 'introduction']
         norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'url', 'phone', 'opentime',
@@ -110,7 +108,6 @@ def init_global_name(_poi_type):
         data_process_table_name = 'chat_shopping'
         merge_conf = shop_merge_conf
         data_conf = poi_data_conf
-        get_norm_tag = shop_get_norm_tag
         others_name_list = ['source']
 
         json_name_list = ['url', 'ranking', 'star', 'recommend_lv', 'plantocounts', 'beentocounts', 'commentcounts',
@@ -230,7 +227,8 @@ def add_open_time_filter(_v):
         if is_legal(_open_time):
             return True
     except Exception:
-        print(_v)
+        # todo 保存不能识别的 open time
+        logger.debug("[unknown open time][data: {}]".format(_v))
     return False
 
 
@@ -240,7 +238,6 @@ def insert_data(cid, _poi_type):
     global poi_type
     global merge_conf
     global data_conf
-    global get_norm_tag
     global others_name_list
     global json_name_list
     global norm_name_list
@@ -389,9 +386,12 @@ def insert_data(cid, _poi_type):
 
                 # add norm tag
                 # todo change make qyer and other can be used
+                unknown_tag = set()
                 if 'daodao' in data_dict['tagid']:
                     try:
-                        daodao_tagid, daodao_tagid_en = get_norm_tag(data_dict['tagid']['daodao'])
+                        daodao_tagid, daodao_tagid_en, _unknown_tag = get_norm_tag(data_dict['tagid']['daodao'],
+                                                                                   poi_type)
+                        unknown_tag.update(_unknown_tag)
                     except Exception:
                         daodao_tagid, daodao_tagid_en = '', ''
                 else:
@@ -399,7 +399,8 @@ def insert_data(cid, _poi_type):
 
                 if 'qyer' in data_dict['tagid']:
                     try:
-                        qyer_tagid, qyer_tagid_en = get_norm_tag(data_dict['tagid']['qyer'])
+                        qyer_tagid, qyer_tagid_en, _unknown_tag = get_norm_tag(data_dict['tagid']['qyer'], poi_type)
+                        unknown_tag.update(_unknown_tag)
                     except Exception:
                         qyer_tagid, qyer_tagid_en = '', ''
                 else:
@@ -450,7 +451,8 @@ def insert_data(cid, _poi_type):
                     lat = float(lat)
                     data_dict['map_info'] = '{},{}'.format(lng, lat)
                 except Exception as exc:
-                    logger.exception(msg="[map_info filter error]", exc_info=exc)
+                    logger.exception(msg="[map_info filter error][data: {}]".format(data_dict['map_info']),
+                                     exc_info=exc)
                     continue
 
                 # 清理名称中的多余字符
@@ -459,6 +461,26 @@ def insert_data(cid, _poi_type):
                 name_en = data_dict['name_en']
                 if name_en in name and name_en != name:
                     name.replace(name_en, '')
+
+                # 字段修改部分
+                # name
+                if data_dict['name'].lower() in ('', 'null', '0'):
+                    data_dict['name'] = data_dict['name_en']
+
+                # address
+                if data_dict['address'].lower() in ('null', '0'):
+                    data_dict['address'] = ''
+
+                # open time
+                if norm_open_time.lower() in ('', 'null', '0'):
+                    if poi_type in ('attr', 'rest'):
+                        norm_open_time = '<*><*><00:00-23:55><SURE>'
+                    else:
+                        norm_open_time = '<*><*><08:00-20:00><SURE>'
+
+                # todo 保存不能识别的 tag 以及 open time 信息
+                if unknown_tag:
+                    logger.debug("[unknown tag][tags: {}]".format(unknown_tag))
 
                 if poi_type == 'attr':
                     per_data = {
@@ -491,6 +513,8 @@ def insert_data(cid, _poi_type):
                         'image': data_dict['imgurl'],
                         'ori_grade': data_dict['ori_grade'],
                         'nearCity': nearby_city,
+                        'status_online': 'Open',
+                        'status_test': 'Open'
                     }
                     if not o_data:
                         per_data.update({
@@ -505,9 +529,10 @@ def insert_data(cid, _poi_type):
                     try:
                         tagid_data = json.loads(data_dict['tagid'])
                         if 'daodao' in tagid_data:
-                            if '游览' in tagid_data['daodao']:
-                                logger.debug("[tour filter][data: {}]".format(per_data))
-                                continue
+                            if is_legal(tagid_data['daodao']):
+                                if '游览' in tagid_data['daodao']:
+                                    logger.debug("[tour filter][data: {}]".format(tagid_data['daodao']))
+                                    continue
                     except Exception as exc:
                         logger.exception(msg="[tour filter error]", exc_info=exc)
 
@@ -553,6 +578,8 @@ def insert_data(cid, _poi_type):
                         'traveler_choice': data_dict['traveler_choice'],
                         'image': data_dict['imgurl'],
                         'nearCity': nearby_city,
+                        'status_online': 'Open',
+                        'status_test': 'Open'
                     }
                     if not o_data:
                         per_data.update({
@@ -560,6 +587,15 @@ def insert_data(cid, _poi_type):
                             'rcmd_open': '',
                             'image_list': '',
                         })
+                    shopping_tag = ['礼品与特产商店', '大型购物中心', '农贸市场', '跳蚤市场与街边市场', '古董店', '百货商场', '厂家直营店', '购物']
+                    important_shopping_tag = ['礼品与特产商店', '大型购物中心', '百货商场', '厂家直营店', '购物']
+
+                    # 购物数据过滤，通过 tag 过滤
+                    tag_list = norm_tag.split('|')
+                    if not all([tag.strip() in shopping_tag for tag in tag_list]):
+                        if not any([tag.strip() in important_shopping_tag for tag in tag_list]):
+                            continue
+
                     table.upsert(per_data, keys=['id'])
                     data.append(per_data)
                 else:
@@ -590,6 +626,7 @@ def insert_data(cid, _poi_type):
         db.commit()
         print("Insert:", _insert)
     conn.close()
+    update_already_merge_city("{}_data".format(poi_type), cid)
 
 
 if __name__ == '__main__':
