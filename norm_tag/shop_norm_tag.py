@@ -29,6 +29,7 @@ tag_dict = get_tagid_dict()
 def get_norm_tag(tag_id):
     norm_tag_list = []
     norm_tag_en = []
+    unknown = []
     lines = tradition2simple(tag_id).decode()
     for raw_tag in split_pattern.split(lines):
         tag = raw_tag.strip()
@@ -37,40 +38,6 @@ def get_norm_tag(tag_id):
             norm_tag_en.append(tag_dict[tag])
     norm_tag = '|'.join(norm_tag_list)
     norm_tag_en = '|'.join(norm_tag_en)
+    if norm_tag == '' and tag_id != '':
+        print(tag_id)
     return norm_tag, norm_tag_en
-
-
-def get_datas():
-    datas = []
-    sql = 'select id,tagid,data_source from ' + SHOP_TABLE
-    count = 0
-    for line in db.QueryBySQL(sql):
-        miaoji_id = line['id']
-        tagid = line['tagid']
-        data_source = line['data_source']
-        if data_source == 'qyer':
-            continue
-        norm_tag_list = []
-        nrom_tag_en_list = []
-        for raw_tag in split_pattern.split(json.loads(tagid).get('daodao', '')):
-            tag = raw_tag.strip()
-            if tag in tag_dict:
-                norm_tag_list.append(tag)
-                nrom_tag_en_list.append(tag_dict[tag])
-        norm_tag = '|'.join(norm_tag_list)
-        norm_tag_en = '|'.join(nrom_tag_en_list)
-        count += 1
-        if norm_tag != '':
-            data = (norm_tag, norm_tag_en, miaoji_id)
-            datas.append(data)
-    return datas
-
-
-def update_db(datas):
-    sql = 'update ' + SHOP_TABLE + ' set norm_tagid=%s,norm_tagid_en=%s where id=%s'
-    return db.ExecuteSQLs(sql, datas)
-
-
-if __name__ == '__main__':
-    datas = get_datas()
-    print(update_db(datas))

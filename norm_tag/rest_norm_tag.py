@@ -82,6 +82,7 @@ tag_dict = get_tagid_dict()
 def get_norm_tag(tag_id):
     norm_tag = []
     norm_tag_en = []
+    unknown = []
     lines = tradition2simple(tag_id).decode()
     for raw_tag in split_pattern.split(lines):
         tag = raw_tag.strip()
@@ -93,9 +94,11 @@ def get_norm_tag(tag_id):
             if key_words_dict[tag] in tag_dict:
                 norm_tag.append(key_words_dict[tag])
                 norm_tag_en.append(tag_dict[key_words_dict[tag]])
+                continue
+        unknown.append(tag)
     norm_tag = '|'.join(norm_tag)
     norm_tag_en = '|'.join(norm_tag_en)
-    return norm_tag, norm_tag_en
+    return norm_tag, norm_tag_en, unknown
 
 
 def get_datas():
