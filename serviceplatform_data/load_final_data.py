@@ -151,11 +151,14 @@ def load_data(limit=400):
         LIMIT {3};'''.format(time_key[_type], each_table, u_time, limit)
         line_count = local_cursor.execute(update_time_sql)
 
+        logger.debug('sql: %s\nselect_count: %s' % (update_time_sql, str(local_cursor.rowcount)))
+
         if line_count == 0:
             # 如果已无数据，则不需要执行后面的处理
             continue
         # get final update time for inserting db next time
         final_update_time = max(map(lambda x: x[0], local_cursor.fetchall()))
+        logger.debug('each_table: %s  final_update_time: %s' % (each_table, str(final_update_time)))
         local_cursor.close()
 
         # replace into final data
