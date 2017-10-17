@@ -35,6 +35,7 @@ W2N = {
 get_key = toolbox.Common.GetKey()
 get_key.update_priority({
     'default': {
+        'mioji': 15,
         'daodao': 10,
         'tripadvisor': 10,
         'qyer': 9,
@@ -42,6 +43,7 @@ get_key.update_priority({
         'mafengwo': 7,
     },
     ('name', 'name_en'): {
+        'mioji': 15,
         'qyer': 10,
         'daodao': 9,
         'tripadvisor': 9,
@@ -49,6 +51,7 @@ get_key.update_priority({
         'mafengwo': 7,
     },
     ('address', 'opentime', 'grade', 'star'): {
+        'mioji': 15,
         'daodao': 10,
         'tripadvisor': 10,
         'qyer': 9,
@@ -216,8 +219,8 @@ def insert_data(_poi_type):
               '`map_info`,`address`,`star`,`plantocount`,`beentocount`,`real_ranking`,' \
               '`grade`,`commentcount`,`tagid`,`norm_tagid`,`norm_tagid_en`,`url`,`website_url`,`phone`,`introduction`,' \
               '`open`, `open_desc`,`recommend_lv`,`prize`,`traveler_choice`, `alias`, ' \
-              '`image`, `ori_grade`,`nearCity`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-              '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+              '`image`, `ori_grade`,`nearCity`, `ranking`,`rcmd_open`,`add_info`,`address_en`,`event_mark`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
+              '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,-1,"","","","")'
     elif _poi_type == 'rest':
         sql = 'replace into chat_restaurant(`id`,`name`,`name_en`,' \
               '`source`,`city_id`,`map_info`,`address`,`real_ranking`,' \
@@ -249,9 +252,25 @@ def insert_data(_poi_type):
                 data_dict = defaultdict(dict)
                 can_be_used = False
 
+                # 获取线上环境数据
+                o_data = _online_data.get(miaoji_id, None)
+
                 # 初始化融合信息
                 for each_name in (json_name_list + norm_name_list + others_name_list):
                     data_dict[each_name] = {}
+                    if o_data is not None:
+                        if each_name in json_name_list:
+                            if each_name in o_data:
+                                try:
+                                    _res = json.loads(o_data[each_name])
+                                    if isinstance(_res, dict):
+                                        data_dict[each_name] = _res
+                                    else:
+                                        pass
+                                except Exception:
+                                    pass
+                        else:
+                            data_dict[each_name]['mioji'] = o_data.get(each_name, {})
 
                 # 遍历所有需要融合的 source 以及 id，并生成 dict 类融合内容
                 for s_sid in union_info.split('|_||_|'):
@@ -334,12 +353,18 @@ def insert_data(_poi_type):
                 # add norm tag
                 # todo change make qyer and other can be used
                 if 'daodao' in data_dict['tagid']:
-                    daodao_tagid, daodao_tagid_en = get_norm_tag(data_dict['tagid']['daodao'])
+                    try:
+                        daodao_tagid, daodao_tagid_en = get_norm_tag(data_dict['tagid']['daodao'])
+                    except Exception:
+                        daodao_tagid, daodao_tagid_en = '', ''
                 else:
                     daodao_tagid, daodao_tagid_en = '', ''
 
                 if 'qyer' in data_dict['tagid']:
-                    qyer_tagid, qyer_tagid_en = get_norm_tag(data_dict['tagid']['qyer'])
+                    try:
+                        qyer_tagid, qyer_tagid_en = get_norm_tag(data_dict['tagid']['qyer'])
+                    except Exception:
+                        qyer_tagid, qyer_tagid_en = '', ''
                 else:
                     qyer_tagid, qyer_tagid_en = '', ''
 
