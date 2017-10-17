@@ -77,14 +77,14 @@ WHERE source = %s AND source_id = %s GROUP BY file_md5;''', each)
     # 结束后统计
     online_cursor = online_conn.cursor()
     online_cursor.execute('''SELECT
-      count(*)        AS total,
-      sum(CASE WHEN first_img != ''
-        THEN 1
-          ELSE 0 END) AS first_img,
-      sum(CASE WHEN img_list != ''
-        THEN 1
-          ELSE 0 END) AS img_list
-    FROM hotel;''')
+  count(*)        AS total,
+  sum(CASE WHEN first_img NOT IN ('', 'NULL') AND first_img IS NOT NULL
+    THEN 1
+      ELSE 0 END) AS first_img,
+  sum(CASE WHEN img_list NOT IN ('', 'NULL') AND img_list IS NOT NULL
+    THEN 1
+      ELSE 0 END) AS img_list
+FROM hotel;''')
     total, first_img, img_list = online_cursor.fetchone()
 
     # 结束后成功统计
