@@ -239,6 +239,8 @@ def insert_data(_poi_type):
     else:
         raise TypeError("Unknown Type: {}".format(poi_type))
 
+    db = dataset.connect("mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/poi_merge?charset=utf8")
+    table = db['chat_attraction']
     conn = poi_ori_pool.connection()
     for task_dict in get_task():
         count = 0
@@ -402,20 +404,50 @@ def insert_data(_poi_type):
 
                 # 添加 nearCity 字段
                 nearby_city = get_nearby_city(poi_city_id=city_id, poi_map_info=data_dict['map_info'])
+                ''''`image`, `ori_grade`,`nearCity`, `ranking`,`rcmd_open`,`add_info`,`address_en`,`event_mark`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
+          '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,-1,"","","","")';'''
 
                 if poi_type == 'attr':
-                    data.append((
-                        miaoji_id, data_dict['name'], data_dict['name_en'], source, city_id,
-                        data_dict['map_info'], data_dict['address'],
-                        data_dict['star'], data_dict['plantocounts'], data_dict['beentocounts'],
-                        data_dict['ranking'], data_dict['grade'],
-                        data_dict['commentcounts'],
-                        data_dict['tagid'], norm_tag, norm_tag_en, data_dict['url'], data_dict['site'],
-                        data_dict['phone'],
-                        data_dict['introduction'], norm_open_time,
-                        data_dict['opentime'], data_dict['recommend_lv'], data_dict['prize'],
-                        data_dict['traveler_choice'], alias, data_dict['imgurl'], data_dict['ori_grade'], nearby_city)
-                    )
+                    per_data = {
+                        'id': miaoji_id,
+                        'name': data_dict['name'],
+                        'name_en': data_dict['name_en'],
+                        'data_source': source,
+                        'city_id': city_id,
+                        'map_info': data_dict['map_info'],
+                        'address': data_dict['address'],
+                        'star': data_dict['star'],
+                        'plantocount': data_dict['plantocounts'],
+                        'beentocount': data_dict['beentocounts'],
+                        'real_ranking': data_dict['ranking'],
+                        'grade': data_dict['grade'],
+                        'commentcount': data_dict['commentcounts'],
+                        'tagid': data_dict['tagid'],
+                        'norm_tagid': norm_tag,
+                        'norm_tagid_en': norm_tag_en,
+                        'url': data_dict['url'],
+                        'website_url': data_dict['site'],
+                        'phone': data_dict['phone'],
+                        'introduction': data_dict['introduction'],
+                        'open': norm_open_time,
+                        'open_desc': data_dict['opentime'],
+                        'recommend_lv': data_dict['recommend_lv'],
+                        'prize': data_dict['prize'],
+                        'traveler_choice': data_dict['traveler_choice'],
+                        'alias': alias,
+                        'image': data_dict['imgurl'],
+                        'ori_grade': data_dict['ori_grade'],
+                        'nearCity': nearby_city,
+                    }
+                    if not o_data:
+                        per_data.update({
+                            'ranking': -1.0,
+                            'rcmd_open': '',
+                            'add_info': '',
+                            'address_en': '',
+                            'event_mark': ''
+                        })
+                    data.append(per_data)
                 elif poi_type == 'rest':
                     data.append((
                         miaoji_id, data_dict['name'], data_dict['name_en'], source, key,
@@ -445,17 +477,26 @@ def insert_data(_poi_type):
                     raise TypeError("Unknown Type: {}".format(poi_type))
 
                 if count % 3000 == 0:
+                    _insert = 0
                     print("Total:", count)
-                    cursor = conn.cursor()
-                    print("Insert:", cursor.executemany(sql, data))
-                    cursor.close()
+                    for d in data:
+                        _res = table.upsert(d, keys=['id'])
+                        if _res:
+                            _insert += 1
+                    print("Insert:", _insert)
+                    db.commit()
                     data = []
                 count += 1
 
         print("Total:", count)
-        cursor = conn.cursor()
-        print("Insert:", cursor.executemany(sql, data))
-        cursor.close()
+        _insert = 0
+        for d in data:
+            _res = table.upsert(d, keys=['id'])
+            if _res:
+                _insert += 1
+        print("Insert:", _insert)
+        db.commit()
+        print("Insert:", _insert)
     conn.close()
 
 

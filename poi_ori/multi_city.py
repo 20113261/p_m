@@ -23,9 +23,7 @@ def poi_ori(poi_type):
     conn = base_data_pool.connection()
     cursor = conn.cursor()
     cursor.execute('''SELECT id
-FROM city
-WHERE id IN (SELECT DISTINCT city_id
-             FROM chat_attraction);''')
+FROM city;''')
     cids = list(map(lambda x: x[0], cursor.fetchall()))
     cursor.close()
     conn.close()
