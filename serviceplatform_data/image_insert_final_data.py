@@ -76,6 +76,8 @@ def update_seek_table(table_name, seek):
     local_cursor = local_conn.cursor()
     local_cursor.execute('''REPLACE INTO data_insert_id_seek VALUES (%s, %s);''', (table_name, seek))
     logger.debug("[update seek table][table_name: {}][max_id: {}]".format(table_name, seek))
+    global all_seek_dict
+    all_seek_dict[table_name] = seek
     local_cursor.close()
     local_conn.close()
 
