@@ -87,7 +87,14 @@ def get_max_id():
     cursor.execute('''SELECT max(id) FROM {}_unid;'''.format(poi_type))
     _id_merged = cursor.fetchone()[0]
     conn.close()
-    return max(_id_online, _id_merged)
+    if _id_merged and _id_online:
+        return max(_id_online, _id_merged)
+    elif _id_merged:
+        return _id_merged
+    elif _id_online:
+        return _id_online
+    else:
+        raise Exception("无法获取最大 id ，不能进行融合")
 
 
 def get_max_uid():
@@ -118,17 +125,17 @@ def get_data(cid_or_geohash):
 FROM {1}
 WHERE city_id = {0}
 ORDER BY status_online DESC, status_test DESC, official DESC, grade;'''.format(cid_or_geohash, online_table_name)
-    for data in MysqlSource(onlinedb, table_or_query=sql, size=10000, is_table=False):
+    for data in MysqlSource(onlinedb, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
         keys = set()
-        if is_legal(data[1]):
-            keys.add(data[1])
-        if is_legal(data[2]):
-            keys.add(data[2])
-        for key in data[3].split('|'):
+        if is_legal(data['name']):
+            keys.add(data['name'])
+        if is_legal(data['name_en']):
+            keys.add(data['name_en'])
+        for key in data['alias'].split('|'):
             if is_legal(key):
                 keys.add(key)
-        logger.debug("[source: {}][sid: {}][keys: {}]".format('online', data[0], keys))
-        yield 'online', data[0], keys
+        logger.debug("[source: {}][sid: {}][keys: {}]".format('online', data['id'], keys))
+        yield 'online', data['id'], keys
 
     # 各源数据，暂时不增加排序规则
     sql = '''SELECT
@@ -138,14 +145,14 @@ ORDER BY status_online DESC, status_test DESC, official DESC, grade;'''.format(c
   name_en
 FROM {1}
 WHERE city_id = {0};'''.format(cid_or_geohash, data_source_table)
-    for data in MysqlSource(data_db, table_or_query=sql, size=10000, is_table=False):
+    for data in MysqlSource(data_db, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
         keys = set()
-        if is_legal(data[2]):
-            keys.add(data[2])
-        if is_legal(data[3]):
-            keys.add(data[3])
-        logger.debug("[source: {}][sid: {}][keys: {}]".format(data[1], data[0], keys))
-        yield data[1], data[0], keys
+        if is_legal(data['name']):
+            keys.add(data['name'])
+        if is_legal(data['name_en']):
+            keys.add(data['name_en'])
+        logger.debug("[source: {}][sid: {}][keys: {}]".format(data['source'], data['id'], keys))
+        yield data['source'], data['id'], keys
 
 
 @func_time_logger
@@ -168,87 +175,86 @@ WHERE city.id = {};'''.format(cid_or_geohash))
 
     # 去除 total 的写法，费劲但是提升速度不明显，使用 total 后 5.9 秒获取巴黎全部信息，直接获取 6.9 秒，相差可以接受
     # init id list
-    online_ids = set()
-    data_ids = set()
-    for _, s_sid_set in merged_dict.items():
-        for source, sid in s_sid_set:
-            if source == 'online':
-                online_ids.add(sid)
-            else:
-                data_ids.add((source, sid))
+    # online_ids = set()
+    # data_ids = set()
+    # for _, s_sid_set in merged_dict.items():
+    #     for source, sid in s_sid_set:
+    #         if source == 'online':
+    #             online_ids.add(sid)
+    #         else:
+    #             data_ids.add((source, sid))
 
-                # get data total
+    # get data total
     # get online data name name_en map_info grade star ranking address url
     total_data = {}
-    if online_ids:
-        _dev_conn = base_data_pool.connection()
-        _dev_cursor = _dev_conn.cursor()
-        try:
-            sql = '''SELECT
-      id,
-      name,
-      name_en,
-      map_info,
-      grade,
-      -1,
-      ranking,
-      address,
-      ''
-    FROM chat_attraction WHERE id in ({})'''.format(','.join(map(lambda x: "'{}'".format(x), online_ids)))
-            _dev_cursor.execute(sql)
-        except Exception as exc:
-            logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
+    _dev_conn = base_data_pool.connection()
+    _dev_cursor = _dev_conn.cursor()
+    try:
+        sql = '''SELECT
+  id,
+  name,
+  name_en,
+  map_info,
+  grade,
+  -1,
+  ranking,
+  address,
+  ''
+FROM chat_attraction WHERE city_id={};'''.format(cid_or_geohash)
+        _dev_cursor.execute(sql)
+    except Exception as exc:
+        logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
 
-        for line in _dev_cursor.fetchall():
-            total_data[('online', line[0])] = line[1:]
-        _dev_cursor.close()
-        _dev_conn.close()
+    for line in _dev_cursor.fetchall():
+        total_data[('online', line[0])] = line[1:]
+    _dev_cursor.close()
+    _dev_conn.close()
 
     # get poi name name_en map_info grade star ranking address url
-    if data_ids:
-        _data_conn = poi_ori_pool.connection()
-        _data_cursor = _data_conn.cursor()
-        try:
-            sql = '''SELECT
-    source,
-    id,
-    CASE WHEN name NOT IN ('NULL', '', NULL)
-    THEN name
-    ELSE '' END,
-    CASE WHEN name_en NOT IN ('NULL', '', NULL)
-    THEN name_en
-    ELSE '' END,
-    map_info,
-    CASE WHEN grade NOT IN ('NULL', '', NULL)
-    THEN grade
-    ELSE -1.0 END AS grade,
-    CASE WHEN star NOT IN ('NULL', '', NULL)
-    THEN star
-    ELSE -1.0 END AS star,
-    CASE WHEN ranking NOT IN ('NULL', '', NULL)
-    THEN ranking
-    ELSE -1.0 END AS ranking,
-    CASE WHEN address NOT IN ('NULL', '', NULL)
-    THEN address
-    ELSE '' END,
-    CASE WHEN url NOT IN ('null', '', NULL)
-    THEN url
-    ELSE '' END
-    FROM attr
-    WHERE (source, id) IN
-          ({});'''.format(','.join(map(lambda x: "('{}','{}')".format(x[0], x[1]), data_ids)))
-            _data_cursor.execute(sql)
-        except Exception as exc:
-            logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
-        for line in _data_cursor.fetchall():
-            total_data[(line[0], line[1])] = line[2:]
-        _data_cursor.close()
-        _data_conn.close()
+    _data_conn = poi_ori_pool.connection()
+    _data_cursor = _data_conn.cursor()
+    try:
+        sql = '''SELECT
+source,
+id,
+name,
+name_en,
+map_info,
+grade,
+star,
+ranking,
+address,
+url
+FROM attr
+WHERE city_id={};'''.format(cid_or_geohash)
+        _data_cursor.execute(sql)
+    except Exception as exc:
+        logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
+    for line in _data_cursor.fetchall():
+        total_data[(line[0], line[1])] = line[2:]
+    _data_cursor.close()
+    _data_conn.close()
 
     data = []
     for uid, s_sid_set in merged_dict.items():
         for source, sid in s_sid_set:
+            # name name_en map_info grade star ranking address url
             name, name_en, map_info, grade, star, ranking, address, url = total_data[(source, sid)]
+            if not is_legal(name):
+                name = ''
+            if not is_legal(name_en):
+                name_en = ''
+            if not is_legal(grade):
+                grade = -1.0
+            if not is_legal(star):
+                star = -1.0
+            if not is_legal(ranking):
+                ranking = -1.0
+            if not is_legal(address):
+                address = ''
+            if not is_legal(url):
+                url = ''
+
             data.append((uid, cid, city_name, country, city_map_info, source, sid, name, name_en, map_info, grade,
                          star, ranking, address, url))
 
@@ -382,4 +388,4 @@ def poi_merge(cid_or_geohash, poi_type):
 
 
 if __name__ == '__main__':
-    poi_merge(50793, 'attr')
+    poi_merge(10001, 'attr')
