@@ -79,9 +79,15 @@ def get_max_id():
     conn = base_data_pool.connection()
     cursor = conn.cursor()
     cursor.execute('''SELECT max(id) FROM {};'''.format(online_table_name))
-    _id = cursor.fetchone()[0]
+    _id_online = cursor.fetchone()[0]
     conn.close()
-    return _id
+
+    conn = poi_ori_pool.connection()
+    cursor = conn.cursor()
+    cursor.execute('''SELECT max(id) FROM {}_unid;'''.format(poi_type))
+    _id_merged = cursor.fetchone()[0]
+    conn.close()
+    return max(_id_online, _id_merged)
 
 
 def get_max_uid():
@@ -174,68 +180,70 @@ WHERE city.id = {};'''.format(cid_or_geohash))
                 # get data total
     # get online data name name_en map_info grade star ranking address url
     total_data = {}
-    _dev_conn = base_data_pool.connection()
-    _dev_cursor = _dev_conn.cursor()
-    try:
-        sql = '''SELECT
-  id,
-  name,
-  name_en,
-  map_info,
-  grade,
-  -1,
-  ranking,
-  address,
-  ''
-FROM chat_attraction WHERE id in ({})'''.format(','.join(map(lambda x: "'{}'".format(x), online_ids)))
-        _dev_cursor.execute(sql)
-    except Exception as exc:
-        logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
+    if online_ids:
+        _dev_conn = base_data_pool.connection()
+        _dev_cursor = _dev_conn.cursor()
+        try:
+            sql = '''SELECT
+      id,
+      name,
+      name_en,
+      map_info,
+      grade,
+      -1,
+      ranking,
+      address,
+      ''
+    FROM chat_attraction WHERE id in ({})'''.format(','.join(map(lambda x: "'{}'".format(x), online_ids)))
+            _dev_cursor.execute(sql)
+        except Exception as exc:
+            logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
 
-    for line in _dev_cursor.fetchall():
-        total_data[('online', line[0])] = line[1:]
-    _dev_cursor.close()
-    _dev_conn.close()
+        for line in _dev_cursor.fetchall():
+            total_data[('online', line[0])] = line[1:]
+        _dev_cursor.close()
+        _dev_conn.close()
 
-    # todo get poi name name_en map_info grade star ranking address url
-    _data_conn = poi_ori_pool.connection()
-    _data_cursor = _data_conn.cursor()
-    try:
-        sql = '''SELECT
-source,
-id,
-CASE WHEN name NOT IN ('NULL', '', NULL)
-THEN name
-ELSE '' END,
-CASE WHEN name_en NOT IN ('NULL', '', NULL)
-THEN name_en
-ELSE '' END,
-map_info,
-CASE WHEN grade NOT IN ('NULL', '', NULL)
-THEN grade
-ELSE -1.0 END AS grade,
-CASE WHEN star NOT IN ('NULL', '', NULL)
-THEN star
-ELSE -1.0 END AS star,
-CASE WHEN ranking NOT IN ('NULL', '', NULL)
-THEN ranking
-ELSE -1.0 END AS ranking,
-CASE WHEN address NOT IN ('NULL', '', NULL)
-THEN address
-ELSE '' END,
-CASE WHEN url NOT IN ('null', '', NULL)
-THEN url
-ELSE '' END
-FROM attr
-WHERE (source, id) IN
-      ({});'''.format(','.join(map(lambda x: "('{}','{}')".format(x[0], x[1]), data_ids)))
-        _data_cursor.execute(sql)
-    except Exception as exc:
-        logger.exception("[sql exc][sql: {}]".format(exc), exc_info=exc)
-    for line in _data_cursor.fetchall():
-        total_data[(line[0], line[1])] = line[2:]
-    _data_cursor.close()
-    _data_conn.close()
+    # get poi name name_en map_info grade star ranking address url
+    if data_ids:
+        _data_conn = poi_ori_pool.connection()
+        _data_cursor = _data_conn.cursor()
+        try:
+            sql = '''SELECT
+    source,
+    id,
+    CASE WHEN name NOT IN ('NULL', '', NULL)
+    THEN name
+    ELSE '' END,
+    CASE WHEN name_en NOT IN ('NULL', '', NULL)
+    THEN name_en
+    ELSE '' END,
+    map_info,
+    CASE WHEN grade NOT IN ('NULL', '', NULL)
+    THEN grade
+    ELSE -1.0 END AS grade,
+    CASE WHEN star NOT IN ('NULL', '', NULL)
+    THEN star
+    ELSE -1.0 END AS star,
+    CASE WHEN ranking NOT IN ('NULL', '', NULL)
+    THEN ranking
+    ELSE -1.0 END AS ranking,
+    CASE WHEN address NOT IN ('NULL', '', NULL)
+    THEN address
+    ELSE '' END,
+    CASE WHEN url NOT IN ('null', '', NULL)
+    THEN url
+    ELSE '' END
+    FROM attr
+    WHERE (source, id) IN
+          ({});'''.format(','.join(map(lambda x: "('{}','{}')".format(x[0], x[1]), data_ids)))
+            _data_cursor.execute(sql)
+        except Exception as exc:
+            logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
+        for line in _data_cursor.fetchall():
+            total_data[(line[0], line[1])] = line[2:]
+        _data_cursor.close()
+        _data_conn.close()
 
     data = []
     for uid, s_sid_set in merged_dict.items():
@@ -374,4 +382,4 @@ def poi_merge(cid_or_geohash, poi_type):
 
 
 if __name__ == '__main__':
-    poi_merge(10001, 'attr')
+    poi_merge(50793, 'attr')
