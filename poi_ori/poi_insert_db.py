@@ -608,7 +608,7 @@ def poi_insert_data(cid, _poi_type):
         else:
             raise TypeError("Unknown Type: {}".format(poi_type))
 
-        if count % 3000 == 0:
+        if count % 300 == 0:
             db = dataset.connect("mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/poi_merge?charset=utf8")
             table = db[data_process_table_name]
             _insert = 0
@@ -641,4 +641,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(10002, 'attr')
+    poi_insert_data(10001, 'attr')
