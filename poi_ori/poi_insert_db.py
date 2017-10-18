@@ -604,7 +604,7 @@ def poi_insert_data(cid, _poi_type):
 
         if count % 3000 == 0:
             _insert = 0
-            print("Total:", count)
+            logger.debug("Total: {}".format(count))
             _t = time.time()
             for d in data:
                 _res = table.upsert(d, keys=['id'])
@@ -612,7 +612,7 @@ def poi_insert_data(cid, _poi_type):
                     _insert += 1
             logger.debug(
                 '[data upsert][count: {}][insert: {}][takes: {}]'.format(count, _insert, time.time() - _t))
-            print("Insert:", _insert)
+            logger.debug("Insert: {}".format(_insert))
             db.commit()
             data = []
         count += 1
