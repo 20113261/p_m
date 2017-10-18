@@ -209,34 +209,51 @@ def fix_time_digits(source_open_time):
     new_date = []
     new_time = []
     has_output_time = False
+    until_output_time = True
     source_open_time = standardized(source_open_time)
     for date_or_time in re.findall("(周一|周四|周三|周六|周五|周七|周二|周日|[\d:]+)", source_open_time):
         if '周' in date_or_time:
             if has_output_time:
                 new_date = []
                 has_output_time = False
-            if len(new_date) == 2:
+                until_output_time = True
+            if len(new_date) == 2 and until_output_time:
                 new_date = []
             if date_or_time in E2CC:
                 new_date.append(E2CC[date_or_time])
+                next_word = len(date_or_time) + source_open_time.find(date_or_time)
+                if next_word < len(source_open_time) - 1:
+                    if source_open_time[next_word] == '、':
+                        until_output_time = False
             elif date_or_time in E2CC.values():
                 new_date.append(date_or_time)
+                next_word = len(date_or_time) + source_open_time.find(date_or_time)
+                if next_word < len(source_open_time) - 1:
+                    if source_open_time[next_word] == '、':
+                        until_output_time = False
             else:
                 raise TypeError('Unknown {}'.format(date_or_time))
         else:
             datetime.datetime.strptime(date_or_time, '%H:%M')
             new_time.append(date_or_time)
             if len(new_time) == 2:
-                if len(new_date) == 2:
-                    _res.append(
-                        '<*><{0}-{1}><{2}-{3}><SURE>'.format(new_date[0], new_date[1], new_time[0], new_time[1]))
-                elif len(new_date) == 1:
-                    _res.append(
-                        '<*><{0}><{1}-{2}><SURE>'.format(new_date[0], new_time[0], new_time[1]))
-                has_output_time = True
-                new_time = []
-    if len(_res) != len(source_open_time.split('|')):
-        raise TypeError('Error open time : {}'.format(source_open_time))
+                if until_output_time:
+                    if len(new_date) == 2:
+                        _res.append(
+                            '<*><{0}-{1}><{2}-{3}><SURE>'.format(new_date[0], new_date[1], new_time[0], new_time[1]))
+                    elif len(new_date) == 1:
+                        _res.append(
+                            '<*><{0}><{1}-{2}><SURE>'.format(new_date[0], new_time[0], new_time[1]))
+                    has_output_time = True
+                    new_time = []
+                else:
+                    for each_date in new_date:
+                        _res.append(
+                            '<*><{0}><{1}-{2}><SURE>'.format(each_date, new_time[0], new_time[1]))
+                    has_output_time = True
+                    new_time = []
+    # if len(_res) != len(source_open_time.split('|')):
+    #     raise TypeError('Error open time : {}'.format(source_open_time))
     return '|'.join(_res)
 
 
@@ -291,8 +308,13 @@ def fix_daodao_open_time(source_open_time):
     for k, v in S2F.items():
         __source_open_time = __source_open_time.replace(k, v)
 
-    __source_open_time = __source_open_time.replace('周周', '周')
+    __source_open_time = __source_open_time.replace('：', ':')
 
+    while '周周' in __source_open_time:
+        __source_open_time = __source_open_time.replace('周周', '周')
+
+    while ' ' in __source_open_time:
+        __source_open_time = __source_open_time.replace(' ', '')
     # 加 |
     # 时间 星期
     try:
