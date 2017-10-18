@@ -144,3 +144,14 @@ CREATE TABLE `already_merged_city` (
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `unknown_keywords` (
+  `type`     VARCHAR(24)  NOT NULL,
+  `key_hash` VARCHAR(48)  NOT NULL,
+  `keywords` TEXT         NOT NULL,
+  `utime`    TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`type`, `key_hash`),
+  KEY `type_index` (`type`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
