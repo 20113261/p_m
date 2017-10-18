@@ -418,7 +418,7 @@ def poi_insert_data(cid, _poi_type):
 
         # 过滤名称
         if data_dict['name'].lower() in ('', 'null', '0') and data_dict['name_en'] in ('', 'null', '0'):
-            logger.debug("[filter by name]")
+            logger.debug("[filter by name][name: {}][name_en: {}]".format(data_dict['name'], data_dict['name_en']))
             continue
 
         # name name_en 判断
@@ -639,4 +639,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(10001, 'shop')
+    poi_insert_data(10002, 'attr')
