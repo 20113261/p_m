@@ -42,6 +42,7 @@ if __name__ == '__main__':
     _count = 0
     _finished = 0
     exc_set = set()
+    result_set = set()
     for url, flag, table_name in task_enter():
         _count += 1
         task_info = {
@@ -60,6 +61,7 @@ if __name__ == '__main__':
             'finished': 0,
             'utime': datetime.datetime.now()
         }
+        result_set.add((url, flag, table_name))
         task_info['task_token'] = hashlib.md5(json.dumps(task_info['args'], sort_keys=True).encode()).hexdigest()
         data.append(task_info)
         if _count % 1000 == 0:
