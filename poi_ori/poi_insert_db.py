@@ -416,6 +416,11 @@ def poi_insert_data(cid, _poi_type):
         # 替换旧的 data_dict
         data_dict = new_data_dict
 
+        # 过滤名称
+        if data_dict['name'].lower() in ('', 'null', '0') and data_dict['name_en'] in ('', 'null', '0'):
+            logger.debug("[filter by name]")
+            continue
+
         # name name_en 判断
         if data_dict['name'] != data_dict['name_en']:
             if data_dict['name_en'] in data_dict['name']:
