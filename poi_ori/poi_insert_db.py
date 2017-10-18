@@ -228,8 +228,8 @@ def add_open_time_filter(_v):
         if is_legal(_open_time):
             return True
     except Exception:
-        # todo 保存不能识别的 open time
-        insert_unknown_keywords('opentime', _v)
+        # 保存不能识别的 open time
+        insert_unknown_keywords('{}_opentime'.format(poi_type), _v)
         logger.debug("[unknown open time][data: {}]".format(_v))
     return False
 
@@ -473,9 +473,9 @@ def poi_insert_data(cid, _poi_type):
             else:
                 norm_open_time = '<*><*><08:00-20:00><SURE>'
 
-        # todo 保存不能识别的 tag 以及 open time 信息
+        # 保存不能识别的 tag 以及 open time 信息
         if unknown_tag:
-            insert_unknown_keywords('tag', unknown_tag)
+            insert_unknown_keywords('{}_tag'.format(poi_type), unknown_tag)
             logger.debug("[unknown tag][tags: {}]".format(unknown_tag))
 
         if poi_type == 'attr':
