@@ -18,11 +18,7 @@ from poi_ori.already_merged_city import init_already_merged_city
 
 logger = get_logger("multi_city_insert_db")
 
-pool_list_size = 5
-pool_size = 16
-pool_list = []
-for i in range(pool_list_size):
-    pool_list.append(gevent.pool.Pool(size=pool_size))
+pool = gevent.pool.Pool(size=16)
 
 
 def poi_ori_insert_data(poi_type):
@@ -41,11 +37,9 @@ FROM city;''')
         _count += 1
         start = time.time()
         logger.info('[start][cid: {}]'.format(cid))
-        pool_list[_count % pool_list_size].apply_async(poi_insert_data, args=(cid, poi_type))
+        pool.apply_async(poi_insert_data, args=(cid, poi_type))
         logger.info('[end][cid: {}][takes: {}]'.format(cid, time.time() - start))
-
-    for p in pool_list:
-        p.join()
+    pool.join()
 
 
 if __name__ == '__main__':
