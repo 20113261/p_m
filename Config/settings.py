@@ -93,3 +93,11 @@ attr_final_conf = {
     'charset': 'utf8',
     'db': 'attr_merge'
 }
+
+poi_data_conf = {
+    'host': '10.10.228.253',
+    'user': 'mioji_admin',
+    'password': 'mioji1109',
+    'charset': 'utf8',
+    'db': 'poi_merge'
+}
