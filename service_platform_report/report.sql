@@ -684,7 +684,9 @@ CREATE TABLE `serviceplatform_routine_task_summary` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `task_key` (`task_name`, `source`, `type`, `slave_ip`, `error_code`, `date`, `hour`),
   KEY `hourly_ip_report_key` (task_name, source, type, slave_ip, datetime),
-  KEY `hourly_no_ip_report_key` (task_name, source, type, datetime)
+  KEY `hourly_no_ip_report_key` (task_name, source, type, datetime),
+  KEY `hourly_ip_report_by_day_key` (task_name, source, type, slave_ip, date),
+  KEY `hourly_no_ip_report_by_day_key` (task_name, source, type, date)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -697,6 +699,7 @@ CREATE VIEW service_platform_routine_source_type_ip AS
     source,
     type,
     slave_ip,
+    sum(count)      AS total,
     sum(CASE WHEN error_code = 0
       THEN count
         ELSE 0 END) AS '0',
@@ -753,11 +756,7 @@ CREATE VIEW service_platform_routine_source_type_ip AS
         ELSE 0 END) AS '109',
     datetime
   FROM serviceplatform_routine_task_summary
-  GROUP BY task_name, source, type, slave_ip, datetime
-  ORDER BY type, source, task_name, slave_ip;
-
-SELECT *
-FROM service_platform_routine_source_type_ip;
+  GROUP BY task_name, source, type, slave_ip, datetime;
 
 
 DROP VIEW IF EXISTS service_platform_routine_source_type;
@@ -766,6 +765,7 @@ CREATE VIEW service_platform_routine_source_type AS
     task_name,
     source,
     type,
+    sum(count)      AS total,
     sum(CASE WHEN error_code = 0
       THEN count
         ELSE 0 END) AS '0',
@@ -822,11 +822,7 @@ CREATE VIEW service_platform_routine_source_type AS
         ELSE 0 END) AS '109',
     datetime
   FROM serviceplatform_routine_task_summary
-  GROUP BY task_name, source, type, datetime
-  ORDER BY type, source, task_name;
-
-SELECT *
-FROM service_platform_routine_source_type;
+  GROUP BY task_name, source, type, datetime;
 
 # 抓取平台例行任务统计，分 ip
 DROP VIEW IF EXISTS service_platform_routine_source_type_ip_by_day;
@@ -836,70 +832,64 @@ CREATE VIEW service_platform_routine_source_type_ip_by_day AS
     source,
     type,
     slave_ip,
+    sum(count)      AS total,
     sum(CASE WHEN error_code = 0
       THEN count
-        ELSE 0 END)      AS '0',
+        ELSE 0 END) AS '0',
     sum(CASE WHEN error_code = 12
       THEN count
-        ELSE 0 END)      AS '12',
+        ELSE 0 END) AS '12',
     sum(CASE WHEN error_code IN (21, 22, 23)
       THEN count
-        ELSE 0 END)      AS '21+22+23',
+        ELSE 0 END) AS '21+22+23',
     sum(CASE WHEN error_code = 25
       THEN count
-        ELSE 0 END)      AS '25',
+        ELSE 0 END) AS '25',
     sum(CASE WHEN error_code = 27
       THEN count
-        ELSE 0 END)      AS '27',
+        ELSE 0 END) AS '27',
     sum(CASE WHEN error_code = 29
       THEN count
-        ELSE 0 END)      AS '29',
+        ELSE 0 END) AS '29',
     sum(CASE WHEN error_code = 33
       THEN count
-        ELSE 0 END)      AS '33',
+        ELSE 0 END) AS '33',
     sum(CASE WHEN error_code = 36
       THEN count
-        ELSE 0 END)      AS '36',
+        ELSE 0 END) AS '36',
     sum(CASE WHEN error_code = 37
       THEN count
-        ELSE 0 END)      AS '37',
+        ELSE 0 END) AS '37',
     sum(CASE WHEN error_code = 101
       THEN count
-        ELSE 0 END)      AS '101',
+        ELSE 0 END) AS '101',
     sum(CASE WHEN error_code = 102
       THEN count
-        ELSE 0 END)      AS '102',
+        ELSE 0 END) AS '102',
     sum(CASE WHEN error_code = 103
       THEN count
-        ELSE 0 END)      AS '103',
+        ELSE 0 END) AS '103',
     sum(CASE WHEN error_code = 104
       THEN count
-        ELSE 0 END)      AS '104',
+        ELSE 0 END) AS '104',
     sum(CASE WHEN error_code = 105
       THEN count
-        ELSE 0 END)      AS '105',
+        ELSE 0 END) AS '105',
     sum(CASE WHEN error_code = 106
       THEN count
-        ELSE 0 END)      AS '106',
+        ELSE 0 END) AS '106',
     sum(CASE WHEN error_code = 107
       THEN count
-        ELSE 0 END)      AS '107',
+        ELSE 0 END) AS '107',
     sum(CASE WHEN error_code = 108
       THEN count
-        ELSE 0 END)      AS '108',
+        ELSE 0 END) AS '108',
     sum(CASE WHEN error_code = 109
       THEN count
-        ELSE 0 END)      AS '109',
-    date,
-    '00'                 AS hour,
-    concat(date, '0000') AS datetime
+        ELSE 0 END) AS '109',
+    date
   FROM serviceplatform_routine_task_summary
-  GROUP BY task_name, source, type, slave_ip, date
-  ORDER BY type, source, task_name, slave_ip;
-
-SELECT *
-FROM service_platform_routine_source_type_ip_by_day;
-
+  GROUP BY task_name, source, type, slave_ip, date;
 
 DROP VIEW IF EXISTS service_platform_routine_source_type_by_day;
 CREATE VIEW service_platform_routine_source_type_by_day AS
@@ -907,66 +897,67 @@ CREATE VIEW service_platform_routine_source_type_by_day AS
     task_name,
     source,
     type,
+    sum(count)      AS total,
     sum(CASE WHEN error_code = 0
       THEN count
-        ELSE 0 END)      AS '0',
+        ELSE 0 END) AS '0',
     sum(CASE WHEN error_code = 12
       THEN count
-        ELSE 0 END)      AS '12',
+        ELSE 0 END) AS '12',
     sum(CASE WHEN error_code IN (21, 22, 23)
       THEN count
-        ELSE 0 END)      AS '21+22+23',
+        ELSE 0 END) AS '21+22+23',
     sum(CASE WHEN error_code = 25
       THEN count
-        ELSE 0 END)      AS '25',
+        ELSE 0 END) AS '25',
     sum(CASE WHEN error_code = 27
       THEN count
-        ELSE 0 END)      AS '27',
+        ELSE 0 END) AS '27',
     sum(CASE WHEN error_code = 29
       THEN count
-        ELSE 0 END)      AS '29',
+        ELSE 0 END) AS '29',
     sum(CASE WHEN error_code = 33
       THEN count
-        ELSE 0 END)      AS '33',
+        ELSE 0 END) AS '33',
     sum(CASE WHEN error_code = 36
       THEN count
-        ELSE 0 END)      AS '36',
+        ELSE 0 END) AS '36',
     sum(CASE WHEN error_code = 37
       THEN count
-        ELSE 0 END)      AS '37',
+        ELSE 0 END) AS '37',
     sum(CASE WHEN error_code = 101
       THEN count
-        ELSE 0 END)      AS '101',
+        ELSE 0 END) AS '101',
     sum(CASE WHEN error_code = 102
       THEN count
-        ELSE 0 END)      AS '102',
+        ELSE 0 END) AS '102',
     sum(CASE WHEN error_code = 103
       THEN count
-        ELSE 0 END)      AS '103',
+        ELSE 0 END) AS '103',
     sum(CASE WHEN error_code = 104
       THEN count
-        ELSE 0 END)      AS '104',
+        ELSE 0 END) AS '104',
     sum(CASE WHEN error_code = 105
       THEN count
-        ELSE 0 END)      AS '105',
+        ELSE 0 END) AS '105',
     sum(CASE WHEN error_code = 106
       THEN count
-        ELSE 0 END)      AS '106',
+        ELSE 0 END) AS '106',
     sum(CASE WHEN error_code = 107
       THEN count
-        ELSE 0 END)      AS '107',
+        ELSE 0 END) AS '107',
     sum(CASE WHEN error_code = 108
       THEN count
-        ELSE 0 END)      AS '108',
+        ELSE 0 END) AS '108',
     sum(CASE WHEN error_code = 109
       THEN count
-        ELSE 0 END)      AS '109',
+        ELSE 0 END) AS '109',
     date
   FROM serviceplatform_routine_task_summary
-  GROUP BY task_name, source, type, date
-  ORDER BY type, source, task_name;
+  GROUP BY task_name, source, type, date;
+
 SELECT *
 FROM service_platform_routine_source_type_by_day;
 
 SELECT *
-FROM serviceplatform_routine_task_summary;
+FROM service_platform_routine_source_type_ip_by_day;

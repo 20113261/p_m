@@ -3,23 +3,27 @@
 <report name="抓取平台例行任务统计(按天)">
     <interval>1440</interval>
     <group name="按任务名统计">
-        <item name="type source 统计" type="2" table="service_platform_routine_source_type_by_day" desc="false" showystday="true"
+        <item name="type source 统计" type="2" table="service_platform_routine_source_type_by_day" desc="false"
+              showystday="true" orderby="task_name,type,source"
               limit="1000">
             <field key="true" extend="false" name="TaskName">`task_name`</field>
             <field key="true" extend="false" name="Type">`type`</field>
             <field key="true" extend="false" name="Source">`source`</field>
-            <field name="正确">`0`</field>
+            <field name="总量 (除去未知错误、代理错误和图像不完整)">`total`-`21+22+23`-`103`-`105`</field>
+            <field name="正确率 (百分比)">round((`0`+`29`+`106`+`107`+`109`)/(`total`-`21+22+23`-`103`-`105`) * 100, 2)</field>
+            <field name="正确有数据">`0`</field>
+            <field name="正确无数据 (无相关数据，图片大于 10 mb，图片尺寸被过滤，对方停业)">`29`+`106`+`107`+`109`</field>
             <field name="任务错误">`12`</field>
             <field name="代理异常">`21+22+23`</field>
             <field name="未知错误">`25`</field>
             <field name="爬虫解析错误">`27`</field>
-            <field name="房间无票">`29`</field>
+            <field name="无相关数据">`29`</field>
             <field name="数据库错误">`33`</field>
             <field name="翻页错误">`36`</field>
             <field name="全部解析出错">`37`</field>
             <field name="请求参数出现异常">`101`</field>
             <field name="关键字段未成功抓取">`102`</field>
-            <field name="未返回错误码">`103`</field>
+            <field name="未知错误">`103`</field>
             <field name="保存页面异常">`104`</field>
             <field name="图像不完整">`105`</field>
             <field name="图像太大  超过10M">`106`</field>
@@ -29,27 +33,31 @@
         </item>
     </group>
     <group name="分 ip 统计">
-        <item name="分 ip 统计" type="2" table="service_platform_routine_source_type_ip_by_day" desc="false" showystday="true"
+        <item name="分 ip 统计" type="2" table="service_platform_routine_source_type_ip_by_day" desc="false"
+              showystday="true" orderby="task_name,type,source,slave_ip"
               limit="1000">
             <field key="true" extend="false" name="TaskName">`task_name`</field>
             <field key="true" extend="false" name="Source">`source`</field>
             <field key="true" extend="false" name="Type">`type`</field>
             <field key="true" extend="false" name="slave IP">`slave_ip`</field>
-            <field name="正确">`0`</field>
+            <field name="总量 (除去未知错误、代理错误和图像不完整)">`total`-`21+22+23`-`103`-`105`</field>
+            <field name="正确率 (百分比)">round((`0`+`29`+`106`+`107`+`109`)/(`total`-`21+22+23`-`103`-`105`) * 100, 2)</field>
+            <field name="正确有数据">`0`</field>
+            <field name="正确无数据 (无相关数据，图片大于 10 mb，图片尺寸被过滤，对方停业)">`29`+`106`+`107`+`109`</field>
             <field name="任务错误">`12`</field>
             <field name="代理异常">`21+22+23`</field>
             <field name="未知错误">`25`</field>
             <field name="爬虫解析错误">`27`</field>
-            <field name="房间无票">`29`</field>
+            <field name="无相关数据">`29`</field>
             <field name="数据库错误">`33`</field>
             <field name="翻页错误">`36`</field>
             <field name="全部解析出错">`37`</field>
             <field name="请求参数出现异常">`101`</field>
             <field name="关键字段未成功抓取">`102`</field>
-            <field name="未返回错误码">`103`</field>
+            <field name="未知错误">`103`</field>
             <field name="保存页面异常">`104`</field>
             <field name="图像不完整">`105`</field>
-            <field name="图像太大超过10M">`106`</field>
+            <field name="图像太大  超过10M">`106`</field>
             <field name="图片因尺寸被过滤">`107`</field>
             <field name="文件写入或上传异常">`108`</field>
             <field name="对方 POI 已停业">`109`</field>
