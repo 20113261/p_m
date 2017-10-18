@@ -4,6 +4,9 @@ from pymysql.cursors import DictCursor
 from norm_tag.lang_convert import tradition2simple
 from service_platform_conn_pool import base_data_pool
 from toolbox.Common import is_legal
+from logger import get_logger
+
+logger = get_logger("get_norm_tag")
 
 split_pattern = re.compile('[｜|与/,，]')
 
@@ -94,6 +97,7 @@ def get_tagid_dict(_poi_type):
 def get_norm_tag(tag_id, _poi_type):
     global tag_dict
     if tag_dict is None:
+        logger.debug("[init tagid]")
         tag_dict = get_tagid_dict(_poi_type)
     norm_tag_list = []
     norm_tag_en = []

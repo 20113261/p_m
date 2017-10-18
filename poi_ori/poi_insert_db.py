@@ -21,7 +21,7 @@ from norm_tag.attr_norm_tag import tradition2simple
 # from norm_tag.rest_norm_tag import get_norm_tag as rest_get_norm_tag
 # from norm_tag.shop_norm_tag import get_norm_tag as shop_get_norm_tag
 from norm_tag.norm_tag import get_norm_tag
-from get_near_city.get_near_city import get_nearby_city
+from get_near_city.get_near_city import get_nearby_city, poi_is_too_far
 from logger import func_time_logger, get_logger
 from service_platform_conn_pool import poi_ori_pool, data_process_pool, base_data_pool
 from toolbox.Common import is_legal
@@ -477,6 +477,14 @@ def poi_insert_data(cid, _poi_type):
         if unknown_tag:
             insert_unknown_keywords('{}_tag'.format(poi_type), unknown_tag)
             logger.debug("[unknown tag][tags: {}]".format(unknown_tag))
+
+        # 距离过远过滤 poi
+        result = poi_is_too_far(city_id, poi_map_info=data_dict['map_info'])
+        if not result:
+            logger.debug(
+                "[poi filter by poi city distance][cid: {}][city_map: {}][poi_map_info: {}][distance: {}]".format(
+                    city_id, result.city_map, data_dict['map_info'], result.dist))
+            continue
 
         if poi_type == 'attr':
             per_data = {

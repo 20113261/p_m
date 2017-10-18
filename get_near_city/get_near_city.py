@@ -7,7 +7,6 @@
 # @Software: PyCharm
 # coding=utf-8
 import math
-import pymysql
 from .city_info import cid2map, special_city
 
 # distance
@@ -94,3 +93,43 @@ def get_nearby_city(poi_city_id, poi_map_info):
     near_cid = '|'.join(near_cid_set)
 
     return near_cid
+
+
+class PoiFarResult(object):
+    cid = ''
+    city_map = ''
+    dist = ''
+    can_be_used = False
+
+    def __bool__(self):
+        return self.can_be_used
+
+
+def poi_is_too_far(poi_city_id, poi_map_info):
+    result = PoiFarResult()
+    try:
+        poi_lgt, poi_lat = poi_map_info.strip().split(',')
+        poi_lgt_lat = (float(poi_lgt), float(poi_lat))
+    except Exception as e:
+        # poi 经纬度不符合要求，过滤
+        return result
+
+    if poi_city_id not in cid2map:
+        # 城市无 map_info 不过滤
+        result.can_be_used = True
+        return result
+
+    _city_map = cid2map[poi_city_id]
+    _dist = get_dist_by_map(_city_map, poi_lgt_lat)
+
+    if _dist < 500000:
+        # 小于 500 千米认为可用
+        result.city_map = _city_map
+        result.dist = _dist
+        result.can_be_used = True
+        return result
+    else:
+        result.city_map = _city_map
+        result.dist = _dist
+        result.can_be_used = True
+        return result
