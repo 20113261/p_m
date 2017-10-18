@@ -21,15 +21,16 @@ logger = get_logger("multi_city_insert_db")
 pool = gevent.pool.Pool(size=16)
 
 
-def poi_ori_insert_data(poi_type):
+def poi_ori_insert_data(poi_type, cids=None):
     already_merged_city = init_already_merged_city(poi_type="{}_data".format(poi_type))
-    conn = base_data_pool.connection()
-    cursor = conn.cursor()
-    cursor.execute('''SELECT id
-FROM city;''')
-    cids = list(map(lambda x: x[0], cursor.fetchall()))
-    cursor.close()
-    conn.close()
+    if not cids:
+        conn = base_data_pool.connection()
+        cursor = conn.cursor()
+        cursor.execute('''SELECT id
+    FROM city;''')
+        cids = list(map(lambda x: x[0], cursor.fetchall()))
+        cursor.close()
+        conn.close()
     _count = 0
     for cid in cids:
         if cid in already_merged_city:
@@ -43,4 +44,7 @@ FROM city;''')
 
 
 if __name__ == '__main__':
-    poi_ori_insert_data('attr')
+    import sys
+
+    _cids = sys.argv[1:]
+    poi_ori_insert_data('attr', cids=_cids)
