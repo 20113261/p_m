@@ -29,7 +29,6 @@ from poi_ori.already_merged_city import update_already_merge_city
 from poi_ori.unknown_keywords import insert_unknown_keywords
 
 logger = get_logger("insert_poi_log")
-
 need_cid_file = True
 
 W2N = {
@@ -173,12 +172,8 @@ WHERE city_id='{}';'''.format(data_process_table_name, city_id)
     logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
     for each in cursor.fetchall():
         # gevent 中 pop 有问题，跳过 pop 的使用
-        # each.pop('tag_id')
-        _e = {}
-        for k, v in each.items():
-            if k != 'tag_id':
-                _e[k] = v
-        _online_data[each['id']].update(_e)
+        each.pop('tag_id')
+        _online_data[each['id']].update(each)
     cursor.close()
     conn.close()
 
@@ -234,7 +229,7 @@ def add_open_time_filter(_v):
             return True
     except Exception:
         # todo 保存不能识别的 open time
-        # insert_unknown_keywords('opentime', _v)
+        insert_unknown_keywords('opentime', _v)
         logger.debug("[unknown open time][data: {}]".format(_v))
     return False
 
@@ -480,7 +475,7 @@ def poi_insert_data(cid, _poi_type):
 
         # todo 保存不能识别的 tag 以及 open time 信息
         if unknown_tag:
-            # insert_unknown_keywords('tag', unknown_tag)
+            insert_unknown_keywords('tag', unknown_tag)
             logger.debug("[unknown tag][tags: {}]".format(unknown_tag))
 
         if poi_type == 'attr':
