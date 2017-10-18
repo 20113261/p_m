@@ -265,8 +265,6 @@ def poi_insert_data(cid, _poi_type):
         raise TypeError("Unknown Type: {}".format(poi_type))
     '''
 
-    db = dataset.connect("mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/poi_merge?charset=utf8")
-    table = db[data_process_table_name]
     conn = poi_ori_pool.connection()
     # for task_dict in get_task(cid):
     count = 0
@@ -611,6 +609,8 @@ def poi_insert_data(cid, _poi_type):
             raise TypeError("Unknown Type: {}".format(poi_type))
 
         if count % 3000 == 0:
+            db = dataset.connect("mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/poi_merge?charset=utf8")
+            table = db[data_process_table_name]
             _insert = 0
             logger.debug("Total: {}".format(count))
             _t = time.time()
@@ -627,6 +627,8 @@ def poi_insert_data(cid, _poi_type):
 
     logger.debug("Total: {}".format(count))
     _insert = 0
+    db = dataset.connect("mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/poi_merge?charset=utf8")
+    table = db[data_process_table_name]
     for d in data:
         _res = table.upsert(d, keys=['id'])
         if _res:
