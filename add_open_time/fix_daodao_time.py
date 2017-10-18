@@ -47,6 +47,14 @@ R2S = {'一:': '一',
        '|:': '|'
        }
 
+work_replace_key = {
+    '周周': '周',
+    ' ': '',
+    '，': '',
+    '。': '',
+    '24:00': '23:59'
+}
+
 
 def process_day(day):
     day = list(day)
@@ -234,6 +242,10 @@ def fix_time_digits(source_open_time):
             else:
                 raise TypeError('Unknown {}'.format(date_or_time))
         else:
+            hour, minute = re.findall("(\d{1,2}):(\d{2})", date_or_time)[0]
+            if int(hour) >= 24:
+                hour = int(hour) - 24
+            date_or_time = "{}:{}".format(hour, minute)
             datetime.datetime.strptime(date_or_time, '%H:%M')
             new_time.append(date_or_time)
             if len(new_time) == 2:
@@ -310,11 +322,9 @@ def fix_daodao_open_time(source_open_time):
 
     __source_open_time = __source_open_time.replace('：', ':')
 
-    while '周周' in __source_open_time:
-        __source_open_time = __source_open_time.replace('周周', '周')
-
-    while ' ' in __source_open_time:
-        __source_open_time = __source_open_time.replace(' ', '')
+    for k, v in work_replace_key.items():
+        while k in __source_open_time:
+            __source_open_time = __source_open_time.replace(k, v)
     # 加 |
     # 时间 星期
     try:
