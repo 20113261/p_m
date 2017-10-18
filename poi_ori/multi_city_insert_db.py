@@ -6,6 +6,7 @@
 # @File    : multi_city.py
 # @Software: PyCharm
 import gevent.monkey
+
 gevent.monkey.patch_all()
 
 import time
@@ -16,7 +17,12 @@ from poi_ori.poi_insert_db import poi_insert_data
 from poi_ori.already_merged_city import init_already_merged_city
 
 logger = get_logger("multi_city_insert_db")
-pool = gevent.pool.Pool(size=10)
+
+pool_list_size = 5
+pool_size = 16
+pool_list = []
+for i in range(pool_list_size):
+    pool_list.append(gevent.pool.Pool(size=pool_size))
 
 
 def poi_ori_insert_data(poi_type):
@@ -33,13 +39,13 @@ FROM city;''')
         if cid in already_merged_city:
             continue
         _count += 1
-        if _count == 50:
-            break
         start = time.time()
         logger.info('[start][cid: {}]'.format(cid))
-        pool.apply_async(poi_insert_data, args=(cid, poi_type))
+        pool_list[_count % pool_list_size].apply_async(poi_insert_data, args=(cid, poi_type))
         logger.info('[end][cid: {}][takes: {}]'.format(cid, time.time() - start))
-    pool.join()
+
+    for p in pool_list:
+        p.join()
 
 
 if __name__ == '__main__':
