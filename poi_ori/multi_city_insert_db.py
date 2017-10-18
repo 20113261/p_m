@@ -46,5 +46,6 @@ def poi_ori_insert_data(poi_type, cids=None):
 if __name__ == '__main__':
     import sys
 
-    _cids = sys.argv[1:]
-    poi_ori_insert_data('attr', cids=_cids)
+    _poi_type = sys.argv[1]
+    _cids = sys.argv[2:]
+    poi_ori_insert_data(_poi_type, cids=_cids)
