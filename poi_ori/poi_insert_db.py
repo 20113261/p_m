@@ -603,7 +603,6 @@ def poi_insert_data(cid, _poi_type):
                 if not any([tag.strip() in important_shopping_tag for tag in tag_list]):
                     continue
 
-            table.upsert(per_data, keys=['id'])
             data.append(per_data)
         else:
             raise TypeError("Unknown Type: {}".format(poi_type))
