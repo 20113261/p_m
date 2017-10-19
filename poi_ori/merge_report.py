@@ -140,10 +140,12 @@ def poi_merged_report(poi_type):
                 100 * daodao_succeed_count / float(daodao_count)) if daodao_count != 0 else '无穷大'
         ]
         report_count += 1
-        logger.debug(' '.join([cid, city_name, city_name_en, country]) + '\tall:' + str(len(datas)) + "\tget:" + str(
-            success_count) + '\tname_null:' + str(
-            name_null_fail_count) + '\tcity_null:' + str(city_null_fail_count) + '\timg_null:' + str(
-            first_img_null_fail_count) + '\tmap:' + str(map_fail_count) + '\tnorm_tag:' + str(norm_tag_null_fail_count))
+        logger.debug(
+            ' '.join([cid, city_name, city_name_en, country, grade]) + '\tall:' + str(len(datas)) + "\tget:" + str(
+                success_count) + '\tname_null:' + str(
+                name_null_fail_count) + '\tcity_null:' + str(city_null_fail_count) + '\timg_null:' + str(
+                first_img_null_fail_count) + '\tmap:' + str(map_fail_count) + '\tnorm_tag:' + str(
+                norm_tag_null_fail_count))
 
     for each in filter_info:
         logger.debug("[data_filter: {}]".format(each))
