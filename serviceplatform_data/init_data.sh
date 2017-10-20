@@ -57,3 +57,14 @@ mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables
 
 # elong data final
 mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --set-gtid-purged=OFF --no-create-info --no-create-db --complete-insert --where="source='elong'" BaseDataFinal hotel_final_elong  > hotel_final_elong.sql
+
+# init hotel data into mongo (use city as test case)
+mysqldump -h10.10.69.170 -ureader -pmiaoji1109 -fields-terminated-by=, base_data city > city.txt
+
+mysqldump -h10.10.69.170 -ureader -pmiaoji1109 --fields-terminated-by=, --tab=[DIR TO SAVE TO] --tables base_data city > city.txt
+
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 -T /tmp base_data city
+
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --fields-terminated-by="," --fields-enclosed-by="" --fields-escaped-by="" --no-create-db --no-create-info --tab="." information_schema CHARACTER_SETS base_data city
+
+mysql -h10.10.228.253 -umioji_admin -pmioji1109 --database=base_data --execute='SELECT `FIELD`, `FIELD` FROM `TABLE` LIMIT 0, 10000 ' -X > file.csv

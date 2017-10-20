@@ -2,6 +2,9 @@
 # encoding: utf-8
 import pymysql
 from pymysql.cursors import SSDictCursor, SSCursor
+from logger import get_logger
+
+logger = get_logger("data_source")
 
 
 class MysqlSource:
@@ -31,19 +34,18 @@ def cursor_gen(con, query, size):
         con = con
         with con.cursor() as cursor:
             cursor.execute(query)
-            print('after excute')
+            logger.debug('after execute')
             rows = cursor.fetchmany(size)
-            print('after fetchmany', len(rows))
+            logger.debug('after fetchmany: {}'.format(len(rows)))
             while rows:
                 for r in rows:
                     yield r
-                print('b fetchmany')
+                logger.debug('b fetchmany')
                 rows = cursor.fetchmany(size)
-                print('after fetchmany')
+                logger.debug('after fetchmany')
     except Exception as e:
-        import traceback
-        print(traceback.format_exc())
+        logger.exception(msg="[sql error]", exc_info=e)
     finally:
-        print('finally')
+        logger.debug('finally')
         if con:
             con.close()
