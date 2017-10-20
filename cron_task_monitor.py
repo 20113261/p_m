@@ -26,6 +26,7 @@ from serviceplatform_data.image_insert_final_data import insert_data as image_in
 from serviceplatform_data.load_final_data import main as load_final_data
 from serviceplatform_data.load_final_data_test import main as load_final_data_qyer
 from service_platform_report.routine_report import main as routine_report
+from service_platform_report.send_error_email import send_error_report_email
 from logger import get_logger
 
 SEND_TO = ['hourong@mioji.com']
@@ -104,6 +105,8 @@ schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', minute='*/2
 # schedule.add_job(on_exc_send_email(load_final_data), 'cron', minute='*/1', id='load_final_data')
 schedule.add_job(on_exc_send_email(routine_report), 'cron', hour='*/1', id='routine_report', max_instances=10)
 # schedule.add_job(on_exc_send_email(load_final_data_qyer), 'cron', second='*/20', id='routine_report_qyer')
+schedule.add_job(on_exc_send_email(send_error_report_email), 'cron', hour='*/1', id='send_error_report_email',
+                 max_instances=10)
 
 if __name__ == '__main__':
     schedule.start()

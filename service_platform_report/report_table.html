@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>成功率小于 95% 的任务</title>
+    <style type="text/css">
+        .responstable {
+            margin: 1em 0;
+            width: 100%;
+            overflow: hidden;
+            background: #FFF;
+            color: #024457;
+            border-radius: 10px;
+            border: 1px solid #167F92;
+        }
+
+        .responstable tr {
+            border: 1px solid #D9E4E6;
+        }
+
+        .responstable tr:nth-child(odd) {
+            background-color: #EAF3F3;
+        }
+
+        .responstable th {
+            display: none;
+            border: 1px solid #FFF;
+            background-color: #167F92;
+            color: #FFF;
+            padding: 1em;
+        }
+
+        .responstable th:first-child {
+            display: table-cell;
+            text-align: center;
+        }
+
+        .responstable th:nth-child(2) {
+            display: table-cell;
+        }
+
+        .responstable th:nth-child(2) span {
+            display: none;
+        }
+
+        .responstable th:nth-child(2):after {
+            content: attr(data-th);
+        }
+
+        @media (min-width: 480px) {
+            .responstable th:nth-child(2) span {
+                display: block;
+            }
+
+            .responstable th:nth-child(2):after {
+                display: none;
+            }
+        }
+
+        .responstable td {
+            display: block;
+            word-wrap: break-word;
+            max-width: 7em;
+        }
+
+        .responstable td:first-child {
+            display: table-cell;
+            text-align: center;
+            border-right: 1px solid #D9E4E6;
+        }
+
+        @media (min-width: 480px) {
+            .responstable td {
+                border: 1px solid #D9E4E6;
+            }
+        }
+
+        .responstable th, .responstable td {
+            text-align: left;
+            margin: .5em 1em;
+        }
+
+        @media (min-width: 480px) {
+            .responstable th, .responstable td {
+                display: table-cell;
+                padding: 1em;
+            }
+        }
+
+        body {
+            padding: 0 2em;
+            font-family: Arial, sans-serif;
+            color: #024457;
+            background: #f2f2f2;
+        }
+
+        h1 {
+            font-family: Verdana;
+            font-weight: normal;
+            color: #024457;
+        }
+
+        h1 span {
+            color: #167F92;
+        }
+
+    </style>
+</head>
+<body>
+<table class="responstable" border="2px">
+    <tr>
+        <th>任务名</th>
+        <th>任务成功百分率</th>
+        <th>发出全量任务</th>
+        <th>去除未知错误的全量任务</th>
+        <th>正确，有数据返回</th>
+        <th>正确，无数据返回</th>
+    </tr>
+
+        <tr>
+            <td>images_attr_daodao_20170929a</td>
+            <td>94.07%</td>
+            <td>24047</td>
+            <td>1232</td>
+            <td>990</td>
+            <td>169</td>
+        </tr>
+
+        <tr>
+            <td>images_hotel_ctrip_20170929a</td>
+            <td>94.19%</td>
+            <td>2937</td>
+            <td>2875</td>
+            <td>2610</td>
+            <td>98</td>
+        </tr>
+
+        <tr>
+            <td>detail_hotel_hotels_20170928d</td>
+            <td>0.00%</td>
+            <td>17553</td>
+            <td>16262</td>
+            <td>0</td>
+            <td>0</td>
+        </tr>
+
+</table>
+</body>
+</html>
