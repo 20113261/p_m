@@ -29,7 +29,7 @@ from service_platform_report.routine_report import main as routine_report
 from service_platform_report.send_error_email import send_error_report_email
 from logger import get_logger
 
-SEND_TO = ['hourong@mioji.com']
+SEND_TO = ['hourong@mioji.com', "luwanning@mioji.com"]
 
 logger = get_logger('cron_task_monitor')
 
