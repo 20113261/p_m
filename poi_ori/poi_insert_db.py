@@ -56,7 +56,7 @@ get_key.update_priority({
         'yelp': 8,
         'mafengwo': 7,
     },
-    ('address', 'opentime', 'grade', 'star'): {
+    ('address', 'opentime', 'star'): {
         'mioji': 15,
         'daodao': 10,
         'tripadvisor': 10,
@@ -89,31 +89,31 @@ def init_global_name(_poi_type):
         data_process_table_name = 'chat_attraction'
         merge_conf = attr_merge_conf
         data_conf = poi_data_conf
-        others_name_list = ['source']
+        others_name_list = ['source', 'grade']
         json_name_list = ['url', 'ranking', 'star', 'recommend_lv', 'plantocounts', 'beentocounts', 'commentcounts',
                           'tagid',
                           'introduction']
-        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'site', 'phone', 'opentime',
+        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'site', 'phone', 'opentime',
                           'prize',
                           'traveler_choice', 'imgurl']
     elif _poi_type == 'rest':
         data_process_table_name = 'chat_restaurant'
         merge_conf = rest_merge_conf
         data_conf = poi_data_conf
-        others_name_list = ['source']
+        others_name_list = ['source', 'grade']
         json_name_list = ['commentcounts', 'ranking', 'price', 'introduction']
-        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'url', 'phone', 'opentime',
+        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'url', 'phone', 'opentime',
                           'prize', 'traveler_choice', 'price_level', 'cuisines', 'imgurl']
     elif _poi_type == 'shop':
         data_process_table_name = 'chat_shopping'
         merge_conf = shop_merge_conf
         data_conf = poi_data_conf
-        others_name_list = ['source']
+        others_name_list = ['source', 'grade']
 
         json_name_list = ['url', 'ranking', 'star', 'recommend_lv', 'plantocounts', 'beentocounts', 'commentcounts',
                           'tagid',
                           'introduction']
-        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'grade', 'site', 'phone',
+        norm_name_list = ['name', 'name_en', 'map_info', 'address', 'site', 'phone',
                           'opentime', 'prize', 'traveler_choice', 'imgurl']
     else:
         raise TypeError("Unknown Type: {}".format(_poi_type))
@@ -502,7 +502,7 @@ def poi_insert_data(cid, _poi_type):
                 'plantocount': data_dict['plantocounts'],
                 'beentocount': data_dict['beentocounts'],
                 'real_ranking': data_dict['ranking'],
-                'grade': data_dict['grade'],
+                # 'grade': data_dict['grade'],
                 'commentcount': data_dict['commentcounts'],
                 'tagid': data_dict['tagid'],
                 'norm_tagid': norm_tag,
@@ -529,7 +529,8 @@ def poi_insert_data(cid, _poi_type):
                     'rcmd_open': '',
                     'add_info': '',
                     'address_en': '',
-                    'event_mark': ''
+                    'event_mark': '',
+                    'grade': -1.0
                 })
 
             # 景点游览部分清理
@@ -569,7 +570,7 @@ def poi_insert_data(cid, _poi_type):
                 'plantocount': data_dict['plantocounts'],
                 'beentocount': data_dict['beentocounts'],
                 'real_ranking': data_dict['ranking'],
-                'grade': data_dict['grade'],
+                # 'grade': data_dict['grade'],
                 'commentcount': data_dict['commentcounts'],
                 'tagid': data_dict['tagid'],
                 'norm_tagid': norm_tag,
@@ -593,6 +594,7 @@ def poi_insert_data(cid, _poi_type):
                     'ranking': -1.0,
                     'rcmd_open': '',
                     'image_list': '',
+                    'grade': -1.0
                 })
             shopping_tag = ['礼品与特产商店', '大型购物中心', '农贸市场', '跳蚤市场与街边市场', '古董店', '百货商场', '厂家直营店', '购物']
             important_shopping_tag = ['礼品与特产商店', '大型购物中心', '百货商场', '厂家直营店', '购物']
