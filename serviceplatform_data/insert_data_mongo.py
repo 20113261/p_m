@@ -6,11 +6,11 @@
 # @File    : insert_data_mongo.py
 # @Software: PyCharm
 import pymongo
+from pymysql.cursors import DictCursor
 from pymongo.errors import BulkWriteError
-
 from data_source import MysqlSource
 from logger import get_logger
-from service_platform_conn_pool import service_platform_pool
+from service_platform_conn_pool import service_platform_pool, base_data_pool
 
 logger = get_logger("insert_mongo_data")
 
@@ -23,10 +23,11 @@ data_db = {
 }
 
 client = pymongo.MongoClient(host='10.10.231.105', port=27017)
-collections = client['HotelData']['detail_final_data']
+hotel_collections = client['HotelData']['detail_final_data']
+city_collections = client['HotelData']['city']
 
 
-def insert_data():
+def insert_hotel_data():
     logger.debug("start prepare mongo data")
     logger.debug("get all table name")
 
@@ -62,7 +63,8 @@ def insert_data():
           hotel_name,
           hotel_name_en,
           map_info,
-          address
+          address,
+          source_city_id
         FROM {};'''.format(each_table_name)
         for each_data in MysqlSource(data_db, table_or_query=sql, size=10000,
                                      is_table=False, is_dict_cursor=True):
@@ -77,8 +79,8 @@ def insert_data():
             _count += 1
             if _count % 10000 == 0:
                 try:
-                    collections.delete_many({"source": delete_source, "source_id": {"$in": delete_sid}})
-                    collections.insert_many(data)
+                    hotel_collections.delete_many({"source": delete_source, "source_id": {"$in": delete_sid}})
+                    hotel_collections.insert_many(data)
                 except BulkWriteError as bwe:
                     logger.exception(msg="[bwe error][bwe details: {}]".format(bwe.details))
                 except Exception as exc:
@@ -89,8 +91,8 @@ def insert_data():
 
         if data:
             try:
-                collections.delete_many({"source": delete_source, "source_id": {"$in": delete_sid}})
-                collections.insert_many(data)
+                hotel_collections.delete_many({"source": delete_source, "source_id": {"$in": delete_sid}})
+                hotel_collections.insert_many(data)
             except BulkWriteError as bwe:
                 logger.exception(msg="[bwe error][bwe details: {}]".format(bwe.details))
             except Exception as exc:
@@ -98,5 +100,35 @@ def insert_data():
         logger.debug("[insert_data][table: {}][count: {}]".format(each_table_name, _count))
 
 
+def insert_city_data():
+    sql = '''SELECT
+  id,
+  name,
+  name_en,
+  map_info
+FROM city;'''
+    conn = base_data_pool.connection()
+    cursor = conn.cursor(cursor=DictCursor)
+    cursor.execute(sql)
+    cursor.close()
+    conn.close()
+
+    _count = 0
+    _total = 0
+    for each in cursor.fetchall():
+        _total += 1
+        try:
+            map_info = each['map_info']
+            lng, lat = map_info.split(',')
+            each["loc"] = {"type": "Point", "coordinates": [float(lng), float(lat)]}
+        except Exception as e:
+            logger.exception(msg="[map info error]", exc_info=e)
+            continue
+        city_collections.update({"id": each["id"]}, each, upsert=True)
+        _count += 1
+    logger.debug("[insert_data][table: city][total: {}][count: {}]".format(_total, _count))
+
+
 if __name__ == '__main__':
-    insert_data()
+    insert_hotel_data()
+    insert_city_data()

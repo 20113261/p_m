@@ -27,6 +27,8 @@ from serviceplatform_data.load_final_data import main as load_final_data
 from serviceplatform_data.load_final_data_test import main as load_final_data_qyer
 from service_platform_report.routine_report import main as routine_report
 from service_platform_report.send_error_email import send_error_report_email
+from serviceplatform_data.insert_data_mongo import insert_hotel_data, insert_city_data
+from serviceplatform_data.get_nearby_hotel_city import get_nearby_city
 from logger import get_logger
 
 SEND_TO = ['hourong@mioji.com', "luwanning@mioji.com"]
@@ -85,6 +87,12 @@ def image_insert_final_data():
     image_insert_data(limit=5000)
 
 
+def get_near_city():
+    insert_hotel_data()
+    insert_city_data()
+    get_nearby_city()
+
+
 def test_exc():
     raise Exception()
 
@@ -107,6 +115,8 @@ schedule.add_job(on_exc_send_email(routine_report), 'cron', hour='*/1', id='rout
 # schedule.add_job(on_exc_send_email(load_final_data_qyer), 'cron', second='*/20', id='routine_report_qyer')
 schedule.add_job(on_exc_send_email(send_error_report_email), 'cron', hour='*/1', id='send_error_report_email',
                  max_instances=10)
+schedule.add_job(on_exc_send_email(get_near_city), 'cron', hour='1', id='get_near_city',
+                 max_instances=1)
 
 if __name__ == '__main__':
     schedule.start()
