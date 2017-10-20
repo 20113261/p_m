@@ -60,3 +60,12 @@ db_config = dict(
 )
 
 data_process_pool = init_pool(**db_config, max_connections=30)
+
+db_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.228.253',
+    database='Report',
+)
+
+report_pool = init_pool(**db_config, max_connections=30)
