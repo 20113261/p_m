@@ -13,5 +13,7 @@ from norm_tag.norm_tag import get_norm_tag
 if __name__ == '__main__':
     # case = '牛排馆, 烧烤, 阿根廷菜, 南美风味，啦啦啦啦'
     # case = '自然公园，     雕塑'
-    case = '购物，大商场'
-    print(get_norm_tag(case, 'shop'))
+    # case = '购物，大商场'
+    case = '小镇_寺庙'
+    case = '建筑_博物馆_历史遗址_机构_小镇'
+    print(get_norm_tag(case, 'attr'))

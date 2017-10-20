@@ -8,7 +8,7 @@ from logger import get_logger
 
 logger = get_logger("get_norm_tag")
 
-split_pattern = re.compile('[｜|与/,，]')
+split_pattern = re.compile('[｜|与/,，_]')
 
 attr_key_words_dict = {
     '水上乐园和游乐场': '游乐园',
