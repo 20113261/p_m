@@ -98,6 +98,5 @@ def insert_data():
         logger.debug("[insert_data][table: {}][count: {}]".format(each_table_name, _count))
 
 
-
 if __name__ == '__main__':
     insert_data()
