@@ -69,3 +69,12 @@ db_config = dict(
 )
 
 report_pool = init_pool(**db_config, max_connections=30)
+
+db_config = dict(
+    user='reader',
+    password='miaoji1109',
+    host='10.10.94.198',
+    database='private_data',
+)
+
+private_data_test_pool = init_pool(**db_config, max_connections=30)

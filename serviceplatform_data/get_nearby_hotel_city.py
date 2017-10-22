@@ -25,17 +25,19 @@ def get_per_nearby_city(city_map_info):
     :return:
     """
     lon, lat = city_map_info.split(',')
+
     for each in collections.aggregate(
             [
-                {"$match": {"loc":
-                    {
-                        "$geoNear": {"$geometry": {
-                            "type": "Point",
-                            "coordinates": [float(lon), float(lat)]
-                        },
-                            "$maxDistance": 50000}
-                    },
-                }},
+                {
+                    "$match": {"loc":
+                        {
+                            "$geoWithin": {
+                                "$centerSphere": [[float(lon), float(lat)],
+                                                  50 / 6378.1]
+                            }
+                        }
+                    }
+                },
                 {"$group": {"_id": {"source": "$source", "source_city_id": "$source_city_id"}}}
             ]
     ):
@@ -52,13 +54,18 @@ def get_has_nearby_city(city_map_info):
     :return:
     """
     lon, lat = city_map_info.split(',')
-    res = collections.count({"loc": {
-        "$geoNear": {"$geometry": {
-            "type": "Point",
-            "coordinates": [float(lon), float(lat)]
-        },
-            "$maxDistance": 50000}
-    }})
+    res = collections.count(
+        {
+            "loc":
+                {
+                    "$geoWithin":
+                        {
+                            "$centerSphere": [[float(lon), float(lat)], 300 / 6378.1]
+                        }
+                }
+        }
+    )
+    logger.debug("[city map info: {}][count: {}]".format(city_map_info, res))
     return bool(res)
 
 
@@ -74,8 +81,10 @@ def get_nearby_city():
   map_info
 FROM city;''')
     for each in cursor.fetchall():
+        has_hotel = False
         has_nearby_city = get_has_nearby_city(each["map_info"])
         for source, sid in get_per_nearby_city(each["map_info"]):
+            has_hotel = True
             data = {
                 "id": each["id"],
                 "name": each["name"],
@@ -89,6 +98,11 @@ FROM city;''')
             logger.debug(
                 "[private city][id: {}][name: {}][name_en: {}][map_info: {}][has_nearby_city: {}][source: {}][sid: {}]".format(
                     each["id"], each["name"], each["name_en"], each["map_info"], has_nearby_city, source, sid))
+        if not has_hotel and not has_nearby_city:
+            logger.debug(
+                "[no city and hotel nearby][id: {}][name: {}][name_en:" \
+                " {}][map_info: {}]".format(
+                    each["id"], each["name"], each["name_en"], each["map_info"]))
         db.commit()
 
 
