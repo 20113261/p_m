@@ -8,9 +8,10 @@
             <field key="true" extend="false" name="TaskName">`task_name`</field>
             <field key="true" extend="false" name="Type">`type`</field>
             <field key="true" extend="false" name="Source">`source`</field>
+            <field name="发任务总量">`total`</field>
+            <field name="除去未知错误、代理错误和图像不完整总量占任务总量百分率">round((`total`-`21+22+23`-`103`-`105`)/`total` * 100,2)</field>
             <field name="总量 (除去未知错误、代理错误和图像不完整)">`total`-`21+22+23`-`103`-`105`</field>
-            <field name="正确率 (百分比)">round((`0`+`29`+`106`+`107`+`109`)/(`total`-`21+22+23`-`103`-`105`) * 100, 2)
-            </field>
+            <field name="正确率 (百分比)">round((`0`+`29`+`106`+`107`+`109`)/(`total`-`21+22+23`-`103`-`105`) * 100, 2)</field>
             <field name="正确有数据">`0`</field>
             <field name="正确无数据 (无相关数据，图片大于 10 mb，图片尺寸被过滤，对方停业)">`29`+`106`+`107`+`109`</field>
             <field name="任务错误">`12`</field>
@@ -39,9 +40,10 @@
             <field key="true" extend="false" name="Source">`source`</field>
             <field key="true" extend="false" name="Type">`type`</field>
             <field key="true" extend="false" name="slave IP">`slave_ip`</field>
+            <field name="发任务总量">`total`</field>
+            <field name="除去未知错误、代理错误和图像不完整总量占任务总量百分率">round((`total`-`21+22+23`-`103`-`105`)/`total` * 100,2)</field>
             <field name="总量 (除去未知错误、代理错误和图像不完整)">`total`-`21+22+23`-`103`-`105`</field>
-            <field name="正确率 (百分比)">round((`0`+`29`+`106`+`107`+`109`)/(`total`-`21+22+23`-`103`-`105`) * 100, 2)
-            </field>
+            <field name="正确率 (百分比)">round((`0`+`29`+`106`+`107`+`109`)/(`total`-`21+22+23`-`103`-`105`) * 100, 2)</field>
             <field name="正确有数据">`0`</field>
             <field name="正确无数据 (无相关数据，图片大于 10 mb，图片尺寸被过滤，对方停业)">`29`+`106`+`107`+`109`</field>
             <field name="任务错误">`12`</field>

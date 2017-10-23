@@ -10,7 +10,7 @@ import dataset
 from collections import defaultdict
 
 if __name__ == '__main__':
-    path = '/Volumes/国家及城市图片/02_已处理图片（技术使用）/3.12城市图片'
+    path = '/Volumes/国家及城市图片/02_已处理图片（技术使用）/9.15新增城市图片'
     db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/base_data?charset=utf8')
     target_table = db['city']
     cid_set = set()

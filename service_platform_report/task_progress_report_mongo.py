@@ -34,11 +34,13 @@ def main():
         task_type, crawl_type, task_source, task_tag = task_list
 
         # task 名称，一批任务
-        task_all = collections.count({'task_name': each_task_name})
+        task_all = collections.count({'task_name': each_task_name}, hint=[('task_name', 1), ])
         # 已完成任务
-        task_done = collections.count({'task_name': each_task_name, 'finished': 1})
+        task_done = collections.count({'task_name': each_task_name, 'finished': 1},
+                                      hint=[('task_name', 1), ('finished', 1)])
         # 已完成任务并且重试超过最大重试次数
-        task_final_failed = collections.count({'task_name': each_task_name, 'finished': 0, 'used_times': {'$gte': 6}})
+        task_final_failed = collections.count({'task_name': each_task_name, 'finished': 0, 'used_times': {'$gte': 6}},
+                                              hint=[('task_name', 1), ('finished', 1), ('used_times', 1)])
 
         product_count[(task_tag, crawl_type.title(), task_source.title(), task_type.title(), "All")] = task_all
         product_count[(task_tag, crawl_type.title(), task_source.title(), task_type.title(), "Done")] = task_done
@@ -48,7 +50,8 @@ def main():
         if task_type == 'list':
             # 已完成的任务，通过 task_token 去重后
             list_task_has_data = len(
-                collections.distinct('list_task_token', {'task_name': each_task_name, 'finished': 1}))
+                collections.find({'task_name': each_task_name, 'finished': 1},
+                                 hint=[('task_name', 1), ('finished', 1)]).distinct())
             product_count[
                 (task_tag, crawl_type.title(), task_source.title(), task_type.title(), "CityDone")] = list_task_has_data
             logger.debug(" ".join(
