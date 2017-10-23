@@ -78,3 +78,12 @@ db_config = dict(
 )
 
 private_data_test_pool = init_pool(**db_config, max_connections=30)
+
+db_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.230.206',
+    database='source_info',
+)
+
+source_info_pool = init_pool(**db_config, max_connections=30)

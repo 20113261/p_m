@@ -9,7 +9,7 @@ import pymongo
 import dataset
 from pymysql.cursors import DictCursor
 from logger import get_logger
-from service_platform_conn_pool import private_data_test_pool
+from service_platform_conn_pool import private_data_test_pool, source_info_pool
 
 logger = get_logger("get_nearest_source_and_city")
 
@@ -48,26 +48,46 @@ def get_per_nearby_city(city_map_info):
         yield source, source_city_id
 
 
-def get_has_nearby_city(city_map_info):
+def get_old_task_info_set(mioji_cids):
+    old_task_info_set = set()
+    conn = source_info_pool.connection()
+    cursor = conn.cursor()
+    if not mioji_cids:
+        return old_task_info_set
+    sql = '''SELECT source,sid
+FROM hotel_suggestions_city
+WHERE city_id IN ({}) AND source IN ('booking', 'ctrip', 'agoda', 'expedia', 'hotels', 'elong');'''.format(
+        ','.join(mioji_cids))
+    cursor.execute(sql)
+    for source, sid in cursor.fetchall():
+        if sid:
+            old_task_info_set.add((source, sid))
+    logger.debug("[mioji_cids: {}][task count: {}]".format(mioji_cids, len(old_task_info_set)))
+    cursor.close()
+    conn.close()
+    return old_task_info_set
+
+
+def get_nearby_mioji_city(city_map_info):
     """
-    50km 是否有城市
+    搜索 50km 內的 mioji 城市 id
     :param city_map_info:
     :return:
     """
     lon, lat = city_map_info.split(',')
-    res = city_collections.count(
-        {
-            "loc":
-                {
-                    "$geoWithin":
-                        {
-                            "$centerSphere": [[float(lon), float(lat)], 50 / 6378.1]
-                        }
-                }
-        }
-    )
-    logger.debug("[city map info: {}][count: {}]".format(city_map_info, res))
-    return bool(res)
+    res = collections.distinct('id',
+                               {
+                                   "loc":
+                                       {
+                                           "$geoWithin":
+                                               {
+                                                   "$centerSphere": [[float(lon), float(lat)], 300 / 6378.1]
+                                               }
+                                       }
+                               }
+                               )
+    logger.debug("[city map info: {}][count: {}]".format(city_map_info, len(res)))
+    return res
 
 
 def get_nearby_city():
@@ -83,8 +103,13 @@ def get_nearby_city():
 FROM city;''')
     for each in cursor.fetchall():
         has_hotel = False
-        has_nearby_city = get_has_nearby_city(each["map_info"])
+        nearby_mioji_city = get_nearby_mioji_city(each["map_info"])
+        old_task_info_set = get_old_task_info_set(nearby_mioji_city)
+        has_nearby_city = bool(len(nearby_mioji_city))
         for source, sid in get_per_nearby_city(each["map_info"]):
+            if (str(source), str(sid)) in old_task_info_set:
+                # 去掉使用 hotel suggestion city 发的任务
+                continue
             has_hotel = True
             data = {
                 "id": each["id"],
