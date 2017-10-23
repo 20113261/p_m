@@ -55,7 +55,7 @@ def get_old_task_info_set(mioji_cids):
     if not mioji_cids:
         return old_task_info_set
     sql = '''SELECT source,sid
-FROM hotel_suggestions_city
+FROM hotel_suggestions_city_new
 WHERE city_id IN ({}) AND source IN ('booking', 'ctrip', 'agoda', 'expedia', 'hotels', 'elong');'''.format(
         ','.join(mioji_cids))
     cursor.execute(sql)
@@ -75,17 +75,17 @@ def get_nearby_mioji_city(city_map_info):
     :return:
     """
     lon, lat = city_map_info.split(',')
-    res = collections.distinct('id',
-                               {
-                                   "loc":
-                                       {
-                                           "$geoWithin":
-                                               {
-                                                   "$centerSphere": [[float(lon), float(lat)], 300 / 6378.1]
-                                               }
-                                       }
-                               }
-                               )
+    res = city_collections.distinct('id',
+                                    {
+                                        "loc":
+                                            {
+                                                "$geoWithin":
+                                                    {
+                                                        "$centerSphere": [[float(lon), float(lat)], 50 / 6378.1]
+                                                    }
+                                            }
+                                    }
+                                    )
     logger.debug("[city map info: {}][count: {}]".format(city_map_info, len(res)))
     return res
 
@@ -109,6 +109,10 @@ FROM city;''')
         for source, sid in get_per_nearby_city(each["map_info"]):
             if (str(source), str(sid)) in old_task_info_set:
                 # 去掉使用 hotel suggestion city 发的任务
+                logger.debug(
+                    "[old task filter][id: {}][name: {}][name_en: {}][map_info: {}][has_nearby_city: {}]"
+                    "[source: {}][sid: {}]".format(
+                        each["id"], each["name"], each["name_en"], each["map_info"], has_nearby_city, source, sid))
                 continue
             has_hotel = True
             data = {
