@@ -51,7 +51,7 @@ def main():
             # 已完成的任务，通过 task_token 去重后
             list_task_has_data = len(
                 collections.find({'task_name': each_task_name, 'finished': 1},
-                                 hint=[('task_name', 1), ('finished', 1)]).distinct())
+                                 hint=[('task_name', 1), ('finished', 1)]).distinct("list_task_token"))
             product_count[
                 (task_tag, crawl_type.title(), task_source.title(), task_type.title(), "CityDone")] = list_task_has_data
             logger.debug(" ".join(
