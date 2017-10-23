@@ -16,6 +16,7 @@ logger = get_logger("get_nearest_source_and_city")
 client = pymongo.MongoClient(host='10.10.231.105', port=27017)
 db = client['HotelData']
 collections = client['HotelData']['detail_final_data']
+city_collections = client['HotelData']['city']
 
 
 def get_per_nearby_city(city_map_info):
@@ -54,13 +55,13 @@ def get_has_nearby_city(city_map_info):
     :return:
     """
     lon, lat = city_map_info.split(',')
-    res = collections.count(
+    res = city_collections.count(
         {
             "loc":
                 {
                     "$geoWithin":
                         {
-                            "$centerSphere": [[float(lon), float(lat)], 300 / 6378.1]
+                            "$centerSphere": [[float(lon), float(lat)], 50 / 6378.1]
                         }
                 }
         }
@@ -70,8 +71,8 @@ def get_has_nearby_city(city_map_info):
 
 
 def get_nearby_city():
-    db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.238.148/spider_db?charset=utf8')
-    table = db["private_city_task"]
+    __db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.238.148/spider_db?charset=utf8')
+    table = __db["private_city_task"]
     conn = private_data_test_pool.connection()
     cursor = conn.cursor(cursor=DictCursor)
     cursor.execute('''SELECT
@@ -103,7 +104,7 @@ FROM city;''')
                 "[no city and hotel nearby][id: {}][name: {}][name_en:" \
                 " {}][map_info: {}]".format(
                     each["id"], each["name"], each["name_en"], each["map_info"]))
-        db.commit()
+        __db.commit()
 
 
 if __name__ == '__main__':
