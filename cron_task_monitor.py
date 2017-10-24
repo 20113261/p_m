@@ -110,7 +110,7 @@ schedule.add_job(on_exc_send_email(task_progress_report), 'cron', hour='*/2', id
 schedule.add_job(on_exc_send_email(detectOriData), 'cron', hour='*/2', id='detectOriData', max_instances=10)
 schedule.add_job(on_exc_send_email(data_coverage), 'cron', hour='*/2', id='data_coverage')
 schedule.add_job(on_exc_send_email(detail_insert_final_data), 'cron', minute='*/2', id='detail_insert_final_data')
-schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', seconds='*/50', id='image_insert_final_data')
+schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', second='*/50', id='image_insert_final_data')
 # schedule.add_job(on_exc_send_email(load_final_data), 'cron', minute='*/1', id='load_final_data')
 schedule.add_job(on_exc_send_email(routine_report), 'cron', hour='*/1', id='routine_report', max_instances=10)
 # schedule.add_job(on_exc_send_email(load_final_data_qyer), 'cron', second='*/20', id='routine_report_qyer')
@@ -118,7 +118,7 @@ schedule.add_job(on_exc_send_email(send_error_report_email), 'cron', hour='*/1',
                  max_instances=10)
 schedule.add_job(on_exc_send_email(get_near_city), 'cron', hour='1', id='get_near_city',
                  max_instances=1)
-schedule.add_job(on_exc_send_email(update_hotel_validation), 'cron', hour='2', id='get_near_city',
+schedule.add_job(on_exc_send_email(update_hotel_validation), 'cron', hour='2', id='update_hotel_validation',
                  max_instances=1)
 
 if __name__ == '__main__':
