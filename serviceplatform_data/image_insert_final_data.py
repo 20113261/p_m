@@ -35,10 +35,8 @@ image_type_dict = {
     "total": "poi"
 }
 
-all_seek_dict = None
 
-
-def create_table(image_type, image_table_tag):
+def create_table(image_type):
     final_conn = base_data_final_pool.connection()
     final_cursor = final_conn.cursor()
     sql_name = final_table.get(image_type, None)
@@ -46,29 +44,27 @@ def create_table(image_type, image_table_tag):
         raise TypeError("[Unknown View Type: {}]".format(image_type))
     final_sql = open(
         '/search/hourong/PycharmProjects/PoiCommonScript/serviceplatform_data/sql/{}'.format(sql_name)).read()
-    table_name = "{}_images_final_{}".format(image_type_dict[image_type], image_table_tag)
+    table_name = "{}_images".format(image_type_dict[image_type])
     final_cursor.execute(final_sql % (table_name,))
     logger.debug('[create table][name: {}]'.format(table_name))
     final_cursor.close()
     final_conn.close()
 
 
-def init_all_seek_dict():
+def get_seek(table_name):
     local_conn = service_platform_pool.connection()
     local_cursor = local_conn.cursor()
-    local_cursor.execute('''SELECT *
-FROM data_insert_id_seek;''')
-    global all_seek_dict
-    all_seek_dict = {k: v for k, v in local_cursor.fetchall()}
+    sql = '''SELECT seek
+    FROM data_insert_id_seek WHERE task_name='{}';'''.format(table_name)
+    local_cursor.execute(sql)
+    _res = local_cursor.fetchone()
     local_cursor.close()
     local_conn.close()
 
-
-def get_seek(table_name):
-    global all_seek_dict
-    if all_seek_dict is None:
-        init_all_seek_dict()
-    return all_seek_dict.get(table_name, 0)
+    if _res is not None:
+        return _res[0]
+    else:
+        return 0
 
 
 def update_seek_table(table_name, seek):
@@ -76,8 +72,7 @@ def update_seek_table(table_name, seek):
     local_cursor = local_conn.cursor()
     local_cursor.execute('''REPLACE INTO data_insert_id_seek VALUES (%s, %s);''', (table_name, seek))
     logger.debug("[update seek table][table_name: {}][max_id: {}]".format(table_name, seek))
-    global all_seek_dict
-    all_seek_dict[table_name] = seek
+    local_conn.commit()
     local_cursor.close()
     local_conn.close()
 
@@ -115,9 +110,8 @@ def insert_data(limit=1000):
             logger.error('[Unknown Task Final: {}]'.format(each_table_final))
             continue
 
-        create_table(task_type, task_tag)
         if task_type in ('hotel', 'attr', 'rest', 'total'):
-            to_table_name = "{}_images_final_{}".format(image_type_dict[task_type], task_tag)
+            to_table_name = "{}_images".format(image_type_dict[task_type])
             local_cursor = local_conn.cursor()
             get_id_sql = '''SELECT id
     FROM {0}
@@ -132,10 +126,10 @@ def insert_data(limit=1000):
             final_seek = max(map(lambda x: x[0], local_cursor.fetchall()))
             local_cursor.close()
 
-            # replace into final data
+            # insert into final data
             local_cursor = local_conn.cursor()
             if task_type in ('attr', 'rest', 'total'):
-                query_sql = '''REPLACE INTO {0}.{1}
+                query_sql = '''INSERT IGNORE INTO {0}.{1}
 (file_name, source, sid, url, pic_size, bucket_name, url_md5, pic_md5, `use`, part, date)
   SELECT
     file_name,
@@ -152,7 +146,7 @@ def insert_data(limit=1000):
   FROM
     {2} where id > {3} ORDER BY id LIMIT {4};;'''.format(final_database, to_table_name, each_table_final, seek, limit)
             elif task_type == 'hotel':
-                query_sql = '''REPLACE INTO {0}.{1} (source, source_id, pic_url, pic_md5, part, hotel_id, status, update_date, size, flag, file_md5)
+                query_sql = '''INSERT IGNORE INTO {0}.{1} (source, source_id, pic_url, pic_md5, part, hotel_id, status, update_date, size, flag, file_md5)
   SELECT
     source,
     source_id,
@@ -174,7 +168,7 @@ def insert_data(limit=1000):
                 continue
 
             try:
-                replace_count = local_cursor.execute(query_sql)
+                insert_ignore_count = local_cursor.execute(query_sql)
             except Exception as e:
                 logger.exception(msg="[table_name: {}][error_sql: {}]".format(each_table_final, query_sql), exc_info=e)
                 continue
@@ -186,14 +180,14 @@ def insert_data(limit=1000):
         update_seek_table(each_table_final, final_seek)
         logger.debug(
             "[insert data][to: {}][from: {}][seek: {}][final_seek: {}][limit: {}][line_count: {}]["
-            "replace_count: {}][takes: {}]".format(
+            "insert_ignore_count: {}][takes: {}]".format(
                 to_table_name,
                 each_table_final,
                 seek,
                 final_seek,
                 limit,
                 line_count,
-                replace_count,
+                insert_ignore_count,
                 time.time() - start
             ))
     local_conn.close()
