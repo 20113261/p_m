@@ -23,6 +23,14 @@ test_db = {
     'db': 'base_data'
 }
 
+online_db = {
+    'host': '10.10.68.103',
+    'user': 'reader',
+    'password': 'miaoji1109',
+    'charset': 'utf8',
+    'db': 'base_data'
+}
+
 offset = 0
 
 
@@ -113,10 +121,17 @@ def insert_data(data, _count):
             logger.exception(msg="[run sql error]", exc_info=exc)
 
 
-def update_per_hotel_validation(start=0):
+def update_per_hotel_validation(start=0, env='test'):
     global offset
     _count = 0
     data = []
+
+    if env == 'test':
+        db_conf = test_db
+    elif env == 'online':
+        db_conf = online_db
+    else:
+        raise TypeError("Unknown Env: {}".format(env))
 
     sql = '''SELECT
       source,
@@ -126,8 +141,8 @@ def update_per_hotel_validation(start=0):
       name,
       name_en,
       hotel_url
-    FROM hotel_unid LIMIT {},999999999999;'''.format(start)
-    for line in MysqlSource(test_db, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
+    FROM hotel_unid WHERE source='ctrip' LIMIT {},999999999999;'''.format(start)
+    for line in MysqlSource(db_conf, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
         source = line['source']
         try:
             if source in (
@@ -139,7 +154,7 @@ def update_per_hotel_validation(start=0):
                 # ep 系，使用 url 类型的
                 each_data = expedia(line)
                 data.append(each_data)
-            elif source in ("hrs",):
+            elif source in ("hrs", "ctrip"):
                 # 单纯 sid 的
                 each_data = sid_only_key_and_content(line)
                 data.append(each_data)
@@ -168,7 +183,7 @@ def update_per_hotel_validation(start=0):
                 each_data = agoda(line)
                 data.append(each_data)
             elif source in (
-                    "accor", "hoteltravelEN", "hoteltravel", "venere", "venereEN", "ctrip", "agodaApi",
+                    "accor", "hoteltravelEN", "hoteltravel", "venere", "venereEN", "agodaApi",
                     "amoma",
                     "haoqiaoApi", "hostelworld", "hotelclub", "ihg", "kempinski", "starwoodhotels", "tongchengApi"):
                 # 不更新 workload validation
@@ -202,16 +217,23 @@ def update_per_hotel_validation(start=0):
     insert_data(data, _count)
 
 
-def update_hotel_validation():
+def update_per_env_hotel_validation(env):
     global offset
     max_retry_times = 10000
     while max_retry_times:
         max_retry_times -= 1
         try:
-            update_per_hotel_validation(start=offset)
+            update_per_hotel_validation(start=offset, env=env)
             break
         except Exception as exc:
             logger.exception(msg="[update hotel validation error]", exc_info=exc)
+
+
+def update_hotel_validation():
+    # global offset
+    update_per_env_hotel_validation('test')
+    # offset = 0
+    # update_per_env_hotel_validation('online')
 
 
 if __name__ == '__main__':
