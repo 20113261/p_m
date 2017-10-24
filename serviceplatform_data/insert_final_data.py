@@ -33,11 +33,9 @@ time_key = {
     "total": "insert_time"
 }
 
+
 # local_conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', charset='utf8', passwd='mioji1109',
 #                              db='ServicePlatform')
-
-all_seek_dict = None
-
 
 def create_table(view_type, view_tag):
     final_conn = pymysql.connect(host='10.10.228.253', user='mioji_admin', charset='utf8', passwd='mioji1109',
@@ -55,22 +53,21 @@ def create_table(view_type, view_tag):
     final_conn.close()
 
 
-def init_all_seek_dict():
+def get_seek(table_name):
     local_conn = service_platform_pool.connection()
     local_cursor = local_conn.cursor()
-    local_cursor.execute('''SELECT *
-FROM data_insert_seek;''')
-    global all_seek_dict
-    all_seek_dict = {k: v for k, v in local_cursor.fetchall()}
+    sql = '''SELECT seek
+FROM data_insert_seek
+WHERE task_name = '{}';'''.format(table_name)
+    local_cursor.execute(sql)
+    _res = local_cursor.fetchone()
     local_cursor.close()
     local_conn.close()
 
-
-def get_seek(table_name):
-    global all_seek_dict
-    if all_seek_dict is None:
-        init_all_seek_dict()
-    return all_seek_dict.get(table_name, '')
+    if _res is not None:
+        return _res[0]
+    else:
+        return '1970-01-01'
 
 
 def update_seek_table(table_name, update_time):
@@ -78,8 +75,6 @@ def update_seek_table(table_name, update_time):
     local_cursor = local_conn.cursor()
     local_cursor.execute('''REPLACE INTO data_insert_seek VALUES (%s, %s);''', (table_name, update_time))
     logger.debug("[update seek table][table_name: {}][update_time: {}]".format(table_name, update_time))
-    global all_seek_dict
-    all_seek_dict[table_name] = update_time
     local_conn.commit()
     local_cursor.close()
     local_conn.close()
@@ -109,6 +104,9 @@ def insert_data(limit=1000):
     local_cursor.close()
 
     for each_view_final in view_list:
+        if 'hotel' in each_view_final:
+            # todo 暂时关闭酒店数据的整合例行
+            continue
         start = time.time()
         u_time = get_seek(each_view_final)
 
@@ -122,13 +120,7 @@ def insert_data(limit=1000):
         to_table_name = "{}_final_{}".format(view_type, view_tag)
         if view_type in ('hotel', 'attr', 'rest', 'total'):
             local_cursor = local_conn.cursor()
-            if u_time == '':
-                update_time_sql = '''SELECT {0}
-                    FROM {1}
-                    ORDER BY {0}
-                    LIMIT {2};'''.format(time_key[view_type], each_view_final, limit)
-            else:
-                update_time_sql = '''SELECT {0}
+            update_time_sql = '''SELECT {0}
     FROM {1}
     WHERE {0} >= '{2}'
     ORDER BY {0}
@@ -142,17 +134,11 @@ def insert_data(limit=1000):
 
             # replace into final data
             local_cursor = local_conn.cursor()
-            if u_time != '':
-                query_sql = '''REPLACE INTO {1}.{2} SELECT *
+            query_sql = '''REPLACE INTO {1}.{2} SELECT *
     FROM {3}
     WHERE {0} >= '{4}'
     ORDER BY {0}
     LIMIT {5};'''.format(time_key[view_type], final_database, to_table_name, each_view_final, u_time, limit)
-            else:
-                query_sql = '''REPLACE INTO {1}.{2} SELECT *
-                    FROM {3}
-                    ORDER BY {0}
-                    LIMIT {4};'''.format(time_key[view_type], final_database, to_table_name, each_view_final, limit)
 
             try:
                 replace_count = local_cursor.execute(query_sql)
