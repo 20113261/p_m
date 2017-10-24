@@ -12,7 +12,7 @@ import json
 from math import radians, cos, sin, asin, sqrt
 from collections import defaultdict
 from data_source import MysqlSource
-from service_platform_conn_pool import service_platform_pool, base_data_final_pool
+from service_platform_conn_pool import service_platform_pool
 
 dev_ip = '10.10.69.170'
 dev_user = 'reader'
@@ -162,9 +162,10 @@ def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
     data = []
     # get all task info
     for duplicate_map_info in chunks(list(duplicate_map_info_set), 5000):
-        _conn = base_data_final_pool.connection()
+        _conn = service_platform_pool.connection()
         _cursor = _conn.cursor()
         if task_type == 'hotel':
+            # 酒店数据不可用
             query_sql = '''SELECT
   source,
   source_id,
@@ -285,11 +286,11 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
         }, table_or_query=sql, size=10000, is_table=False)
 
         # 经纬度记录集合，用于判定重复内容
-        map_info_set = set()
+        map_info_set = defaultdict(set)
 
         # 重复经纬度集合，用于提取重复经纬度，以及在经纬度重复的值的最后添加 len(duplicate_map_info_set) 值，
         # 以保证返回值不会丢失第一次出现的 map_info
-        duplicate_map_info_set = set()
+        duplicate_map_info_set = defaultdict(set)
 
         total = 0
         success = 0
@@ -355,16 +356,16 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                 right = False
             else:
                 # 经纬度重复情况判定
-                if map_info in map_info_set:
+                if map_info in map_info_set[source]:
                     error_dict[(source, "经纬度重复")] += 1
                     if error_dict[(source, "经纬度重复")] == 1:
                         # 当此经纬度出现 1 次时，经纬度重复加 2 ，之后正常
                         error_dict[(source, "经纬度重复")] += 1
-                    duplicate_map_info_set.add(map_info)
+                    duplicate_map_info_set[source].add(map_info)
                     right = False
 
                 # 当前情况为 map_info 为正确的情况，经纬度集合添加 map_info
-                map_info_set.add(map_info)
+                map_info_set[source].add(map_info)
 
                 # 当城市经纬度合法时计算相应的距离
                 city_map_info = city_map_info_dict.get(cid, None)
@@ -398,9 +399,13 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
         # error_dict[(source, '经纬度重复')] += len(duplicate_map_info_set)
 
         # 生成经纬度重复任务，当前只有 qyer
-        if task_type == 'total':
-            insert_error_map_info_task(duplicate_map_info_set=duplicate_map_info_set, task_table=cand_table,
-                                       task_type=task_type)
+        if task_type in ('total', 'attr', 'rest'):
+            for source, each_duplicate_map_info in duplicate_map_info_set.items():
+                # get each detail table name
+                detail_table = '_'.join(['detail', task_type, source, task_tag])
+                insert_error_map_info_task(duplicate_map_info_set=each_duplicate_map_info,
+                                           task_table=detail_table,
+                                           task_type=task_type)
 
         print(total, error_count, success, cand_table)
 
