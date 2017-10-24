@@ -6,6 +6,7 @@
 # @File    : multi_city.py
 # @Software: PyCharm
 import gevent.monkey
+
 gevent.monkey.patch_all()
 import time
 import gevent.pool
@@ -38,4 +39,10 @@ FROM city;''')
 
 
 if __name__ == '__main__':
-    poi_ori('attr')
+    import sys
+
+    _t = sys.argv[1]
+    if _t in ('attr', 'shop'):
+        poi_ori(_t)
+    else:
+        print("python3 multi_city.py attr/shop")
