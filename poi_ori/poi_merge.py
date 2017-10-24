@@ -24,11 +24,6 @@ lock = threading.Lock()
 logger = get_logger("poi_ori")
 
 
-class BaseDataMysqlSource(MysqlSource):
-    def __iter__(self):
-        return cursor_gen(base_data_pool.connection(), self._sql, self._size)
-
-
 def init_global_name(_poi_type):
     global poi_type
     global online_table_name
