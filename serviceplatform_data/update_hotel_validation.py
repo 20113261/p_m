@@ -121,7 +121,7 @@ def insert_data(data, _count):
             logger.exception(msg="[run sql error]", exc_info=exc)
 
 
-def update_per_hotel_validation(start=0, env='test'):
+def update_per_hotel_validation(env='test'):
     global offset
     _count = 0
     data = []
@@ -141,7 +141,7 @@ def update_per_hotel_validation(start=0, env='test'):
       name,
       name_en,
       hotel_url
-    FROM hotel_unid WHERE source='ctrip' LIMIT {},999999999999;'''.format(start)
+    FROM hotel_unid WHERE LIMIT {},999999999999;'''.format(offset)
     for line in MysqlSource(db_conf, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
         source = line['source']
         try:
@@ -223,7 +223,7 @@ def update_per_env_hotel_validation(env):
     while max_retry_times:
         max_retry_times -= 1
         try:
-            update_per_hotel_validation(start=offset, env=env)
+            update_per_hotel_validation(env=env)
             break
         except Exception as exc:
             logger.exception(msg="[update hotel validation error]", exc_info=exc)

@@ -31,6 +31,7 @@ from serviceplatform_data.insert_data_mongo import insert_hotel_data, insert_cit
 from serviceplatform_data.get_nearby_hotel_city import get_nearby_city
 from serviceplatform_data.update_hotel_validation import update_hotel_validation
 from serviceplatform_data.insert_poi_detect_task_info import get_task_info
+from serviceplatform_data.delete_already_scanned_file import delete_already_scanned_file
 from logger import get_logger
 
 SEND_TO = ['hourong@mioji.com', "luwanning@mioji.com"]
@@ -122,6 +123,8 @@ schedule.add_job(on_exc_send_email(get_near_city), 'cron', hour='1', id='get_nea
 schedule.add_job(on_exc_send_email(update_hotel_validation), 'cron', hour='2', id='update_hotel_validation',
                  max_instances=1)
 schedule.add_job(on_exc_send_email(get_task_info), 'cron', hour='3', id='insert_poi_detect_task_info',
+                 max_instances=1)
+schedule.add_job(on_exc_send_email(delete_already_scanned_file), 'cron', hour='*/2', id='delete_already_scanned_file',
                  max_instances=1)
 
 if __name__ == '__main__':

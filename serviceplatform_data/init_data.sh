@@ -71,3 +71,6 @@ mysql -h10.10.228.253 -umioji_admin -pmioji1109 --database=base_data --execute='
 
 # insert img data
 mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --skip-lock-tables --insert-ignore --no-create-info --no-create-db --complete-insert --where "id > 6712287 order by id" ServicePlatform images_attr_daodao_20170929a |sed 's/`images_attr_daodao_20170929a`/`poi_images`/g' > images_attr_daodao_20170929a_new.sql
+
+# insert PoiPicInformation
+mysqldump -h10.10.154.38 -ureader -pmiaoji1109 --skip-lock-tables --insert-ignore --no-create-info --no-create-db --complete-insert devdb PoiPictureInfomation | sed 's/`PoiPictureInfomation`/`PoiPictureInformation`/g' > PoiPictureInformation.sql
