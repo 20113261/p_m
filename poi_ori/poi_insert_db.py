@@ -41,28 +41,25 @@ W2N = {
 get_key = toolbox.Common.GetKey()
 get_key.update_priority({
     'default': {
-        'mioji': 15,
+        'mioji_official': 15,
         'daodao': 10,
         'tripadvisor': 10,
         'qyer': 9,
-        'yelp': 8,
-        'mafengwo': 7,
+        'mioji_nonofficial': 0
     },
     ('name', 'name_en'): {
-        'mioji': 15,
+        'mioji_official': 15,
         'qyer': 10,
         'daodao': 9,
         'tripadvisor': 9,
-        'yelp': 8,
-        'mafengwo': 7,
+        'mioji_nonofficial': 0
     },
     ('address', 'opentime', 'star'): {
-        'mioji': 15,
+        'mioji_official': 15,
         'daodao': 10,
         'tripadvisor': 10,
         'qyer': 9,
-        'yelp': 8,
-        'mafengwo': 7,
+        'mioji_nonofficial': 0,
     },
 })
 
@@ -127,26 +124,8 @@ def get_poi_dict(city_id):
     :return: city info dict
     """
     _poi_dict = defaultdict(dict)
-    # get s sid
-    #     conn = poi_ori_pool.connection()
-    #     cursor = conn.cursor()
-    #     sql = '''SELECT
-    # source,
-    # source_id
-    # FROM {}_unid
-    # WHERE city_id = '{}';'''.format(poi_type, city_id)
-    #     cursor.execute(sql)
-    #     source_res = []
-    #     online_res = []
-    #     for s, sid in cursor.fetchall():
-    #         if s == 'online':
-    #             online_res.append(sid)
-    #         else:
-    #             source_res.append("('{0}', '{1}')".format(s, sid))
-    #     cursor.close()
-    #     conn.close()
-
-    _online_data = {}
+    _online_official_data = {}
+    _online_nonofficial_data = {}
     # get whole data process
     conn = data_process_pool.connection()
     cursor = conn.cursor(cursor=DictCursor)
@@ -157,7 +136,10 @@ WHERE city_id='{}';'''.format(data_process_table_name, city_id)
     cursor.execute(sql)
     logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
     for each in cursor.fetchall():
-        _online_data[each['id']] = each
+        if int(each["official"]) == 0:
+            _online_nonofficial_data[each['id']] = each
+        else:
+            _online_official_data[each['id']] = each
     cursor.close()
     conn.close()
 
@@ -171,9 +153,11 @@ WHERE city_id='{}';'''.format(data_process_table_name, city_id)
     cursor.execute(sql)
     logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
     for each in cursor.fetchall():
-        # gevent 中 pop 有问题，跳过 pop 的使用
         each.pop('tag_id')
-        _online_data[each['id']].update(each)
+        if int(each["official"]) == 0:
+            _online_nonofficial_data[each['id']].update(each)
+        else:
+            _online_official_data[each['id']].update(each)
     cursor.close()
     conn.close()
 
@@ -190,7 +174,7 @@ WHERE city_id='{}';'''.format(data_process_table_name, city_id)
         _poi_dict[(source, source_id)] = line
     cursor.close()
     conn.close()
-    return _poi_dict, _online_data
+    return _poi_dict, _online_official_data, _online_nonofficial_data
 
 
 @func_time_logger
@@ -271,7 +255,7 @@ def poi_insert_data(cid, _poi_type):
     data = []
 
     # 获取融合需要的 poi 信息
-    _info_dict, _online_data = get_poi_dict(cid)
+    _info_dict, _online_official_data, _online_nonofficial_data = get_poi_dict(cid)
     _city_poi = get_poi_union_info(cid)
     # 开始数据融合
     for miaoji_id, city_id, union_info in _city_poi:
@@ -280,16 +264,17 @@ def poi_insert_data(cid, _poi_type):
         can_be_used = False
 
         # 获取线上环境数据
-        o_data = _online_data.get(miaoji_id, None)
+        o_official_data = _online_official_data.get(miaoji_id, None)
+        o_nonofficial_data = _online_nonofficial_data.get(miaoji_id, None)
 
         # 初始化融合信息
         for each_name in (json_name_list + norm_name_list + others_name_list):
             data_dict[each_name] = {}
-            if o_data is not None:
+            if o_official_data is not None:
                 if each_name in json_name_list:
-                    if each_name in o_data:
+                    if each_name in o_official_data:
                         try:
-                            _res = json.loads(o_data[each_name])
+                            _res = json.loads(o_official_data[each_name])
                             if isinstance(_res, dict):
                                 data_dict[each_name] = _res
                             else:
@@ -297,7 +282,21 @@ def poi_insert_data(cid, _poi_type):
                         except Exception:
                             pass
                 else:
-                    data_dict[each_name]['mioji'] = o_data.get(each_name, {})
+                    data_dict[each_name]['mioji_official'] = o_official_data.get(each_name, {})
+
+            if o_nonofficial_data is not None:
+                if each_name in json_name_list:
+                    if each_name in o_nonofficial_data:
+                        try:
+                            _res = json.loads(o_nonofficial_data[each_name])
+                            if isinstance(_res, dict):
+                                data_dict[each_name] = _res
+                            else:
+                                pass
+                        except Exception:
+                            pass
+                else:
+                    data_dict[each_name]['mioji_nonofficial'] = o_nonofficial_data.get(each_name, {})
 
         # 遍历所有需要融合的 source 以及 id，并生成 dict 类融合内容
         for s_sid in union_info.split('|_||_|'):
@@ -519,18 +518,21 @@ def poi_insert_data(cid, _poi_type):
                 'alias': alias,
                 'image': data_dict['imgurl'],
                 'ori_grade': data_dict['ori_grade'],
-                'nearCity': nearby_city,
-                'status_online': 'Open',
-                'status_test': 'Open'
+                'nearCity': nearby_city
             }
-            if not o_data:
+            if not o_official_data and not o_nonofficial_data:
                 per_data.update({
+                    # 明确更新逻辑，当之前没有融合时才会更新状态
                     'ranking': -1.0,
                     'rcmd_open': '',
                     'add_info': '',
                     'address_en': '',
                     'event_mark': '',
-                    'grade': -1.0
+                    'grade': -1.0,
+
+                    # 明确更新逻辑，当之前没有融合时才会更新状态
+                    'status_online': 'Open',
+                    'status_test': 'Open'
                 })
 
             # 景点游览部分清理
@@ -585,16 +587,19 @@ def poi_insert_data(cid, _poi_type):
                 'prize': data_dict['prize'],
                 'traveler_choice': data_dict['traveler_choice'],
                 'image': data_dict['imgurl'],
-                'nearCity': nearby_city,
-                'status_online': 'Open',
-                'status_test': 'Open'
+                'nearCity': nearby_city
             }
-            if not o_data:
+            if not o_nonofficial_data and not o_official_data:
                 per_data.update({
+                    # 需要增加默认值才能入库
                     'ranking': -1.0,
                     'rcmd_open': '',
                     'image_list': '',
-                    'grade': -1.0
+                    'grade': -1.0,
+
+                    # 明确更新逻辑，当之前没有融合时才会更新状态
+                    'status_online': 'Open',
+                    'status_test': 'Open'
                 })
             shopping_tag = ['礼品与特产商店', '大型购物中心', '农贸市场', '跳蚤市场与街边市场', '古董店', '百货商场', '厂家直营店', '购物']
             important_shopping_tag = ['礼品与特产商店', '大型购物中心', '百货商场', '厂家直营店', '购物']
@@ -642,4 +647,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(10001, 'attr')
+    poi_insert_data(10009, 'attr')
