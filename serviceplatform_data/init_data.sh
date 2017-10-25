@@ -68,3 +68,6 @@ mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 -T /tmp base_data city
 mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --fields-terminated-by="," --fields-enclosed-by="" --fields-escaped-by="" --no-create-db --no-create-info --tab="." information_schema CHARACTER_SETS base_data city
 
 mysql -h10.10.228.253 -umioji_admin -pmioji1109 --database=base_data --execute='SELECT `FIELD`, `FIELD` FROM `TABLE` LIMIT 0, 10000 ' -X > file.csv
+
+# insert img data
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --skip-lock-tables --insert-ignore --no-create-info --no-create-db --complete-insert ServicePlatform images_attr_daodao_20170929a |sed 's/`images_attr_daodao_20170929a`/`poi_images`/g' > images_attr_daodao_20170929a.sql

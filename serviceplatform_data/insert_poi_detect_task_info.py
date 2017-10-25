@@ -68,8 +68,8 @@ def _get_per_table_task_info(table_name):
     global offset
     sql = '''SELECT
             {0}.city_id                    AS poi_city_id,
-            {0}.source                     AS poi_sid,
-            sid                            AS poi_source,
+            {0}.source                     AS poi_source,
+            sid                            AS poi_sid,
             file_name                      AS pic_name
           FROM BaseDataFinal.poi_images
             JOIN {0}
