@@ -8,14 +8,8 @@ from logger import get_logger
 
 logger = get_logger("get_norm_tag")
 
-split_pattern = re.compile('[｜|与/,，_]')
+split_pattern = re.compile('[｜|与和/,，_]')
 
-attr_key_words_dict = {
-    '水上乐园和游乐场': '游乐园',
-    '主题乐园': '主题公园',
-    '自然和野生动物游览': '自然风光',
-    '综合体育馆': '综合体育中心'
-}
 rest_key_words_dict = {'\u9ece\u5df4\u5ae9\u83dc': '\u9ece\u5df4\u5ae9', '\u79d8\u9c81\u83dc': '\u79d8\u9c81',
                        '\u4e9a\u6d32\u6599\u7406': '\u4e9a\u6d32', '\u745e\u5178\u83dc': '\u745e\u5178',
                        '\u6ce2\u65af\u98ce\u5473': '\u6ce2\u65af', '\u5496\u5561\u9986': '\u5496\u5561\u5385',
@@ -74,13 +68,23 @@ tag_dict = None
 
 
 def get_tagid_dict(_poi_type):
-    tag_tag_en_dict = {}
+    _dict = {}
     if _poi_type == 'attr':
-        sql = 'select tag,tag_en from chat_attraction_tagS'
+        sql = '''SELECT
+  tag,
+  tag_en,
+  original_tag
+FROM chat_attraction_tagS
+ORDER BY id;'''
     elif _poi_type == 'rest':
-        sql = 'select tag,tag_en from chat_restaurant_tagS'
+        sql = 'select tag,tag_en,original_tag from chat_restaurant_tagS'
     elif _poi_type == 'shop':
-        sql = 'select tag,tag_en from chat_shopping_tagS'
+        sql = '''SELECT
+  tag,
+  tag_en,
+  original_tag
+FROM chat_shopping_tagS
+ORDER BY id;'''
     else:
         raise TypeError("Unknown Type: {}".format(_poi_type))
 
@@ -90,8 +94,13 @@ def get_tagid_dict(_poi_type):
     for line in cursor.fetchall():
         tag = line['tag']
         tag_en = line['tag_en']
-        tag_tag_en_dict[tag] = tag_en
-    return tag_tag_en_dict
+        original_tag = line['original_tag']
+        _tags_set = set()
+        for each_tag in original_tag.split('|'):
+            if is_legal(each_tag):
+                _tags_set.add(each_tag)
+        _dict[tuple(_tags_set)] = (tag, tag_en)
+    return _dict
 
 
 def get_norm_tag(tag_id, _poi_type):
@@ -99,29 +108,22 @@ def get_norm_tag(tag_id, _poi_type):
     if tag_dict is None:
         logger.debug("[init tagid]")
         tag_dict = get_tagid_dict(_poi_type)
-    norm_tag_list = []
-    norm_tag_en = []
+    norm_tags = []
+    norm_tag_ens = []
     unknown = []
     lines = tradition2simple(tag_id).decode()
     for raw_tag in split_pattern.split(lines):
+        tag_ok = False
         tag = raw_tag.strip()
-        if tag in tag_dict:
-            norm_tag_list.append(tag)
-            norm_tag_en.append(tag_dict[tag])
-            continue
-        if _poi_type == 'attr':
-            if tag in attr_key_words_dict:
-                if attr_key_words_dict[tag] in tag_dict:
-                    norm_tag_list.append(attr_key_words_dict[tag])
-                    norm_tag_en.append(tag_dict[attr_key_words_dict[tag]])
-                    continue
-        if _poi_type == 'rest':
-            if tag in rest_key_words_dict:
-                norm_tag_list.append(rest_key_words_dict[tag])
-                norm_tag_en.append(tag_dict[rest_key_words_dict[tag]])
-                continue
-        if is_legal(tag):
-            unknown.append(tag)
-    norm_tag = '|'.join(norm_tag_list)
-    norm_tag_en = '|'.join(norm_tag_en)
+        for t_set, values in tag_dict.items():
+            if tag in t_set:
+                norm_tags.append(values[0])
+                norm_tag_ens.append(values[1])
+                tag_ok = True
+                break
+        if not tag_ok:
+            if is_legal(tag):
+                unknown.append(tag)
+    norm_tag = '|'.join(sorted(norm_tags))
+    norm_tag_en = '|'.join(sorted(norm_tag_ens))
     return norm_tag, norm_tag_en, unknown

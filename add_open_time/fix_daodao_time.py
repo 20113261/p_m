@@ -325,6 +325,12 @@ def fix_daodao_open_time(source_open_time):
     for k, v in work_replace_key.items():
         while k in __source_open_time:
             __source_open_time = __source_open_time.replace(k, v)
+
+    if '.' in __source_open_time:
+        if __source_open_time.count(':') % 2 == 1:
+            if (__source_open_time.count(':') + __source_open_time.count('.')) % 2 == 0:
+                __source_open_time = __source_open_time.replace('.', ':')
+
     # 加 |
     # 时间 星期
     try:
