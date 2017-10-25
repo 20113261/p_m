@@ -38,6 +38,7 @@ W2N = {
     '¥¥¥¥': '4'
 }
 
+available_source = ['mioji_official', 'daodao', 'tripadvisor', 'qyer', 'mioji_nonofficial']
 get_key = toolbox.Common.GetKey()
 get_key.update_priority({
     'default': {
@@ -276,7 +277,7 @@ def poi_insert_data(cid, _poi_type):
                         try:
                             _res = json.loads(o_official_data[each_name])
                             if isinstance(_res, dict):
-                                data_dict[each_name] = _res
+                                data_dict[each_name] = {k: v for k, v in _res.items() if k in available_source}
                             else:
                                 pass
                         except Exception:
@@ -307,6 +308,11 @@ def poi_insert_data(cid, _poi_type):
 
             # 未获得融合 id 信息
             if not source_id or not source:
+                continue
+
+            # 过滤不必要的 source
+            if source not in available_source:
+                logger.debug("[not available source: {}]".format(source))
                 continue
 
             # 未获得融合数据
