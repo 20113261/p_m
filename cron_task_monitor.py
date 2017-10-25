@@ -30,6 +30,7 @@ from service_platform_report.send_error_email import send_error_report_email
 from serviceplatform_data.insert_data_mongo import insert_hotel_data, insert_city_data
 from serviceplatform_data.get_nearby_hotel_city import get_nearby_city
 from serviceplatform_data.update_hotel_validation import update_hotel_validation
+from serviceplatform_data.insert_poi_detect_task_info import get_task_info
 from logger import get_logger
 
 SEND_TO = ['hourong@mioji.com', "luwanning@mioji.com"]
@@ -119,6 +120,8 @@ schedule.add_job(on_exc_send_email(send_error_report_email), 'cron', hour='*/1',
 schedule.add_job(on_exc_send_email(get_near_city), 'cron', hour='1', id='get_near_city',
                  max_instances=1)
 schedule.add_job(on_exc_send_email(update_hotel_validation), 'cron', hour='2', id='update_hotel_validation',
+                 max_instances=1)
+schedule.add_job(on_exc_send_email(get_task_info), 'cron', hour='3', id='insert_poi_detect_task_info',
                  max_instances=1)
 
 if __name__ == '__main__':
