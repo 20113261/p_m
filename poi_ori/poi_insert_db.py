@@ -27,6 +27,7 @@ from service_platform_conn_pool import poi_ori_pool, data_process_pool, base_dat
 from toolbox.Common import is_legal
 from poi_ori.already_merged_city import update_already_merge_city
 from poi_ori.unknown_keywords import insert_unknown_keywords
+from poi_ori.filter_data_already_online import filter_data_already_online
 
 filterwarnings('ignore', category=pymysql.err.Warning)
 logger = get_logger("insert_poi_log")
@@ -362,6 +363,8 @@ def poi_insert_data(cid, _poi_type):
 
         # 不能融合的内容包含两种
         if not o_official_data and not o_nonofficial_data and not other_source:
+            if 'online' in union_info:
+                filter_data_already_online(poi_type, miaoji_id, "没有可供融合的数据")
             logger.debug('[union_info: {}]'.format(union_info))
             continue
 
@@ -528,7 +531,16 @@ def poi_insert_data(cid, _poi_type):
 
         # 过滤名称
         if data_dict['name'].lower() in ('', 'null', '0') and data_dict['name_en'] in ('', 'null', '0'):
+            if 'online' in union_info:
+                filter_data_already_online(poi_type, miaoji_id, "中英文名为空")
             logger.debug("[filter by name][name: {}][name_en: {}]".format(data_dict['name'], data_dict['name_en']))
+            continue
+
+        if '停业' in data_dict['name'] or '停业' in data_dict['name_en']:
+            if 'online' in union_info:
+                filter_data_already_online(poi_type, miaoji_id, "停业 POI")
+            logger.debug("[filter by name with close business][name: {}][name_en: {}]".format(data_dict['name'],
+                                                                                              data_dict['name_en']))
             continue
 
         # name name_en 判断
@@ -584,6 +596,8 @@ def poi_insert_data(cid, _poi_type):
         # 距离过远过滤 poi
         result = poi_is_too_far(city_id, poi_map_info=data_dict['map_info'])
         if not result:
+            if 'online' in union_info:
+                filter_data_already_online(poi_type, miaoji_id, "距城市中心距离过远")
             logger.debug(
                 "[poi filter by poi city distance][cid: {}][city_map: {}][poi_map_info: {}][distance: {}]".format(
                     city_id, result.city_map, data_dict['map_info'], result.dist))
@@ -656,6 +670,8 @@ def poi_insert_data(cid, _poi_type):
                 if 'daodao' in tagid_data:
                     if is_legal(tagid_data['daodao']):
                         if '游览' in tagid_data['daodao']:
+                            if 'online' in union_info:
+                                filter_data_already_online(poi_type, miaoji_id, "tag 中包含游览被过滤")
                             logger.debug("[tour filter][data: {}]".format(tagid_data['daodao']))
                             continue
             except Exception as exc:
@@ -729,6 +745,8 @@ def poi_insert_data(cid, _poi_type):
             tag_list = norm_tag.split('|')
             if not all([tag.strip() in shopping_tag for tag in tag_list]):
                 if not any([tag.strip() in important_shopping_tag for tag in tag_list]):
+                    if 'online' in union_info:
+                        filter_data_already_online(poi_type, miaoji_id, "非购物数据被过滤")
                     continue
 
             data.append(per_data)
