@@ -8,9 +8,12 @@
 import os
 import dataset
 from collections import defaultdict
+from logger import get_logger
+
+logger = get_logger("city_pic_update")
 
 if __name__ == '__main__':
-    path = '/Volumes/国家及城市图片/02_已处理图片（技术使用）/9.15新增城市图片'
+    path = '/Volumes/国家及城市图片/02_已处理图片（技术使用）/美之旅城市图片'
     db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/base_data?charset=utf8')
     target_table = db['city']
     cid_set = set()
@@ -44,10 +47,10 @@ if __name__ == '__main__':
     # 更新图片信息
     for cid, pic_set in city_img.items():
         new_product_pic = '|'.join(pic_set)
-        print(cid, '=>', new_product_pic)
+        logger.debug("{} => {}".format(cid, new_product_pic))
         target_table.update({
             'id': cid,
             'new_product_city_pic': new_product_pic
         }, keys=['id', ])
 
-    print(','.join(cid_set))
+    logger.debug(','.join(cid_set))
