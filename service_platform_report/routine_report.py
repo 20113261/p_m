@@ -9,6 +9,9 @@ import redis
 import datetime
 import dataset
 from collections import defaultdict
+from logger import get_logger
+
+logger = get_logger("routine_report")
 
 
 def main():
@@ -47,13 +50,14 @@ def main():
 
         try:
             table.insert(data, ensure=None)
-            # print(data)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.exception(msg="[insert report data exc]", exc_info=exc)
 
-        print(worker, task_name, local_ip, task_source, task_type, work_count[key],
-              datetime.datetime.strftime(dt, '%Y%m%d'),
-              datetime.datetime.strftime(dt, '%H'), datetime.datetime.strftime(dt, '%Y%m%d%H00'))
+        logger.debug("[per data][worker: {}][task_name: {}][local_ip: {}][task_source: {}][task_type: {}]"
+                     "[work_count: {}][date: {}][hour: {}][datetime: {}]".format(
+                        worker, task_name, local_ip, task_source, task_type, work_count[key],
+                        datetime.datetime.strftime(dt, '%Y%m%d'),
+                        datetime.datetime.strftime(dt, '%H'), datetime.datetime.strftime(dt, '%Y%m%d%H00')))
 
         r.flushdb()
 

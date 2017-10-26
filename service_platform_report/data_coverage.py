@@ -10,6 +10,9 @@ import datetime
 import dataset
 from pymysql.cursors import DictCursor
 from collections import defaultdict
+from logger import get_logger
+
+logger = get_logger("data_coverage")
 
 dev_ip = '10.10.69.170'
 dev_user = 'reader'
@@ -130,7 +133,7 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
             # 无法获取查询 sql ，跳过
             continue
         else:
-            print(cand_table, report_sql)
+            logger.debug("[get data convert info][table: {}][sql: {}]".format(cand_table, report_sql))
 
         local_cursor = local_conn.cursor(cursor=DictCursor)
         local_cursor.execute(report_sql)
@@ -155,13 +158,12 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
 
     for each_data in report_data:
         try:
-            print(each_data)
             crawl_report_table.upsert(each_data, keys=['tag', 'source', 'type', 'col_name', 'date'],
                                       ensure=None)
+            logger.debug("[insert each data finished][data: {}]".format(each_data))
         except Exception as exc:
-            print(exc)
-        print(each_data)
-    print('Done')
+            logger.exception(msg="[insert report data exception][data: {}]".format(each_data), exc_info=exc)
+    logger.debug('Done')
 
 
 if __name__ == '__main__':
