@@ -5,12 +5,6 @@
 # @Site    : 
 # @File    : prepare_data.py
 # @Software: PyCharm
-
-
-
-
-
-
 import os
 import datetime
 from poi_ori.update_tag_id import update_tag_id
