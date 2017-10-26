@@ -11,6 +11,9 @@ import dataset
 import json
 import pymysql
 from collections import defaultdict
+from logger import get_logger
+
+logger = get_logger("task_progress_redis")
 
 
 def main():
@@ -40,6 +43,7 @@ def main():
             product_error_count[(task_tag, crawl_type, task_source, task_type, report_key, task_error_code)] = int(
                 count)
         else:
+            logger.debug("[unknown key][key: {}]".format(key))
             continue
 
     # 列表页城市统计相关内容
@@ -84,8 +88,9 @@ def main():
         try:
             product_table.upsert(data, keys=['tag', 'source', 'crawl_type', 'type', 'report_key', 'date'],
                                  ensure=None)
-        except Exception:
-            pass
+            logger.debug("[final data][{}]".format(json.dumps(data, indent=4, sort_keys=True)))
+        except Exception as exc:
+            logger.exception(msg="[update task progress table exception]", exc_info=exc)
 
         print(json.dumps(data, indent=4, sort_keys=True))
 
@@ -107,10 +112,9 @@ def main():
         try:
             product_error_table.upsert(data, keys=['tag', 'crawl_type', 'source', 'type', 'error_code', 'date'],
                                        ensure=None)
-        except Exception:
-            pass
-
-        print(json.dumps(data, indent=4, sort_keys=True))
+            logger.debug("[final data][{}]".format(json.dumps(data, indent=4, sort_keys=True)))
+        except Exception as exc:
+            logger.exception(msg="[update task progress table exception]", exc_info=exc)
 
 
 if __name__ == '__main__':

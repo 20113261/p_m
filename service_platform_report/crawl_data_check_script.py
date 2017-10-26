@@ -13,6 +13,9 @@ from math import radians, cos, sin, asin, sqrt
 from collections import defaultdict
 from data_source import MysqlSource
 from service_platform_conn_pool import service_platform_pool
+from logger import get_logger
+
+logger = get_logger("crawl_data_check")
 
 dev_ip = '10.10.69.170'
 dev_user = 'reader'
@@ -93,7 +96,7 @@ def get_city_map():
 
     cursor.close()
     conn.close()
-    print('cid size:' + str(len(cid2map)))
+    logger.debug('[cid size: {}]'.format(len(cid2map)))
     return cid2map
 
 
@@ -245,7 +248,7 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
         if task_type not in ('attr', 'rest', 'hotel', 'total'):
             continue
 
-        print(('Begin ' + cand_table))
+        logger.debug(('[Begin Detect][table: {}]'.format(cand_table)))
         error_count = {}
         source_count = defaultdict(int)
         error_dict = defaultdict(int)
@@ -301,7 +304,7 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
             total += 1
 
             if total % 10000 == 0:
-                print(total)
+                logger.debug("[table data detect][table: {}][count: {}]".format(cand_table, total))
             word_list = []
 
             for word in data:
@@ -407,7 +410,8 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                                            task_table=detail_table,
                                            task_type=task_type)
 
-        print(total, error_count, success, cand_table)
+        logger.debug(
+            "[table detected: {}][total: {}][error: {}][succeed: {}]".format(cand_table, total, error_count, success))
 
         for each_source, _c in source_count.items():
             report_data.append({
@@ -434,20 +438,18 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                 'datetime': datetime.datetime.strftime(dt, '%Y%m%d%H00')
             })
 
-    # serviceplatform_crawl_report_summary
     db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/Report?charset=utf8')
     crawl_report_table = db['serviceplatform_crawl_report_summary']
-
+    # serviceplatform_crawl_report_summary
     for each_data in report_data:
         try:
+
             crawl_report_table.upsert(each_data, keys=['tag', 'source', 'type', 'error_type', 'date'],
                                       ensure=None)
-        except Exception:
-            pass
-
-        print(each_data)
-
-    print('Done')
+            logger.debug("[table_data: {}]".format(each_data))
+        except Exception as exc:
+            logger.exception(msg="[update report table error]",exc_info=exc)
+    logger.debug('Done')
 
 
 if __name__ == '__main__':

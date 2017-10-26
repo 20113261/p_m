@@ -22,13 +22,12 @@ collections = client['MongoTask']['Task']
 def main():
     dt = datetime.datetime.now()
     product_count = defaultdict(int)
-    db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/Report?charset=utf8')
-    product_table = db['serviceplatform_product_mongo_summary']
 
     start = time.time()
     for each_task_name in collections.distinct('task_name', {}):
         task_list = each_task_name.split('_')
         if len(task_list) != 4:
+            logger.debug("[unknown task name][name: {}]".format(each_task_name))
             continue
 
         task_type, crawl_type, task_source, task_tag = task_list
@@ -59,8 +58,10 @@ def main():
         else:
             logger.debug(" ".join(map(lambda x: str(x), [each_task_name, task_all, task_done, task_final_failed])))
 
-    logger.debug('get info takes: ' + str(time.time() - start))
+    logger.debug('[get info][takes: {}]'.format(time.time() - start))
 
+    db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/Report?charset=utf8')
+    product_table = db['serviceplatform_product_mongo_summary']
     for key, value in product_count.items():
         task_tag, crawl_type, task_source, task_type, report_key = key
         data = {
@@ -78,10 +79,9 @@ def main():
         try:
             product_table.upsert(data, keys=['tag', 'source', 'crawl_type', 'type', 'report_key', 'date'],
                                  ensure=None)
-        except Exception:
-            pass
-
-        print(json.dumps(data, indent=4, sort_keys=True))
+            logger.debug("[final data][{}]".format(json.dumps(data, indent=4, sort_keys=True)))
+        except Exception as exc:
+            logger.exception(msg="[update task progress table exception]", exc_info=exc)
 
 
 if __name__ == '__main__':
