@@ -571,6 +571,10 @@ def poi_insert_data(cid, _poi_type):
                     city_id, result.city_map, data_dict['map_info'], result.dist))
             continue
 
+        # 大于 55 长度的电话置空
+        if len(data_dict['phone']) > 55:
+            data_dict['phone'] = ''
+
         if poi_type == 'attr':
             per_data = {
                 'id': miaoji_id,
@@ -743,4 +747,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(11771, 'attr')
+    poi_insert_data(20046, 'attr')
