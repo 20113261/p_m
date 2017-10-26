@@ -443,12 +443,12 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
     # serviceplatform_crawl_report_summary
     for each_data in report_data:
         try:
-
             crawl_report_table.upsert(each_data, keys=['tag', 'source', 'type', 'error_type', 'date'],
                                       ensure=None)
             logger.debug("[table_data: {}]".format(each_data))
         except Exception as exc:
             logger.exception(msg="[update report table error]",exc_info=exc)
+    db.commit()
     logger.debug('Done')
 
 

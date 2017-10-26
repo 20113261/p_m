@@ -163,6 +163,7 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
             logger.debug("[insert each data finished][data: {}]".format(each_data))
         except Exception as exc:
             logger.exception(msg="[insert report data exception][data: {}]".format(each_data), exc_info=exc)
+    db.commit()
     logger.debug('Done')
 
 

@@ -82,6 +82,7 @@ def main():
             logger.debug("[final data][{}]".format(json.dumps(data, indent=4, sort_keys=True)))
         except Exception as exc:
             logger.exception(msg="[update task progress table exception]", exc_info=exc)
+    db.commit()
 
 
 if __name__ == '__main__':
