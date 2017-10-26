@@ -42,7 +42,7 @@ W2N = {
 }
 
 available_source = ['mioji_official', 'daodao', 'tripadvisor', 'qyer', 'mioji_nonofficial']
-get_key = toolbox.Common.GetKey()
+get_key = toolbox.Common.GetKey(no_key_event=1)
 get_key.update_priority({
     'default': {
         'mioji_official': 15,
@@ -58,13 +58,24 @@ get_key.update_priority({
         'tripadvisor': 9,
         'mioji_nonofficial': 0
     },
-    ('address', 'opentime', 'star'): {
+    ('address', 'opentime'): {
         'mioji_official': 15,
         'daodao': 10,
         'tripadvisor': 10,
         'qyer': 9,
         'mioji_nonofficial': 0,
     },
+    ('prize', 'traveler_choice', 'phone'): {
+        'mioji_official': 15,
+        'daodao': 10,
+        'tripadvisor': 10,
+        'mioji_nonofficial': 0,
+    },
+    ('star', 'plantocount', 'beentocount'): {
+        'mioji_official': 15,
+        'qyer': 10,
+        'mioji_nonofficial': 0,
+    }
 })
 
 poi_type = None
@@ -519,8 +530,6 @@ def poi_insert_data(cid, _poi_type):
 
         # 添加 nearCity 字段
         nearby_city = get_nearby_city(poi_city_id=city_id, poi_map_info=data_dict['map_info'])
-        ''''`image`, `ori_grade`,`nearCity`, `ranking`,`rcmd_open`,`add_info`,`address_en`,`event_mark`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' \
-  '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,-1,"","","","")';'''
 
         # 数据清理以及入库部分
         # 全量经纬度不符合规范数据清理
@@ -582,10 +591,8 @@ def poi_insert_data(cid, _poi_type):
                 'tagid': data_dict['tagid'],
                 'norm_tagid': norm_tag,
                 'norm_tagid_en': norm_tag_en,
-                'url': data_dict['url'],
                 'website_url': data_dict['site'],
                 'phone': data_dict['phone'],
-                'introduction': data_dict['introduction'],
                 'open': norm_open_time,
                 'open_desc': data_dict['opentime'],
                 'recommend_lv': data_dict['recommend_lv'],
@@ -596,7 +603,16 @@ def poi_insert_data(cid, _poi_type):
                 'ori_grade': data_dict['ori_grade'],
                 'nearCity': nearby_city
             }
-            if not o_official_data and not o_nonofficial_data:
+
+            # official 为 1 时，不更新的字段
+            # nonofficial 以及 新增的数据时进行更新
+            if not has_official:
+                per_data.update({
+                    'introduction': data_dict['introduction'],
+                    'url': data_dict['url'],
+                })
+
+            if not has_official and not has_nonofficial:
                 per_data.update({
                     # 明确更新逻辑，当之前没有融合时才会更新状态
                     'ranking': -1.0,
@@ -653,10 +669,8 @@ def poi_insert_data(cid, _poi_type):
                 'tagid': data_dict['tagid'],
                 'norm_tagid': norm_tag,
                 'norm_tagid_en': norm_tag_en,
-                'url': data_dict['url'],
                 'website_url': data_dict['site'],
                 'phone': data_dict['phone'],
-                'introduction': data_dict['introduction'],
                 'open': norm_open_time,
                 'open_desc': data_dict['opentime'],
                 'recommend_lv': data_dict['recommend_lv'],
@@ -665,7 +679,15 @@ def poi_insert_data(cid, _poi_type):
                 'image': data_dict['imgurl'],
                 'nearCity': nearby_city
             }
-            if not o_nonofficial_data and not o_official_data:
+            # official 为 1 时，不更新的字段
+            # nonofficial 以及 新增的数据时进行更新
+            if not has_official:
+                per_data.update({
+                    'introduction': data_dict['introduction'],
+                    'url': data_dict['url'],
+                })
+
+            if not has_official and not has_nonofficial:
                 per_data.update({
                     # 需要增加默认值才能入库
                     'ranking': -1.0,
