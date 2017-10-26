@@ -5,6 +5,8 @@
 # @Site    : 
 # @File    : poi_insert_db.py
 # @Software: PyCharm
+from warnings import filterwarnings
+
 import toolbox.Common
 import pymysql
 import json
@@ -28,6 +30,7 @@ from toolbox.Common import is_legal
 from poi_ori.already_merged_city import update_already_merge_city
 from poi_ori.unknown_keywords import insert_unknown_keywords
 
+filterwarnings('ignore', category=pymysql.err.Warning)
 logger = get_logger("insert_poi_log")
 need_cid_file = True
 
@@ -264,9 +267,19 @@ def poi_insert_data(cid, _poi_type):
         data_dict = defaultdict(dict)
         can_be_used = False
 
+        # 用于判定是否有线上 official 以及 nonofficial 的数据
+        has_official = False
+        has_nonofficial = False
+
         # 获取线上环境数据
         o_official_data = _online_official_data.get(miaoji_id, None)
         o_nonofficial_data = _online_nonofficial_data.get(miaoji_id, None)
+
+        # 更新 official 判定
+        if o_official_data is not None:
+            has_official = True
+        if o_nonofficial_data is not None:
+            has_nonofficial = True
 
         # 初始化融合信息
         for each_name in (json_name_list + norm_name_list + others_name_list):
@@ -341,9 +354,76 @@ def poi_insert_data(cid, _poi_type):
             continue
 
         new_data_dict = {}
+
+        # 通过优先级获取 ！中文 ！
+        def get_name_by_priority():
+            # 按照标准优先级更新字段信息
+            name_tmp = get_key.get_key_by_priority_or_default(
+                data_dict['name'], norm_name, '',
+                special_filter=lambda x: toolbox.Common.has_any(x, check_func=toolbox.Common.is_chinese)
+            )
+            # 从英文字段中找中文
+            if not name_tmp:
+                name_tmp = get_key.get_key_by_priority_or_default(
+                    data_dict['name_en'], norm_name, '',
+                    special_filter=lambda x: toolbox.Common.has_any(x, check_func=toolbox.Common.is_chinese)
+                )
+            # 从英文字段中找拉丁
+            if not name_tmp:
+                name_tmp = get_key.get_key_by_priority_or_default(
+                    data_dict['name_en'], norm_name, '',
+                    special_filter=lambda x: toolbox.Common.is_all(x,
+                                                                   check_func=toolbox.Common.is_latin_and_punctuation)
+                )
+            # 从中文字段中找拉丁
+            if not name_tmp:
+                name_tmp = get_key.get_key_by_priority_or_default(
+                    data_dict['name'], norm_name, '',
+                    special_filter=lambda x: toolbox.Common.is_all(x,
+                                                                   check_func=toolbox.Common.is_latin_and_punctuation)
+                )
+            return name_tmp
+
+        # 通过优先级获取 ！拉丁字符 ！
+        def get_name_en_by_priority():
+            # 从融合数据的英文字段中获取
+            name_en_tmp = get_key.get_key_by_priority_or_default(
+                data_dict['name_en'], norm_name, '',
+                special_filter=lambda x: toolbox.Common.is_all(x, check_func=toolbox.Common.is_latin_and_punctuation)
+            )
+            if not name_en_tmp:
+                get_key.get_key_by_priority_or_default(
+                    data_dict['name'], norm_name, '',
+                    special_filter=lambda x: toolbox.Common.is_all(x,
+                                                                   check_func=toolbox.Common.is_latin_and_punctuation)
+                )
+            return name_en_tmp
+
         for norm_name in norm_name_list:
-            new_data_dict[norm_name] = get_key.get_key_by_priority_or_default(data_dict[norm_name], norm_name,
-                                                                              '')
+            # 所有字段处理的过程中，对 name / name_en 进行特殊处理
+            if norm_name == 'name':
+                if has_official:
+                    # official = 1 的点，不更新 name
+                    new_data_dict['name'] = data_dict['name']['mioji_official']
+                elif has_nonofficial:
+                    # official = 0 的点，name 已为中文的点不更新 name
+                    if any([toolbox.Common.is_chinese(c) for c in data_dict['name']['mioji_nonofficial']]):
+                        new_data_dict['name'] = data_dict['name']['mioji_nonofficial']
+                    else:
+                        new_data_dict['name'] = get_name_by_priority()
+                else:
+                    # 按照标准优先级更新字段信息
+                    new_data_dict['name'] = get_name_by_priority()
+            elif norm_name == 'name_en':
+                # official 1 不更新英文名，否则按优先级更新英文名
+                if has_official:
+                    new_data_dict['name_en'] = data_dict['name_en']['mioji_official']
+                else:
+                    new_data_dict['name_en'] = get_name_en_by_priority()
+
+            else:
+                new_data_dict[norm_name] = get_key.get_key_by_priority_or_default(data_dict[norm_name], norm_name,
+                                                                                  '')
 
         # daodao url 处理
         if 'daodao' in data_dict['url']:
@@ -429,10 +509,6 @@ def poi_insert_data(cid, _poi_type):
             if data_dict['name_en'] in data_dict['name']:
                 data_dict['name'] = data_dict['name'].replace(data_dict['name_en'], '')
 
-        # 通过 name_en 回添 name
-        if data_dict['name'] == '':
-            data_dict['name'] = data_dict['name_en']
-
         # phone 处理
         if data_dict['phone'] in ('+ 新增電話號碼', '+ 新增电话号码'):
             data_dict['phone'] = ''
@@ -460,16 +536,10 @@ def poi_insert_data(cid, _poi_type):
 
         # 清理名称中的多余字符
         data_dict['name'] = data_dict['name'].replace('这是您的企业吗？', '').strip()
-        name = data_dict['name']
-        name_en = data_dict['name_en']
-        if name_en in name and name_en != name:
-            name.replace(name_en, '')
+        if data_dict['name_en'] in data_dict['name'] and data_dict['name_en'] != data_dict['name']:
+            data_dict['name'].replace(data_dict['name_en'], '')
 
         # 字段修改部分
-        # name
-        if data_dict['name'].lower() in ('', 'null', '0'):
-            data_dict['name'] = data_dict['name_en']
-
         # address
         if data_dict['address'].lower() in ('null', '0'):
             data_dict['address'] = ''
@@ -632,12 +702,12 @@ def poi_insert_data(cid, _poi_type):
                     _insert += 1
             logger.debug(
                 '[data upsert][count: {}][insert: {}][takes: {}]'.format(count, _insert, time.time() - _t))
-            logger.debug("Insert: {}".format(_insert))
+            logger.debug("[city_id: {}][insert_count_this_times: {}]".format(cid, _insert))
             db.commit()
             data = []
         count += 1
 
-    logger.debug("Total: {}".format(count))
+    logger.debug("[city_id: {}][total: {}]".format(cid, count))
     _insert = 0
     db = dataset.connect("mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/poi_merge?charset=utf8")
     table = db[data_process_table_name]
@@ -653,4 +723,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(10009, 'attr')
+    poi_insert_data(11771, 'attr')
