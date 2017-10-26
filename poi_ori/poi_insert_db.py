@@ -40,6 +40,7 @@ W2N = {
 }
 
 available_source = ['mioji_official', 'daodao', 'tripadvisor', 'qyer', 'mioji_nonofficial']
+final_source = ['daodao', 'tripadvisor', 'qyer', 'mioji']
 get_key = toolbox.Common.GetKey(no_key_event=1)
 get_key.update_priority({
     'default': {
@@ -444,14 +445,32 @@ def poi_insert_data(cid, _poi_type):
         # 餐厅使用 cuisines 添加 tagid
         if poi_type == 'rest':
             data_dict['tagid'] = copy.deepcopy(data_dict['cuisines'])
-            new_data_dict['tagid'] = json.dumps(data_dict['tagid'])
+            new_data_dict['tagid'] = json.dumps({k: v for k, v in data_dict['tagid'].items() if k in final_source})
 
         for json_name in json_name_list:
-            new_data_dict[json_name] = json.dumps(data_dict[json_name])
+            new_data_dict[json_name] = json.dumps({k: v for k, v in data_dict[json_name].items() if k in final_source})
 
         new_data_dict['phone'] = new_data_dict['phone'].replace('电话号码：', '').strip()
 
         # 数据操作部分
+        # ori_grade modify
+        tmp_ori_grade = {}
+
+        if has_official:
+            try:
+                tmp_ori_grade.update(json.loads(o_official_data['ori_grade']))
+            except Exception as exc:
+                logger.exception(msg="[load ori grade error]", exc_info=exc)
+
+        if has_nonofficial:
+            try:
+                tmp_ori_grade.update(json.loads(o_nonofficial_data['ori_grade']))
+            except Exception as exc:
+                logger.exception(msg="[load ori grade error]", exc_info=exc)
+
+        tmp_ori_grade.update({k: v for k, v in data_dict['grade'].items()})
+        new_data_dict['ori_grade'] = json.dumps({k: v for k, v in tmp_ori_grade.items() if k in final_source})
+
         # 添加 source
         source = '|'.join(map(lambda x: x.split('|')[0], union_info.split('|_||_|')))
 
@@ -461,9 +480,6 @@ def poi_insert_data(cid, _poi_type):
                                     list(data_dict['name_en'].values()))
                                 )
                          )
-
-        # ori_grade modify
-        new_data_dict['ori_grade'] = json.dumps(data_dict['grade'])
 
         # add open time
         final_open_time_desc = get_key.get_key_by_priority_or_default(data_dict['opentime'], 'opentime',
@@ -582,7 +598,6 @@ def poi_insert_data(cid, _poi_type):
 
         if poi_type == 'attr':
             per_data = {
-                'id': miaoji_id,
                 'id': miaoji_id,
                 'name': data_dict['name'],
                 'name_en': data_dict['name_en'],
