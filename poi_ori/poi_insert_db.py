@@ -5,15 +5,13 @@
 # @Site    : 
 # @File    : poi_insert_db.py
 # @Software: PyCharm
-from warnings import filterwarnings
-
 import toolbox.Common
 import pymysql
 import json
 import copy
 import dataset
 import time
-from toolbox.Common import is_legal, is_chinese
+from warnings import filterwarnings
 from pymysql.cursors import DictCursor
 from collections import defaultdict
 from Config.settings import attr_data_conf, attr_merge_conf, attr_final_conf, rest_data_conf, rest_merge_conf, \
