@@ -274,7 +274,9 @@ def poi_insert_data(cid, _poi_type):
     for miaoji_id, city_id, union_info in _city_poi:
         # 初始化融合前变量
         data_dict = defaultdict(dict)
-        can_be_used = False
+
+        # 有从其他数据源来的数据
+        other_source = False
 
         # 用于判定是否有线上 official 以及 nonofficial 的数据
         has_official = False
@@ -342,7 +344,7 @@ def poi_insert_data(cid, _poi_type):
             if poi_info == {}:
                 continue
 
-            can_be_used = True
+            other_source = True
 
             # 加 key
             for each_name in (json_name_list + norm_name_list):
@@ -358,7 +360,7 @@ def poi_insert_data(cid, _poi_type):
                     data_dict[each_name] = {}
 
         # 不能融合的内容包含两种
-        if not can_be_used:
+        if not o_official_data and not o_nonofficial_data and not other_source:
             logger.debug('[union_info: {}]'.format(union_info))
             continue
 
@@ -581,6 +583,7 @@ def poi_insert_data(cid, _poi_type):
         if poi_type == 'attr':
             per_data = {
                 'id': miaoji_id,
+                'id': miaoji_id,
                 'name': data_dict['name'],
                 'name_en': data_dict['name_en'],
                 'data_source': source,
@@ -750,4 +753,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(20046, 'attr')
+    poi_insert_data(10024, 'attr')
