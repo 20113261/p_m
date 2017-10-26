@@ -573,6 +573,9 @@ def poi_insert_data(cid, _poi_type):
 
         # 大于 55 长度的电话置空
         if len(data_dict['phone']) > 55:
+            logger.debug(
+                "[phone length too long][poi_id: {}][len: {}][phone: {}]".format(miaoji_id, len(data_dict['phone']),
+                                                                                 data_dict['phone']))
             data_dict['phone'] = ''
 
         if poi_type == 'attr':
