@@ -162,64 +162,78 @@ def chunks(l, n):
 
 def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
     # todo 当前由于 qyer 的数据表小，可以全量扫描，之后增加其他表的时候，需要修改此方法
-    data = []
     # get all task info
-    for duplicate_map_info in chunks(list(duplicate_map_info_set), 5000):
-        _conn = service_platform_pool.connection()
-        _cursor = _conn.cursor()
-        if task_type == 'hotel':
-            # 酒店数据不可用
-            query_sql = '''SELECT
-  source,
-  source_id,
-  address
-FROM {}
-WHERE map_info IN ({});'''.format(task_table, ",".join(
-                map(lambda x: "'{}'".format(x),
-                    filter(lambda x: map_info_legal(x), duplicate_map_info)
+    for duplicate_map_info in chunks(list(duplicate_map_info_set), 500):
+        data = []
+        retry_times = 4
+        while retry_times:
+            retry_times -= 1
+            try:
+                _conn = service_platform_pool.connection()
+                _cursor = _conn.cursor()
+                if task_type == 'hotel':
+                    # 酒店数据不可用
+                    query_sql = '''SELECT
+          source,
+          source_id,
+          address
+        FROM {}
+        WHERE map_info IN ({});'''.format(task_table, ",".join(
+                        map(lambda x: "'{}'".format(x),
+                            filter(lambda x: map_info_legal(x), duplicate_map_info)
+                            )
+                    ))
+                elif task_type in ('attr', 'shop', 'rest', 'total'):
+                    query_sql = '''SELECT
+          source,
+          id,
+          address
+        FROM {}
+        WHERE map_info IN ({});'''.format(task_table, ",".join(
+                        map(lambda x: "'{}'".format(x),
+                            filter(lambda x: map_info_legal(x), duplicate_map_info)
+                            )
+                    ))
+                else:
+                    continue
+                _cursor.execute(query_sql)
+                # get all data
+                for line in _cursor.fetchall():
+                    if not is_legal(line[2]):
+                        continue
+                    data.append(
+                        (
+                            task_table,
+                            line[0],
+                            line[1],
+                            json.dumps({
+                                'address': line[2]
+                            })
+                        )
                     )
-            ))
-        elif task_type in ('attr', 'shop', 'rest', 'total'):
-            query_sql = '''SELECT
-  source,
-  id,
-  address
-FROM {}
-WHERE map_info IN ({});'''.format(task_table, ",".join(
-                map(lambda x: "'{}'".format(x),
-                    filter(lambda x: map_info_legal(x), duplicate_map_info)
-                    )
-            ))
-        else:
-            continue
-        _cursor.execute(query_sql)
+                _cursor.close()
+                _conn.close()
+                break
+            except Exception as exc:
+                logger.exception(msg="[insert duplicate map_info task error][retry_times: {}]", exc_info=exc)
 
-        # get all data
-        for line in _cursor.fetchall():
-            if not is_legal(line[2]):
-                continue
-            data.append(
-                (
-                    task_table,
-                    line[0],
-                    line[1],
-                    json.dumps({
-                        'address': line[2]
-                    })
-                )
-            )
-        _cursor.close()
-        _conn.close()
-
-    # insert all data
-    _conn = service_platform_pool.connection()
-    _cursor = _conn.cursor()
-    _cursor.executemany(
-        '''INSERT IGNORE INTO supplement_field (`table_name`, `type`, `source`, `sid`, `other_info`) VALUES (%s, 'map_info', %s, %s, %s)''',
-        data)
-    _conn.commit()
-    _cursor.close()
-    _conn.close()
+        insert_retry_times = 4
+        while insert_retry_times:
+            insert_retry_times -= 1
+            try:
+                # insert all data
+                _conn = service_platform_pool.connection()
+                _cursor = _conn.cursor()
+                _cursor.executemany(
+                    '''INSERT IGNORE INTO supplement_field (`table_name`, `type`, `source`, `sid`, `other_info`) VALUES (%s, 'map_info', %s, %s, %s)''',
+                    data)
+                _conn.commit()
+                _cursor.close()
+                _conn.close()
+                break
+            except Exception as exc:
+                logger.exception(msg="[insert supplement filed][retry_times: {}]".format(insert_retry_times),
+                                 exc_info=exc)
 
 
 def detectOriData():
@@ -447,7 +461,7 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                                       ensure=None)
             logger.debug("[table_data: {}]".format(each_data))
         except Exception as exc:
-            logger.exception(msg="[update report table error]",exc_info=exc)
+            logger.exception(msg="[update report table error]", exc_info=exc)
     db.commit()
     logger.debug('Done')
 
