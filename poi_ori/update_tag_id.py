@@ -32,11 +32,11 @@ def init_global_name(_poi_type):
         task_table = 'chat_attraction'
     elif poi_type == 'shop':
         tag_s = 'chat_shopping_tagS'
-        tag_b = 'chat_attraction_tagB'
+        tag_b = 'chat_shopping_tagB'
         task_table = 'chat_shopping'
     elif poi_type == 'rest':
         tag_s = 'chat_restaurant_tagS'
-        tag_b = 'chat_attraction_tagB'
+        tag_b = 'chat_restaurant_tagB'
         task_table = 'chat_restaurant'
     else:
         raise TypeError("Unknown Type: {}".format(poi_type))
@@ -83,7 +83,11 @@ def get_tag(tag_id):
     for each in tag_id.split('|'):
         for b_tag, s_tags in id2tag.items():
             if each in s_tags:
-                b_tag_set.add(int(b_tag[2:]))
+                if poi_type == 'attr':
+                    tb_int = int(b_tag[2:])
+                elif poi_type == 'shop':
+                    tb_int = int(b_tag[2:]) - 1
+                b_tag_set.add(tb_int)
 
     _l_tag = []
     if poi_type == 'attr':
