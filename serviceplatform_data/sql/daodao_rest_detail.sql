@@ -35,5 +35,6 @@ CREATE TABLE IF NOT EXISTS `%s` (
   `traveler_choice` int(11) DEFAULT NULL,
   `utime` TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`id`,`source`,`city_id`),
+    KEY `_i_map_info` (`map_info`),
     KEY `utime` (`utime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

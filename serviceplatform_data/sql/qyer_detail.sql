@@ -44,5 +44,6 @@ CREATE TABLE IF NOT EXISTS `%s` (
   `insert_time` TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   `flag` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`,`source`,`source_city_id`),
+  KEY `_i_map_info` (`map_info`),
   KEY `insert_time` (`insert_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -28,5 +28,6 @@ CREATE TABLE IF NOT EXISTS `%s` (
   `continent` varchar(96) CHARACTER SET utf8 DEFAULT NULL,
   `country_id` varchar(11) NOT NULL,
   PRIMARY KEY (`source`,`source_id`,`city_id`),
+  KEY `_i_map_info` (`map_info`),
   KEY `update_time` (`update_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
