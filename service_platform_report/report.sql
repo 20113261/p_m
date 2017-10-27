@@ -683,6 +683,8 @@ CREATE TABLE `serviceplatform_routine_task_summary` (
   `datetime`    CHAR(12)              DEFAULT 'NULL',
   PRIMARY KEY (`id`),
   UNIQUE KEY `task_key` (`task_name`, `source`, `type`, `slave_ip`, `error_code`, `date`, `hour`),
+  KEY `hourly_type_only` (type, date),
+  KEY `hourly_type_source_key` (source, type, date),
   KEY `hourly_ip_report_key` (task_name, source, type, slave_ip, datetime),
   KEY `hourly_no_ip_report_key` (task_name, source, type, datetime),
   KEY `hourly_ip_report_by_day_key` (task_name, source, type, slave_ip, date),
@@ -955,6 +957,138 @@ CREATE VIEW service_platform_routine_source_type_by_day AS
     date
   FROM serviceplatform_routine_task_summary
   GROUP BY task_name, source, type, date;
+
+# 按照任务 source 以及类型聚合
+DROP VIEW IF EXISTS service_platform_routine_source_type_by_day_no_task_name;
+CREATE VIEW service_platform_routine_source_type_by_day_no_task_name AS
+  SELECT
+    source,
+    type,
+    sum(count)      AS total,
+    sum(CASE WHEN error_code = 0
+      THEN count
+        ELSE 0 END) AS '0',
+    sum(CASE WHEN error_code = 12
+      THEN count
+        ELSE 0 END) AS '12',
+    sum(CASE WHEN error_code IN (21, 22, 23)
+      THEN count
+        ELSE 0 END) AS '21+22+23',
+    sum(CASE WHEN error_code = 25
+      THEN count
+        ELSE 0 END) AS '25',
+    sum(CASE WHEN error_code = 27
+      THEN count
+        ELSE 0 END) AS '27',
+    sum(CASE WHEN error_code = 29
+      THEN count
+        ELSE 0 END) AS '29',
+    sum(CASE WHEN error_code = 33
+      THEN count
+        ELSE 0 END) AS '33',
+    sum(CASE WHEN error_code = 36
+      THEN count
+        ELSE 0 END) AS '36',
+    sum(CASE WHEN error_code = 37
+      THEN count
+        ELSE 0 END) AS '37',
+    sum(CASE WHEN error_code = 101
+      THEN count
+        ELSE 0 END) AS '101',
+    sum(CASE WHEN error_code = 102
+      THEN count
+        ELSE 0 END) AS '102',
+    sum(CASE WHEN error_code = 103
+      THEN count
+        ELSE 0 END) AS '103',
+    sum(CASE WHEN error_code = 104
+      THEN count
+        ELSE 0 END) AS '104',
+    sum(CASE WHEN error_code = 105
+      THEN count
+        ELSE 0 END) AS '105',
+    sum(CASE WHEN error_code = 106
+      THEN count
+        ELSE 0 END) AS '106',
+    sum(CASE WHEN error_code = 107
+      THEN count
+        ELSE 0 END) AS '107',
+    sum(CASE WHEN error_code = 108
+      THEN count
+        ELSE 0 END) AS '108',
+    sum(CASE WHEN error_code = 109
+      THEN count
+        ELSE 0 END) AS '109',
+    date
+  FROM serviceplatform_routine_task_summary
+  GROUP BY source, type, date;
+
+# 按照 parser 聚合
+DROP VIEW IF EXISTS service_platform_routine_source_type_by_day_no_task_name_source;
+CREATE VIEW service_platform_routine_source_type_by_day_no_task_name_source AS
+  SELECT
+    type,
+    sum(count)      AS total,
+    sum(CASE WHEN error_code = 0
+      THEN count
+        ELSE 0 END) AS '0',
+    sum(CASE WHEN error_code = 12
+      THEN count
+        ELSE 0 END) AS '12',
+    sum(CASE WHEN error_code IN (21, 22, 23)
+      THEN count
+        ELSE 0 END) AS '21+22+23',
+    sum(CASE WHEN error_code = 25
+      THEN count
+        ELSE 0 END) AS '25',
+    sum(CASE WHEN error_code = 27
+      THEN count
+        ELSE 0 END) AS '27',
+    sum(CASE WHEN error_code = 29
+      THEN count
+        ELSE 0 END) AS '29',
+    sum(CASE WHEN error_code = 33
+      THEN count
+        ELSE 0 END) AS '33',
+    sum(CASE WHEN error_code = 36
+      THEN count
+        ELSE 0 END) AS '36',
+    sum(CASE WHEN error_code = 37
+      THEN count
+        ELSE 0 END) AS '37',
+    sum(CASE WHEN error_code = 101
+      THEN count
+        ELSE 0 END) AS '101',
+    sum(CASE WHEN error_code = 102
+      THEN count
+        ELSE 0 END) AS '102',
+    sum(CASE WHEN error_code = 103
+      THEN count
+        ELSE 0 END) AS '103',
+    sum(CASE WHEN error_code = 104
+      THEN count
+        ELSE 0 END) AS '104',
+    sum(CASE WHEN error_code = 105
+      THEN count
+        ELSE 0 END) AS '105',
+    sum(CASE WHEN error_code = 106
+      THEN count
+        ELSE 0 END) AS '106',
+    sum(CASE WHEN error_code = 107
+      THEN count
+        ELSE 0 END) AS '107',
+    sum(CASE WHEN error_code = 108
+      THEN count
+        ELSE 0 END) AS '108',
+    sum(CASE WHEN error_code = 109
+      THEN count
+        ELSE 0 END) AS '109',
+    date
+  FROM serviceplatform_routine_task_summary
+  GROUP BY type, date;
+
+SELECT *
+FROM service_platform_routine_source_type_by_day_no_task_name;
 
 SELECT *
 FROM service_platform_routine_source_type_by_day;
