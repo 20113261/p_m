@@ -416,7 +416,7 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
         # error_dict[(source, '经纬度重复')] += len(duplicate_map_info_set)
 
         # 生成经纬度重复任务，当前只有 qyer
-        if task_type in ('total', 'attr', 'rest'):
+        if task_type in ('total', 'attr'):
             for source, each_duplicate_map_info in duplicate_map_info_set.items():
                 # get each detail table name
                 detail_table = '_'.join(['detail', task_type, source, task_tag])
