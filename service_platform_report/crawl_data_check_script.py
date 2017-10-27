@@ -5,6 +5,8 @@
 # @Site    : 
 # @File    : crawl_data_check_script.py
 # @Software: PyCharm
+from warnings import filterwarnings
+
 import pymysql
 import datetime
 import dataset
@@ -32,6 +34,8 @@ ori_db_name = 'BaseDataFinal'
 city_id_count = defaultdict(int)
 city_map_info_error_id_set = set()
 distance_set = set()
+
+filterwarnings('ignore', category=pymysql.err.Warning)
 
 filter_dist = 500
 
@@ -163,7 +167,11 @@ def chunks(l, n):
 def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
     # todo 当前由于 qyer 的数据表小，可以全量扫描，之后增加其他表的时候，需要修改此方法
     # get all task info
+    logger.debug("[total duplicate map_info set][len: {}]".format(len(duplicate_map_info_set)))
+    _count = 0
     for duplicate_map_info in chunks(list(duplicate_map_info_set), 500):
+        _count += 500
+        logger.debug("[duplicate map_info][now: {}]".format(_count))
         data = []
         retry_times = 4
         while retry_times:
@@ -196,7 +204,7 @@ def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
                     ))
                 else:
                     continue
-                _cursor.execute(query_sql)
+                _res = _cursor.execute(query_sql)
                 # get all data
                 for line in _cursor.fetchall():
                     if not is_legal(line[2]):
@@ -213,9 +221,10 @@ def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
                     )
                 _cursor.close()
                 _conn.close()
+                logger.debug("[get duplicate map_info task][len: {}]".format(_res))
                 break
             except Exception as exc:
-                logger.exception(msg="[insert duplicate map_info task error][retry_times: {}]", exc_info=exc)
+                logger.exception(msg="[get duplicate map_info task error][retry_times: {}]", exc_info=exc)
 
         insert_retry_times = 4
         while insert_retry_times:
@@ -224,12 +233,13 @@ def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
                 # insert all data
                 _conn = service_platform_pool.connection()
                 _cursor = _conn.cursor()
-                _cursor.executemany(
+                _res = _cursor.executemany(
                     '''INSERT IGNORE INTO supplement_field (`table_name`, `type`, `source`, `sid`, `other_info`) VALUES (%s, 'map_info', %s, %s, %s)''',
                     data)
                 _conn.commit()
                 _cursor.close()
                 _conn.close()
+                logger.debug("[get duplicate map_info task][len: {}]".format(_res))
                 break
             except Exception as exc:
                 logger.exception(msg="[insert supplement filed][retry_times: {}]".format(insert_retry_times),
@@ -373,7 +383,7 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                 right = False
             else:
                 # 经纬度重复情况判定
-                if map_info in map_info_set[source]:
+                if map_info in map_info_set[(source, cid)]:
                     error_dict[(source, "经纬度重复")] += 1
                     if error_dict[(source, "经纬度重复")] == 1:
                         # 当此经纬度出现 1 次时，经纬度重复加 2 ，之后正常
@@ -382,7 +392,7 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                     right = False
 
                 # 当前情况为 map_info 为正确的情况，经纬度集合添加 map_info
-                map_info_set[source].add(map_info)
+                map_info_set[(source, cid)].add(map_info)
 
                 # 当城市经纬度合法时计算相应的距离
                 city_map_info = city_map_info_dict.get(cid, None)
