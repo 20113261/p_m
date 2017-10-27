@@ -26,6 +26,8 @@ def mk_base_data_final(_poi_type):
     conn = poi_ori_pool.connection()
     cursor = conn.cursor()
     if _poi_type == 'attr':
+        cursor.execute('''TRUNCATE base_data.{};'''.format(table_name))
+        conn.commit()
         sql = '''REPLACE INTO base_data.{0}
   SELECT
     id,
@@ -58,6 +60,8 @@ def mk_base_data_final(_poi_type):
     status_test
   FROM {0};'''.format(table_name)
     elif _poi_type == 'shop':
+        cursor.execute('''TRUNCATE base_data.{};'''.format(table_name))
+        conn.commit()
         sql = '''REPLACE INTO base_data.{0}
   SELECT
     id,
