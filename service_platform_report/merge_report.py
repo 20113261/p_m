@@ -18,20 +18,20 @@ logger = get_logger("merge_report_old")
 table_name = None
 poi_name = None
 
-poi_ori_config = {
-    'host': '10.10.228.253',
-    'user': 'mioji_admin',
-    'passwd': 'mioji1109',
-    'db': 'poi_merge'
-}
-
-
-# data_process_config = {
-#     'host': '10.10.242.173',
-#     'user': 'root',
-#     'passwd': 'shizuo0907',
-#     'db': 'data_process'
+# poi_ori_config = {
+#     'host': '10.10.228.253',
+#     'user': 'mioji_admin',
+#     'passwd': 'mioji1109',
+#     'db': 'poi_merge'
 # }
+
+
+data_process_config = {
+    'host': '10.10.242.173',
+    'user': 'root',
+    'passwd': 'shizuo0907',
+    'db': 'data_process'
+}
 
 
 def prepare_city_info():
@@ -98,7 +98,7 @@ def poi_merged_report(poi_type):
             FROM chat_restaurant;'''
 
     poi_info = defaultdict(dict)
-    for line in MysqlSource(db_config=poi_ori_config, table_or_query=query_sql, size=10000, is_dict_cursor=True,
+    for line in MysqlSource(db_config=data_process_config, table_or_query=query_sql, size=10000, is_dict_cursor=True,
                             is_table=False):
         cid = line['city_id']
 
