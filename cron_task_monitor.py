@@ -33,6 +33,7 @@ from serviceplatform_data.update_hotel_validation import update_hotel_validation
 from serviceplatform_data.insert_poi_detect_task_info import get_task_info
 from serviceplatform_data.delete_already_scanned_file import delete_already_scanned_file
 from logger import get_logger
+from service_platform_report.merge_report import poi_merged_report
 
 SEND_TO = ['hourong@mioji.com', "luwanning@mioji.com"]
 
@@ -100,6 +101,11 @@ def test_exc():
     raise Exception()
 
 
+def poi_merge_report_total():
+    poi_merged_report('attr')
+    poi_merged_report('shop')
+
+
 '''
 #1 * * * * /usr/local/bin/python3 /search/hourong/PycharmProjects/PoiCommonScript/service_platform_report/routine_report.py >> /root/data/PycharmProjects/PoiCommonScript/service_platform_report/task_routine_log
 '''
@@ -125,6 +131,8 @@ schedule.add_job(on_exc_send_email(update_hotel_validation), 'cron', hour='2', i
 schedule.add_job(on_exc_send_email(get_task_info), 'cron', hour='3', id='insert_poi_detect_task_info',
                  max_instances=1)
 schedule.add_job(on_exc_send_email(delete_already_scanned_file), 'cron', hour='*/2', id='delete_already_scanned_file',
+                 max_instances=1)
+schedule.add_job(on_exc_send_email(poi_merge_report_total), 'cron', minute='*/30', id='poi_merge_report_total',
                  max_instances=1)
 
 if __name__ == '__main__':

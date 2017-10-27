@@ -961,3 +961,171 @@ FROM service_platform_routine_source_type_by_day;
 
 SELECT *
 FROM service_platform_routine_source_type_ip_by_day;
+
+SHOW CREATE TABLE serviceplatform_routine_task_summary;
+
+# CREATE TABLE `serviceplatform_routine_task_summary` (
+#   `id`          INT(11)      NOT NULL AUTO_INCREMENT,
+#   `worker_name` VARCHAR(256) NOT NULL DEFAULT 'NULL',
+#   `task_name`   VARCHAR(96)  NOT NULL DEFAULT 'NULL',
+#   `slave_ip`    VARCHAR(64)  NOT NULL DEFAULT 'NULL',
+#   `source`      VARCHAR(64)           DEFAULT 'NULL',
+#   `type`        VARCHAR(64)           DEFAULT 'NULL',
+#   `error_code`  INT(11)               DEFAULT '-1',
+#   `count`       INT(11)               DEFAULT '0',
+#   `date`        CHAR(8)               DEFAULT NULL,
+#   `hour`        TINYINT(4)            DEFAULT '24',
+#   `datetime`    CHAR(12)              DEFAULT 'NULL',
+#   PRIMARY KEY (`id`),
+#   UNIQUE KEY `task_key` (`task_name`, `source`, `type`, `slave_ip`, `error_code`, `date`, `hour`),
+#   KEY `hourly_ip_report_key` (`task_name`, `source`, `type`, `slave_ip`, `datetime`),
+#   KEY `hourly_no_ip_report_key` (`task_name`, `source`, `type`, `datetime`),
+#   KEY `hourly_ip_report_by_day_key` (`task_name`, `source`, `type`, `slave_ip`, `date`),
+#   KEY `hourly_no_ip_report_by_day_key` (`task_name`, `source`, `type`, `date`)
+# )
+#   ENGINE = InnoDB
+#   AUTO_INCREMENT = 56906
+#   DEFAULT CHARSET = utf8mb4;
+
+SELECT *
+FROM information_schema.TABLES;
+
+SELECT count(*)
+FROM mysql.slow_log;
+
+SELECT *
+FROM service_platform_routine_source_type_ip_by_day
+
+SELECT
+  `task_name`,
+  `total`
+                                                                                                AS 'real_total',
+  `total` - `21+22+23` - `103` - `105`                                                          AS 'total',
+  round((`0` + `29` + `106` + `107` + `109`) / (`total` - `21+22+23` - `103` - `105`) * 100, 2) AS 'right_percent',
+  `0`                                                                                           AS 'right_have_data',
+  `29` + `106` + `107` + `109`                                                                  AS 'right_none_data'
+FROM service_platform_routine_source_type_by_day
+WHERE date = '20171020'
+HAVING total > 1200 AND right_percent < 95;
+
+
+SELECT *
+FROM serviceplatform_crawl_report_summary;
+
+SELECT *
+FROM serviceplatform_product_mongo_summary;
+
+SHOW CREATE TABLE serviceplatform_product_mongo_summary;
+
+# DROP TABLE IF EXISTS base_data_report_summary;
+# CREATE TABLE `base_data_report_summary` (
+#   `id`           INT(11)     NOT NULL AUTO_INCREMENT,
+#   `type`         VARCHAR(12) NOT NULL,
+#   `grade`        INT(11)              DEFAULT 0,
+#   `citys`        INT(11)              DEFAULT 0,
+#   `no_poi`       INT(11)              DEFAULT 0,
+#   `total`        INT(11)              DEFAULT 0,
+#   `update`       INT(11)              DEFAULT 0,
+#   `online`       INT(11)              DEFAULT 0,
+#   `img`          INT(11)              DEFAULT 0,
+#   `address`      INT(11)              DEFAULT 0,
+#   `opentime`     INT(11)              DEFAULT 0,
+#   `introduction` INT(11)              DEFAULT 0,
+#   `daodao`       INT(11)              DEFAULT 0,
+#   `qyer`         INT(11)              DEFAULT 0,
+#   `multi`        INT(11)              DEFAULT 0,
+#   `date`         CHAR(8)     NOT NULL,
+#   `datetime`     CHAR(12)    NOT NULL,
+#   `hour`         CHAR(4)     NOT NULL,
+#   PRIMARY KEY (`id`),
+#   UNIQUE KEY `source_type_date_hour` (`type`, `grade`, `datetime`)
+# )
+#   ENGINE = InnoDB
+#   DEFAULT CHARSET = utf8;
+
+SELECT
+  id,
+  type,
+  grade,
+  citys,
+  no_poi,
+  total,
+  `update`,
+  online,
+  img,
+  address,
+  opentime,
+  introduction,
+  daodao,
+  qyer,
+  multi,
+  date,
+  datetime,
+  hour
+FROM base_data_report_summary;
+
+CREATE VIEW base_data_report_by_hour AS
+  SELECT
+    type,
+    grade,
+    sum(citys)        AS citys,
+    sum(no_poi)       AS no_poi,
+    sum(total)        AS total,
+    sum(`update`)     AS 'update',
+    sum(online)       AS online,
+    sum(img)          AS img,
+    sum(address)      AS address,
+    sum(opentime)     AS opentime,
+    sum(introduction) AS introduction,
+    sum(daodao)       AS daodao,
+    sum(qyer)         AS qyer,
+    sum(multi)        AS multi,
+    DATETIME
+  FROM (SELECT
+          type,
+          CASE WHEN grade > 7
+            THEN 7
+          ELSE grade END AS grade,
+          citys,
+          no_poi,
+          total,
+          `update`,
+          online,
+          img,
+          address,
+          opentime,
+          introduction,
+          daodao,
+          qyer,
+          multi,
+          DATETIME
+        FROM base_data_report_summary
+        UNION SELECT
+                type,
+                '总量',
+                sum(citys)        AS citys,
+                sum(no_poi)       AS no_poi,
+                sum(total)        AS total,
+                sum(`update`)     AS 'update',
+                sum(online)       AS online,
+                sum(img)          AS img,
+                sum(address)      AS address,
+                sum(opentime)     AS opentime,
+                sum(introduction) AS introduction,
+                sum(daodao)       AS daodao,
+                sum(qyer)         AS qyer,
+                sum(multi)        AS multi,
+                DATETIME
+              FROM base_data_report_summary
+              GROUP BY type, DATETIME) t
+  GROUP BY t.grade, t.datetime, t.type;
+
+CREATE OR REPLACE VIEW base_data_report_by_hour_attr AS
+  SELECT *
+  FROM base_data_report_by_hour
+  WHERE type = 'attr';
+
+CREATE OR REPLACE VIEW base_data_report_by_hour_shop AS
+  SELECT *
+  FROM base_data_report_by_hour
+  WHERE type = 'shop';

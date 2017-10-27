@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--注释内容-->
+<report name="基础数据任务统计（按天）">
+    <interval>60</interval>
+    <group name="覆盖率统计">
+        <item name="景点统计" type="2" table="base_data_report_by_hour_attr" orderby="grade" desc="false"
+              showystday="true"
+              limit="1000">
+            <field key="true" extend="false" name="Grade">`grade`</field>
+            <field name="城市总数">`citys`</field>
+            <field name="无景点城市">`no_poi`</field>
+            <field name="无景点城市比率">round(`no_poi`/`citys`,2)</field>
+            <field name="景点总数">`total`</field>
+            <field name="online 景点总数">`online`</field>
+            <field name="最近一个月更新数据比率">round(`update`/`total`,2)</field>
+            <field name="有图比率">round(`img`/`total`,2)</field>
+            <field name="有地址比率">round(`address`/`total`,2)</field>
+            <field name="有开关门比率">round(`opentime`/`total`,2)</field>
+            <field name="有简介比率">round(`introduction`/`total`,2)</field>
+            <field name="穷游数据比率">round(`qyer`/`total`,2)</field>
+            <field name="到到数据比率">round(`daodao`/`total`,2)</field>
+            <field name="多源数据比率">round(`multi`/`total`,2)</field>
+        </item>
+
+        <item name="购物统计" type="2" table="base_data_report_by_hour_shop" orderby="grade" desc="false"
+              showystday="true"
+              limit="1000">
+            <field key="true" extend="false" name="Grade">`grade`</field>
+            <field name="城市总数">`citys`</field>
+            <field name="无购物城市">`no_poi`</field>
+            <field name="无购物城市比率">round(`no_poi`/`citys`,2)</field>
+            <field name="购物总数">`total`</field>
+            <field name="online 购物总数">`online`</field>
+            <field name="最近一个月更新数据比率">round(`update`/`total`,2)</field>
+            <field name="有图比率">round(`img`/`total`,2)</field>
+            <field name="有地址比率">round(`address`/`total`,2)</field>
+            <field name="有开关门比率">round(`opentime`/`total`,2)</field>
+            <field name="有简介比率">round(`introduction`/`total`,2)</field>
+        </item>
+    </group>
+</report>
+

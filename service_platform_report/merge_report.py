@@ -12,7 +12,7 @@ from service_platform_conn_pool import base_data_pool
 from data_source import MysqlSource
 from logger import get_logger
 from collections import defaultdict
-from toolbox.Common import is_legal
+from toolbox.Common import is_legal, has_any
 
 logger = get_logger("merge_report_old")
 table_name = None
@@ -24,6 +24,14 @@ poi_ori_config = {
     'passwd': 'mioji1109',
     'db': 'poi_merge'
 }
+
+
+# data_process_config = {
+#     'host': '10.10.242.173',
+#     'user': 'root',
+#     'passwd': 'shizuo0907',
+#     'db': 'data_process'
+# }
 
 
 def prepare_city_info():
@@ -120,8 +128,11 @@ def poi_merged_report(poi_type):
         # poi update this time
         if 'update' not in poi_info[grade]:
             poi_info[grade]['update'] = 0
-        if line['utime'] <= datetime.datetime.now() - datetime.timedelta(days=30):
-            poi_info[grade]['update'] += 1
+        try:
+            if line['utime'] > datetime.datetime.now() - datetime.timedelta(days=30):
+                poi_info[grade]['update'] += 1
+        except Exception as exc:
+            logger.exception(msg="[unknown utime][utime: {}]".format(line['utime']), exc_info=exc)
 
         # poi has img
         if 'img' not in poi_info[grade]:
@@ -149,10 +160,11 @@ def poi_merged_report(poi_type):
                 _data = json.loads(line['introduction'])
                 if isinstance(_data, dict):
                     if _data.values():
-                        if is_legal(_data.values()[0]):
+                        if has_any(list(_data.values()), check_func=is_legal):
                             poi_info[grade]['introduction'] += 1
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.exception(msg="[load introduction error][introduction: {}]".format(line['introduction']),
+                                 exc_info=exc)
 
         # qyer\daodao\multi in source
         if 'qyer' not in poi_info[grade]:
@@ -200,3 +212,4 @@ if __name__ == '__main__':
     # poi_type = sys.argv[1]
     # poi_merged_report(poi_type)
     poi_merged_report('attr')
+    poi_merged_report('shop')
