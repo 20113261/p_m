@@ -233,6 +233,20 @@ def add_open_time_filter(_v):
     return False
 
 
+def check_chinese(string):
+    if not is_legal(string):
+        return False
+    return toolbox.Common.has_any(string, check_func=toolbox.Common.is_chinese)
+
+
+def check_latin(string):
+    if not is_legal(string):
+        return False
+    return (len(
+        list(filter(lambda x: toolbox.Common.is_latin_and_punctuation(x) or x == '’',
+                    string))) / len(string)) >= 0.9
+
+
 @func_time_logger
 def poi_insert_data(cid, _poi_type):
     init_global_name(_poi_type)
@@ -375,27 +389,25 @@ def poi_insert_data(cid, _poi_type):
             # 按照标准优先级更新字段信息
             name_tmp = get_key.get_key_by_priority_or_default(
                 data_dict['name'], norm_name, '',
-                special_filter=lambda x: toolbox.Common.has_any(x, check_func=toolbox.Common.is_chinese)
+                special_filter=check_chinese
             )
             # 从英文字段中找中文
             if not name_tmp:
                 name_tmp = get_key.get_key_by_priority_or_default(
                     data_dict['name_en'], norm_name, '',
-                    special_filter=lambda x: toolbox.Common.has_any(x, check_func=toolbox.Common.is_chinese)
+                    special_filter=check_chinese
                 )
             # 从英文字段中找拉丁
             if not name_tmp:
                 name_tmp = get_key.get_key_by_priority_or_default(
                     data_dict['name_en'], norm_name, '',
-                    special_filter=lambda x: toolbox.Common.is_all(x,
-                                                                   check_func=toolbox.Common.is_latin_and_punctuation)
+                    special_filter=check_latin
                 )
             # 从中文字段中找拉丁
             if not name_tmp:
                 name_tmp = get_key.get_key_by_priority_or_default(
                     data_dict['name'], norm_name, '',
-                    special_filter=lambda x: toolbox.Common.is_all(x,
-                                                                   check_func=toolbox.Common.is_latin_and_punctuation)
+                    special_filter=check_latin
                 )
             return name_tmp
 
@@ -404,13 +416,12 @@ def poi_insert_data(cid, _poi_type):
             # 从融合数据的英文字段中获取
             name_en_tmp = get_key.get_key_by_priority_or_default(
                 data_dict['name_en'], norm_name, '',
-                special_filter=lambda x: toolbox.Common.is_all(x, check_func=toolbox.Common.is_latin_and_punctuation)
+                special_filter=check_latin
             )
             if not name_en_tmp:
                 get_key.get_key_by_priority_or_default(
                     data_dict['name'], norm_name, '',
-                    special_filter=lambda x: toolbox.Common.is_all(x,
-                                                                   check_func=toolbox.Common.is_latin_and_punctuation)
+                    special_filter=check_latin
                 )
             return name_en_tmp
 
@@ -530,7 +541,7 @@ def poi_insert_data(cid, _poi_type):
         data_dict = new_data_dict
 
         # 过滤名称
-        if data_dict['name'].lower() in ('', 'null', '0') and data_dict['name_en'] in ('', 'null', '0'):
+        if data_dict['name'].lower() in ('', 'null', '0') and data_dict['name_en'].lower() in ('', 'null', '0'):
             if 'online' in union_info:
                 filter_data_already_online(poi_type, miaoji_id, "中英文名为空")
             logger.debug("[filter by name][name: {}][name_en: {}]".format(data_dict['name'], data_dict['name_en']))
@@ -786,4 +797,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(10024, 'attr')
+    poi_insert_data(10005, 'attr')
