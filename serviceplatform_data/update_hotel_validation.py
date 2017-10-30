@@ -15,6 +15,8 @@ from service_platform_conn_pool import verify_info_pool
 filterwarnings('ignore', category=pymysql.err.Warning)
 logger = get_logger("update_hotel_validation")
 
+offset = 0
+
 test_db = {
     'host': '10.10.69.170',
     'user': 'reader',
@@ -30,8 +32,6 @@ online_db = {
     'charset': 'utf8',
     'db': 'base_data'
 }
-
-offset = 0
 
 
 def default_api_task_key_and_content(each_data):
@@ -100,8 +100,8 @@ def hilton(each_data):
 
 
 def insert_data(data, _count):
-    replace_sql = '''INSERT IGNORE INTO workload_hotel_validation (workload_key, content, source, extra, status) 
-    VALUES (%s, %s, %s, 0, 1);'''
+    replace_sql = '''REPLACE INTO workload_hotel_validation (workload_key, content, source, extra, status) 
+    VALUES ("%s", "%s", "%s", 0, 1);'''
 
     max_retry_times = 3
     while max_retry_times:
@@ -109,13 +109,13 @@ def insert_data(data, _count):
         try:
             conn = verify_info_pool.connection()
             cursor = conn.cursor()
-            _insert_count = cursor.executemany(replace_sql, data)
+            _replace_count = cursor.executemany(replace_sql, data)
             conn.commit()
             cursor.close()
             conn.close()
             logger.debug(
-                "[insert data][now count: {}][insert data: {}][insert_ignore_count: {}]".format(_count, len(data),
-                                                                                                _insert_count))
+                "[insert data][now count: {}][insert data: {}][replace_count: {}]".format(_count, len(data),
+                                                                                          _replace_count))
             break
         except Exception as exc:
             logger.exception(msg="[run sql error]", exc_info=exc)
@@ -139,9 +139,10 @@ def update_per_hotel_validation(env='test'):
       uid,
       mid,
       name,
+      
       name_en,
       hotel_url
-    FROM hotel_unid WHERE LIMIT {},999999999999;'''.format(offset)
+    FROM hotel_unid LIMIT {},999999999999;'''.format(offset)
     for line in MysqlSource(db_conf, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
         source = line['source']
         try:
@@ -208,7 +209,7 @@ def update_per_hotel_validation(env='test'):
 
         _count += 1
         offset += 1
-        if len(data) == 1000:
+        if len(data) == 2000:
             # replace into validation data
             insert_data(data, offset)
             data = []
