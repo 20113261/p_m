@@ -9,14 +9,14 @@
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field key="true" extend="false" name="抓取类型">`crawl_type`</field>
-            <field name="列表页完成有数据">concat(round(`list_done`/`list_all`*100,2),'%')</field>
+            <field name="列表页完成">concat(round((`list_done` + `list_final_failed`)/`list_all`*100,2),'%')</field>
             <field name="列表页完成无数据">concat(round(`list_final_failed`/`list_all`*100,2),'%')</field>
             <field name="列表页无城市数据">concat(round(100-`list_city_done`/`list_all`*100,2),'%')</field>
             <field name="列表页全部">`list_all`</field>
-            <field name="详情页完成有数据">concat(round(`detail_done`/`detail_all`*100,2),'%')</field>
+            <field name="详情页完成">concat(round((`detail_done` + `detail_final_failed`)/`detail_all`*100,2),'%')</field>
             <field name="详情页完成无数据">concat(round(`detail_final_failed`/`detail_all`*100,2),'%')</field>
             <field name="详情页全部">`detail_all`</field>
-            <field name="图片完成有数据">concat(round(`img_done`/`img_all`*100,2),'%')</field>
+            <field name="图片完成">concat(round((`img_done` + `img_final_failed`)/`img_all`*100,2),'%')</field>
             <field name="图片完成无数据">concat(round(`img_final_failed`/`img_all`*100,2),'%')</field>
             <field name="图片全部">`img_all`</field>
         </item>
