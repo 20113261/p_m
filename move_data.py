@@ -47,7 +47,7 @@ def move_img_data():
   fixrank,
   status,
   date
-FROM attr_bucket_relation;'''
+FROM rest_bucket_relation;'''
     data = []
     _count = 0
     for line in MysqlSource(poi_ori_config, table_or_query=query_sql,
