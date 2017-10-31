@@ -105,3 +105,13 @@ db_config = dict(
     database='devdb'
 )
 spider_db_devdb_pool = init_pool(**db_config)
+
+# task db spider_db pool
+db_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.238.148',
+    database='spider_db'
+)
+
+task_db_spider_db_pool = init_pool(**db_config)

@@ -9,7 +9,7 @@ import pymongo
 import dataset
 from pymysql.cursors import DictCursor
 from logger import get_logger
-from service_platform_conn_pool import private_data_test_pool, source_info_pool
+from service_platform_conn_pool import private_data_test_pool, source_info_pool, task_db_spider_db_pool, base_data_pool
 
 logger = get_logger("get_nearest_source_and_city")
 
@@ -19,9 +19,10 @@ collections = client['HotelData']['detail_final_data']
 city_collections = client['HotelData']['city']
 
 
-def get_per_nearby_city(city_map_info):
+def get_per_nearby_city(city_map_info, distance=50):
     """
-    50km 的酒店 source、sid
+    获取附近酒店的 source、sid
+    :param distance: city hotel distance , default 50km
     :param city_map_info:
     :return:
     """
@@ -34,18 +35,24 @@ def get_per_nearby_city(city_map_info):
                         {
                             "$geoWithin": {
                                 "$centerSphere": [[float(lon), float(lat)],
-                                                  50 / 6378.1]
+                                                  distance / 6378.1]
                             }
                         }
                     }
                 },
-                {"$group": {"_id": {"source": "$source", "source_city_id": "$source_city_id"}}}
+                {
+                    "$group": {
+                        "_id": {"source": "$source", "source_city_id": "$source_city_id"},
+                        "count": {"$sum": 1}
+                    }
+                }
             ]
     ):
         source = each['_id']['source']
         source_city_id = each['_id']['source_city_id']
-        logger.debug("[get city][source: {}][source_city_id: {}]".format(source, source_city_id))
-        yield source, source_city_id
+        count = each["count"]
+        logger.debug("[get city][source: {}][source_city_id: {}][count: {}]".format(source, source_city_id, count))
+        yield source, source_city_id, count
 
 
 def get_old_task_info_set(mioji_cids):
@@ -90,50 +97,101 @@ def get_nearby_mioji_city(city_map_info):
     return res
 
 
-def get_nearby_city():
-    __db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.238.148/spider_db?charset=utf8')
-    table = __db["private_city_task"]
+def insert_db(data):
+    conn = task_db_spider_db_pool.connection()
+    cursor = conn.cursor()
+    query_sql = '''REPLACE INTO private_city_task (id, name, name_en, map_info, source, sid, is_private_city, search_kilometer, `count`)
+VALUES (%(id)s, %(name)s, %(name_en)s, %(map_info)s, %(source)s, %(sid)s, %(is_private_city)s, %(search_kilometer)s, %(count)s);'''
+    _res = cursor.executemany(query_sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
+    logger.info("[insert data][total: {}][execute: {}]".format(len(data), _res))
+
+
+def is_map_info_legal(map_info):
+    try:
+        lon, lat = map_info.split(',')
+        float(lon)
+        float(lat)
+        return True
+    except Exception as exc:
+        logger.exception(msg="[map info illegal][map_info: {}]".format(map_info), exc_info=exc)
+        return False
+
+
+def city_task():
+    # private city 30km
     conn = private_data_test_pool.connection()
     cursor = conn.cursor(cursor=DictCursor)
     cursor.execute('''SELECT
-  id,
-  name,
-  name_en,
-  map_info
-FROM city;''')
-    for each in cursor.fetchall():
+      id,
+      name,
+      name_en,
+      map_info
+    FROM city;''')
+    for line in cursor.fetchall():
+        if is_map_info_legal(line['map_info']):
+            line['search_kilometer'] = 30
+            line['is_private_city'] = True
+            yield line
+            line['search_kilometer'] = 50
+            line['is_private_city'] = True
+            yield line
+    cursor.close()
+    conn.close()
+
+    conn = base_data_pool.connection()
+    cursor = conn.cursor(cursor=DictCursor)
+    cursor.execute('''SELECT
+      id,
+      name,
+      name_en,
+      map_info
+    FROM city;''')
+    for line in cursor.fetchall():
+        if is_map_info_legal(line['map_info']):
+            line['search_kilometer'] = 30
+            line['is_private_city'] = False
+            yield line
+            line['search_kilometer'] = 50
+            line['is_private_city'] = False
+            yield line
+    cursor.close()
+    conn.close()
+
+
+def get_nearby_city():
+    data = []
+    for each in city_task():
         has_hotel = False
-        nearby_mioji_city = get_nearby_mioji_city(each["map_info"])
-        old_task_info_set = get_old_task_info_set(nearby_mioji_city)
-        has_nearby_city = bool(len(nearby_mioji_city))
-        for source, sid in get_per_nearby_city(each["map_info"]):
-            if (str(source), str(sid)) in old_task_info_set:
-                # 去掉使用 hotel suggestion city 发的任务
-                logger.debug(
-                    "[old task filter][id: {}][name: {}][name_en: {}][map_info: {}][has_nearby_city: {}]"
-                    "[source: {}][sid: {}]".format(
-                        each["id"], each["name"], each["name_en"], each["map_info"], has_nearby_city, source, sid))
-                continue
+        for source, sid, _detail_count in get_per_nearby_city(each["map_info"], each["search_kilometer"]):
             has_hotel = True
-            data = {
+            data.append({
                 "id": each["id"],
                 "name": each["name"],
                 "name_en": each["name_en"],
                 "map_info": each["map_info"],
-                "has_nearby_city": has_nearby_city,
+                "is_private_city": each["is_private_city"],
                 "source": source,
-                "sid": sid
-            }
-            table.upsert(data, keys=['id', 'source', 'sid'])
+                "sid": sid,
+                "search_kilometer": each["search_kilometer"],
+                "count": _detail_count,
+            })
+            if len(data) == 1000:
+                insert_db(data)
+                data = []
             logger.debug(
-                "[private city][id: {}][name: {}][name_en: {}][map_info: {}][has_nearby_city: {}][source: {}][sid: {}]".format(
-                    each["id"], each["name"], each["name_en"], each["map_info"], has_nearby_city, source, sid))
-        if not has_hotel and not has_nearby_city:
+                "[private city][id: {}][name: {}][name_en: {}][map_info: {}][is_private_city: {}][search_kilometer: {}]"
+                "[source: {}][sid: {}]".format(
+                    each["id"], each["name"], each["name_en"], each["map_info"], each["is_private_city"],
+                    each["search_kilometer"], source, sid))
+        if not has_hotel:
             logger.debug(
-                "[no city and hotel nearby][id: {}][name: {}][name_en:" \
-                " {}][map_info: {}]".format(
+                "[no hotel nearby][id: {}][name: {}][name_en: {}][map_info: {}]".format(
                     each["id"], each["name"], each["name_en"], each["map_info"]))
-        __db.commit()
+    if data:
+        insert_db(data)
 
 
 if __name__ == '__main__':
