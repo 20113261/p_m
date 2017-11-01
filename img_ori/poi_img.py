@@ -17,7 +17,7 @@ from logger import get_logger, func_time_logger
 from data_source import MysqlSource
 from StandardException import PoiTypeError
 
-pool = gevent.pool.Pool(size=600)
+pool = gevent.pool.Pool(size=100)
 logger = get_logger("poi_img_merge")
 logger.setLevel(logging.INFO)
 
@@ -92,9 +92,13 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
             # attr img upload to mioji-attr
             continue
         # img can be used
+        if not is_legal(pic_size):
+            continue
 
         # get max size
         h, w = literal_eval(pic_size)
+        h = int(h)
+        w = int(w)
         size = h * w
         if size > max_size:
             max_size = size
@@ -102,6 +106,22 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
 
         # use 1
         if str(use) == '1':
+            # 过滤规则
+            # pixel
+            if size < 200000:
+                continue
+
+            # scale
+            # min scale
+            scale = w / h
+            if scale < 0.9:
+                if w < 500:
+                    continue
+
+            # max scale
+            if scale > 2.5:
+                continue
+
             md5_set.add(pic_md5)
             file2md5[file_name] = pic_md5
 
