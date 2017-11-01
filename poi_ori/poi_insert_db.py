@@ -516,6 +516,26 @@ def poi_insert_data(cid, _poi_type):
         else:
             daodao_tagid, daodao_tagid_en = '', ''
 
+        # # rest tag
+        # if 'daodao' in data_dict['tagid']:
+        #     try:
+        #         daodao_rest_tagid, daodao_rest_tagid_en, _ = get_norm_tag(data_dict['tagid']['daodao'],
+        #                                                                   'rest')
+        #     except Exception:
+        #         daodao_rest_tagid, daodao_rest_tagid_en = '', ''
+        # else:
+        #     daodao_rest_tagid, daodao_rest_tagid_en = '', ''
+
+        # shop tag
+        if 'daodao' in data_dict['tagid']:
+            try:
+                daodao_shop_tagid, daodao_shop_tagid_en, _ = get_norm_tag(data_dict['tagid']['daodao'],
+                                                                          'shop')
+            except Exception:
+                daodao_shop_tagid, daodao_shop_tagid_en = '', ''
+        else:
+            daodao_shop_tagid, daodao_shop_tagid_en = '', ''
+
         if 'qyer' in data_dict['tagid']:
             try:
                 qyer_tagid, qyer_tagid_en, _unknown_tag = get_norm_tag(data_dict['tagid']['qyer'], poi_type)
@@ -525,6 +545,24 @@ def poi_insert_data(cid, _poi_type):
         else:
             qyer_tagid, qyer_tagid_en = '', ''
 
+        # # rest tag
+        # if 'qyer' in data_dict['tagid']:
+        #     try:
+        #         qyer_rest_tagid, qyer_rest_tagid_en, _ = get_norm_tag(data_dict['tagid']['qyer'], 'rest')
+        #     except Exception:
+        #         qyer_rest_tagid, qyer_rest_tagid_en = '', ''
+        # else:
+        #     qyer_rest_tagid, qyer_rest_tagid_en = '', ''
+
+        # shop tag
+        if 'qyer' in data_dict['tagid']:
+            try:
+                qyer_shop_tagid, qyer_shop_tagid_en, _ = get_norm_tag(data_dict['tagid']['qyer'], 'shop')
+            except Exception:
+                qyer_shop_tagid, qyer_shop_tagid_en = '', ''
+        else:
+            qyer_shop_tagid, qyer_shop_tagid_en = '', ''
+
         l_norm_tag = []
         l_norm_tag_en = []
         l_norm_tag.extend(daodao_tagid.split('|'))
@@ -532,9 +570,14 @@ def poi_insert_data(cid, _poi_type):
         l_norm_tag.extend(qyer_tagid.split('|'))
         l_norm_tag_en.extend(qyer_tagid_en.split('|'))
 
+        l_other_norm_tag = []
+        l_other_norm_tag.extend(daodao_shop_tagid.split('|'))
+        l_other_norm_tag.extend(qyer_shop_tagid.split('|'))
+
         # 去除空 tag 以及重复 tag
         norm_tag = '|'.join(filter(lambda x: is_legal(x), set(l_norm_tag)))
         norm_tag_en = '|'.join(filter(lambda x: is_legal(x), set(l_norm_tag_en)))
+        other_tag = '|'.join(filter(lambda x: is_legal(x), set(l_other_norm_tag)))
 
         # 数据入库部分
         # 替换旧的 data_dict
@@ -688,27 +731,7 @@ def poi_insert_data(cid, _poi_type):
             except Exception as exc:
                 logger.exception(msg="[tour filter error]", exc_info=exc)
 
-            # 景点购物类别数据清理
-            if 'daodao' in data_dict['tagid']:
-                try:
-                    daodao_tagid, daodao_tagid_en, _unknown_tag = get_norm_tag(data_dict['tagid']['daodao'],
-                                                                               'shop')
-                    unknown_tag.update(_unknown_tag)
-                except Exception:
-                    daodao_tagid, daodao_tagid_en = '', ''
-            else:
-                daodao_tagid, daodao_tagid_en = '', ''
-
-            if 'qyer' in data_dict['tagid']:
-                try:
-                    qyer_tagid, qyer_tagid_en, _unknown_tag = get_norm_tag(data_dict['tagid']['qyer'], 'shop')
-                    unknown_tag.update(_unknown_tag)
-                except Exception:
-                    qyer_tagid, qyer_tagid_en = '', ''
-            else:
-                qyer_tagid, qyer_tagid_en = '', ''
-
-            if norm_tag == '' and (daodao_tagid != '' or qyer_tagid != ''):
+            if norm_tag == '' and other_tag != '':
                 # 景点中包含购物被清除
                 filter_data_already_online(poi_type, miaoji_id, "景点类中存在购物数据被过滤")
                 continue
@@ -822,4 +845,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(10005, 'attr')
+    poi_insert_data(10001, 'attr')
