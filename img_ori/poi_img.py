@@ -263,9 +263,13 @@ ORDER BY id
 LIMIT {}, 99999999999999;'''.format(table_name, offset)
 
     _count = 0
+    cache = []
     for _uid, _old_img_list, _old_first_img, _official in MysqlSource(poi_ori_config, table_or_query=query_sql,
-                                                                      size=10000, is_table=False,
+                                                                      size=500, is_table=False,
                                                                       is_dict_cursor=False):
+        cache.append((_uid, _old_img_list, _old_first_img, _official))
+
+    for _uid, _old_img_list, _old_first_img, _official in cache:
         pool.apply_async(_update_per_uid_img, (_uid, _poi_type, _old_img_list, _old_first_img, _official))
         _count += 1
         if _count % 1000 == 0:
