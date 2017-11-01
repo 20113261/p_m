@@ -688,6 +688,31 @@ def poi_insert_data(cid, _poi_type):
             except Exception as exc:
                 logger.exception(msg="[tour filter error]", exc_info=exc)
 
+            # 景点购物类别数据清理
+            if 'daodao' in data_dict['tagid']:
+                try:
+                    daodao_tagid, daodao_tagid_en, _unknown_tag = get_norm_tag(data_dict['tagid']['daodao'],
+                                                                               'shop')
+                    unknown_tag.update(_unknown_tag)
+                except Exception:
+                    daodao_tagid, daodao_tagid_en = '', ''
+            else:
+                daodao_tagid, daodao_tagid_en = '', ''
+
+            if 'qyer' in data_dict['tagid']:
+                try:
+                    qyer_tagid, qyer_tagid_en, _unknown_tag = get_norm_tag(data_dict['tagid']['qyer'], 'shop')
+                    unknown_tag.update(_unknown_tag)
+                except Exception:
+                    qyer_tagid, qyer_tagid_en = '', ''
+            else:
+                qyer_tagid, qyer_tagid_en = '', ''
+
+            if norm_tag == '' and (daodao_tagid != '' or qyer_tagid != ''):
+                # 景点中包含购物被清除
+                filter_data_already_online(poi_type, miaoji_id, "景点类中存在购物数据被过滤")
+                continue
+
             data.append(per_data)
         elif poi_type == 'rest':
             data.append((
