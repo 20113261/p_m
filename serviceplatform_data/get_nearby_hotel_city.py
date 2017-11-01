@@ -6,7 +6,6 @@
 # @File    : get_nearby_hotel_city.py
 # @Software: PyCharm
 import pymongo
-import dataset
 from pymysql.cursors import DictCursor
 from logger import get_logger
 from service_platform_conn_pool import private_data_test_pool, source_info_pool, task_db_spider_db_pool, base_data_pool
