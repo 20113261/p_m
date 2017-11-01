@@ -280,12 +280,14 @@ LIMIT {}, 99999999999999;'''.format(table_name, offset)
 
 def img_ori(_poi_type):
     init_global_name(_poi_type)
+    retry_count = 0
     while True:
+        retry_count += 1
         try:
             _img_ori(_poi_type)
             break
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.exception(msg="[img ori error][retry count: {}]".format(retry_count), exc_info=exc)
 
 
 if __name__ == '__main__':
