@@ -139,7 +139,7 @@ def dump_sql_and_upload():
 
     # dump data process for bak
     table_time = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    table_names = ['chat_attraction', 'chat_shopping']
+    table_names = ['chat_attraction']
     for each_table_name in table_names:
         logger.debug("[start dump data process sql][host: 10.10.242.173][table name: {}]".format(each_table_name))
         command = "mysqldump -h10.10.242.173 -u root -pshizuo0907 data_process {0} > {1}". \
@@ -185,7 +185,7 @@ def dump_sql_and_upload():
 
 
 if __name__ == '__main__':
-    poi_type_list = ['attr', 'shop']
+    poi_type_list = ['attr']
 
     for each_poi_type in poi_type_list:
         mk_base_data_final(each_poi_type)
