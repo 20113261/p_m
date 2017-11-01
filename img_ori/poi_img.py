@@ -17,9 +17,9 @@ from logger import get_logger, func_time_logger
 from data_source import MysqlSource
 from StandardException import PoiTypeError
 
-pool = gevent.pool.Pool(size=100)
+pool = gevent.pool.Pool(size=600)
 logger = get_logger("poi_img_merge")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 data = []
 
