@@ -11,12 +11,15 @@ CREATE TABLE IF NOT EXISTS `%s` (
   `size`        VARCHAR(40)           DEFAULT '',
   `flag`        VARCHAR(10)           DEFAULT '1',
   `file_md5`    VARCHAR(32)  NOT NULL DEFAULT '',
+  `img_p_hash`  VARCHAR(32)  NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `s_sid_md5` (`source`, `source_id`, `file_md5`),
   KEY `pic_md5` (`pic_md5`),
   KEY `pic_md5_2` (`pic_md5`, `file_md5`),
   KEY `flag` (`flag`),
-  KEY `update_date` (`update_date`)
+  KEY `_ix_img_p_hash` (`img_p_hash`),
+  KEY `update_date` (`update_date`),
+  KEY `_ix_s_sid_img_p_hash` (`source`, `source_id`, `img_p_hash`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;

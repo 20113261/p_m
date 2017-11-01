@@ -74,3 +74,6 @@ mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --skip-lock-tables --insert-
 
 # insert PoiPicInformation
 mysqldump -h10.10.154.38 -ureader -pmiaoji1109 --skip-lock-tables --insert-ignore --no-create-info --no-create-db --complete-insert devdb PoiPictureInfomation | sed 's/`PoiPictureInfomation`/`PoiPictureInformation`/g' > PoiPictureInformation.sql
+
+# init hotel images
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --skip-lock-tables --insert-ignore --no-create-info --no-create-db --complete-insert  BaseDataFinal hotel_images | sed 's/`hotel_images`/`hotel_images_new`/g' > hotel_images.sql
