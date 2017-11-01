@@ -12,14 +12,11 @@ import gevent.pool
 import logging
 from toolbox.Common import is_legal
 from ast import literal_eval
-from service_platform_conn_pool import base_data_final_pool, poi_ori_pool
+from service_platform_conn_pool import base_data_final_pool, poi_ori_pool, poi_face_detect_pool
 from logger import get_logger, func_time_logger
 from data_source import MysqlSource
 from StandardException import PoiTypeError
-from gevent.lock import RLock
-from gevent.queue import Queue
 
-lock = RLock()
 pool = gevent.pool.Pool(size=600)
 logger = get_logger("poi_img_merge")
 logger.setLevel(logging.INFO)
@@ -104,9 +101,34 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
             max_size_img = file_name
 
         # use 1
-        if str(use) == 1:
+        if str(use) == '1':
             md5_set.add(pic_md5)
             file2md5[file_name] = pic_md5
+
+    cursor.close()
+    conn.close()
+
+    if poi_type == 'attr':
+        # 获取人脸识别数据
+        _conn = poi_face_detect_pool.connection()
+        _cursor = _conn.cursor()
+        query_sql = '''SELECT pic_name
+FROM PoiPictureInformation
+WHERE is_available=0 AND poi_id IN ({});'''.format(
+            ', '.join(
+                map(
+                    lambda x: "'{}'".format(
+                        '###'.join(x) if x[0] != 'online' else x[1]),
+                    s_sid_set
+                )
+            )
+        )
+        _cursor.execute(query_sql)
+        face_detected = set([x[0].split('/')[-1] for x in _cursor.fetchall()])
+        _cursor.close()
+        _conn.close()
+    else:
+        face_detected = set()
 
     old_img_list = old_img.split('|')
     old_md5 = set()
@@ -116,13 +138,17 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
     for _old_file_name in old_img_list:
         if _old_file_name in file2md5:
             if file2md5[_old_file_name] not in old_md5:
-                old_md5.add(file2md5[_old_file_name])
-                new_img_list.append(_old_file_name)
+                # 人脸识别过滤
+                if _old_file_name not in face_detected:
+                    old_md5.add(file2md5[_old_file_name])
+                    new_img_list.append(_old_file_name)
 
     # 当新增图片中有原先不存在的图片，按顺序增加图片
     for k, v in file2md5.items():
         if v not in old_md5:
-            new_img_list.append(k)
+            # 人脸识别过滤
+            if k not in face_detected:
+                new_img_list.append(k)
 
     if old_first_img:
         # make new_first_img
@@ -142,8 +168,6 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
         new_img_list = new_first_img = max_size_img
 
     new_img = '|'.join(filter(lambda x: is_legal(x), new_img_list))
-    cursor.close()
-    conn.close()
     return new_img, new_first_img
 
 

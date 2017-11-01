@@ -115,3 +115,13 @@ db_config = dict(
 )
 
 task_db_spider_db_pool = init_pool(**db_config)
+
+
+db_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.228.253',
+    database='poi'
+)
+
+poi_face_detect_pool = init_pool(**db_config)
