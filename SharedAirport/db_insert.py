@@ -12,16 +12,16 @@ import copy
 if __name__ == '__main__':
     db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253:3306/base_data?charset=utf8')
     airport_table = db['airport']
-    table = pandas.read_csv('/Users/hourong/Downloads/airport(1).csv')
+    table = pandas.read_csv('/Users/hourong/Downloads/share_airprot.csv')
 
     _count = 0
     for i in range(len(table)):
         line = table.iloc[i]
-        if line['机场id'] != 'error':
+        if line['airport_id'] != 'error':
             _count += 1
-            data_line = airport_table.find_one(id=line['机场id'])
+            data_line = airport_table.find_one(id=int(line['airport_id']))
             new_data = copy.deepcopy(data_line)
-            new_data['city_id'] = int(line['cid'])
+            new_data['city_id'] = int(line['city_id'])
 
             new_data.pop('id')
             print('#' * 100)
