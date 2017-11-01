@@ -231,7 +231,8 @@ def update_per_env_hotel_validation(env):
 
 
 def update_hotel_validation():
-    # global offset
+    global offset
+    offset = 0
     update_per_env_hotel_validation('test')
     # offset = 0
     # update_per_env_hotel_validation('online')
