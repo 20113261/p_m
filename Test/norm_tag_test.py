@@ -33,12 +33,17 @@ class TestNormTag(unittest.TestCase):
     def test_case_4(self):
         case = '购物，大商场'
         self.assertTupleEqual(get_norm_tag(case, 'shop'),
-                              ('', '', ['购物', '大商场']))
+                              ('购物', 'Shopping', ['大商场']))
 
     def test_case_5(self):
         case = '小镇_寺庙'
         self.assertTupleEqual(get_norm_tag(case, 'attr'),
                               ('寺庙|小镇', 'Small Town|Temple', []))
+
+    def test_case_6(self):
+        case = '百货商场| 购物'
+        self.assertTupleEqual(get_norm_tag(case, 'shop'),
+                              ('百货商场|购物', 'Department store|Shopping', []))
 
 
 if __name__ == '__main__':

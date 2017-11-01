@@ -64,7 +64,7 @@ rest_key_words_dict = {'\u9ece\u5df4\u5ae9\u83dc': '\u9ece\u5df4\u5ae9', '\u79d8
                        '\u610f\u9910': '\u610f\u5927\u5229'
                        }
 
-tag_dict = None
+tag_dict = {}
 
 
 def get_tagid_dict(_poi_type):
@@ -105,9 +105,9 @@ ORDER BY id;'''
 
 def get_norm_tag(tag_id, _poi_type):
     global tag_dict
-    if tag_dict is None:
-        logger.debug("[init tagid]")
-        tag_dict = get_tagid_dict(_poi_type)
+    if _poi_type not in tag_dict:
+        logger.debug("[init tagid][poi_type: {}]".format(_poi_type))
+        tag_dict[_poi_type] = get_tagid_dict(_poi_type)
     norm_tags = []
     norm_tag_ens = []
     unknown = []
@@ -115,7 +115,7 @@ def get_norm_tag(tag_id, _poi_type):
     for raw_tag in split_pattern.split(lines):
         tag_ok = False
         tag = raw_tag.strip()
-        for t_set, values in tag_dict.items():
+        for t_set, values in tag_dict[_poi_type].items():
             if tag in t_set:
                 norm_tags.append(values[0])
                 norm_tag_ens.append(values[1])
