@@ -733,7 +733,8 @@ def poi_insert_data(cid, _poi_type):
 
             if norm_tag == '' and other_tag != '':
                 # 景点中包含购物被清除
-                filter_data_already_online(poi_type, miaoji_id, "景点类中存在购物数据被过滤")
+                if 'online' in union_info:
+                    filter_data_already_online(poi_type, miaoji_id, "景点类中存在购物数据被过滤")
                 continue
 
             data.append(per_data)
