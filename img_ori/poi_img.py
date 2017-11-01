@@ -20,6 +20,7 @@ from StandardException import PoiTypeError
 pool = gevent.pool.Pool(size=600)
 logger = get_logger("poi_img_merge")
 logger.setLevel(logging.DEBUG)
+offset = 0
 
 data = []
 
@@ -251,13 +252,15 @@ def _update_per_uid_img(_uid, _poi_type, _old_img_list, _old_first_img, _officia
 
 def _img_ori(_poi_type):
     global data
+    global offset
     query_sql = '''SELECT
   id,
   image_list,
   first_image,
   official
 FROM {}
-ORDER BY id;'''.format(table_name)
+ORDER BY id
+LIMIT {}, 99999999999999;'''.format(table_name, offset)
 
     _count = 0
     for _uid, _old_img_list, _old_first_img, _official in MysqlSource(poi_ori_config, table_or_query=query_sql,
@@ -265,10 +268,11 @@ ORDER BY id;'''.format(table_name)
                                                                       is_dict_cursor=False):
         pool.apply_async(_update_per_uid_img, (_uid, _poi_type, _old_img_list, _old_first_img, _official))
         _count += 1
-        if _count % 5000 == 0:
+        if _count % 1000 == 0:
             pool.join()
             update_img()
             data = []
+            offset += 1000
         update_img()
     pool.join()
     update_img()
@@ -276,7 +280,12 @@ ORDER BY id;'''.format(table_name)
 
 def img_ori(_poi_type):
     init_global_name(_poi_type)
-    _img_ori(_poi_type)
+    while True:
+        try:
+            _img_ori(_poi_type)
+            break
+        except Exception:
+            pass
 
 
 if __name__ == '__main__':
