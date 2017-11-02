@@ -317,6 +317,10 @@ def fix_daodao_open_time(source_open_time):
     # 周替换
     __source_open_time = source_open_time.replace('星期', '周')
 
+    # 到替换
+    for key in ['到', '至']:
+        __source_open_time = __source_open_time.replace(key, '-')
+
     # 中文 ： 转换
     __source_open_time = __source_open_time.replace('：', ':')
 
@@ -326,6 +330,8 @@ def fix_daodao_open_time(source_open_time):
     for k, v in S2F.items():
         __source_open_time = __source_open_time.replace(k, v)
 
+    __source_open_time = __source_open_time.replace('周天', '周七')
+
     for k, v in work_replace_key.items():
         while k in __source_open_time:
             __source_open_time = __source_open_time.replace(k, v)
@@ -334,6 +340,14 @@ def fix_daodao_open_time(source_open_time):
         if __source_open_time.count(':') % 2 == 1:
             if (__source_open_time.count(':') + __source_open_time.count('.')) % 2 == 0:
                 __source_open_time = __source_open_time.replace('.', ':')
+
+    # 早上 晚上替换
+    for each in re.findall('(早|早上|上午)(\d+)(点?)', __source_open_time):
+        __source_open_time = __source_open_time.replace('{}{}{}'.format(*each), '{}:00'.format(each[1]))
+
+    for each in re.findall('(下午|晚|晚上)(\d+)(点?)', __source_open_time):
+        __source_open_time = __source_open_time.replace('{}{}{}'.format(*each),
+                                                        '{}:00'.format(int(each[1]) + 12))
 
     # 加 |
     # 时间 星期
@@ -362,12 +376,25 @@ def fix_daodao_open_time(source_open_time):
         __source_open_time = '周一-周七 {}'.format(__source_open_time)
 
     if 'am' in __source_open_time:
-        __source_open_time = __source_open_time.replace('am', '')
+        for each in re.findall('(\d+:\d+)am', __source_open_time):
+            __source_open_time = __source_open_time.replace('{}am'.format(each), each)
+        for each in re.findall('(\d+)am', __source_open_time):
+            __source_open_time = __source_open_time.replace('{}am'.format(each), '{}:00'.format(each))
 
     if 'pm' in __source_open_time:
         for each in re.findall('(\d+):(\d+)pm', __source_open_time):
             __source_open_time = __source_open_time.replace('{0}:{1}pm'.format(*each),
                                                             '{0}:{1}'.format(int(each[0]) + 12, each[1]))
+        for each in re.findall('(\d+)pm', __source_open_time):
+            __source_open_time = __source_open_time.replace('{}pm'.format(each), '{}:00'.format(int(each) + 12))
+
+    # 单独点替换
+    if '点' in __source_open_time and '分' not in __source_open_time:
+        if __source_open_time.count('点') % 2 == 0:
+            for _index, each in enumerate(re.findall('(\d+)点', __source_open_time)):
+                __source_open_time = __source_open_time.replace('{}点'.format(each), '{}:00'.format(
+                    int(each) + (0 if _index % 2 == 0 else 12)))
+
     try:
         open_time_desc = get_time_range(__source_open_time.strip())
         src_open_time = get_open_time(open_time_desc)

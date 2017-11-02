@@ -224,6 +224,42 @@ class DaodaoOpenTimeFixTest(unittest.TestCase):
             {'<*><周1-周7><09:00-17:00><SURE>'}
         )
 
+    def test_case_27(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('7am-5pm'
+                                     ).split('|')),
+            {'<*><周1-周7><07:00-17:00><SURE>'}
+        )
+
+    def test_case_28(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('10点-5点'
+                                     ).split('|')),
+            {'<*><周1-周7><10:00-17:00><SURE>'}
+        )
+
+    def test_case_29(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('周二至周六 9am-6.30pm 周日11.30am-6.30pm'
+                                     ).split('|')),
+            {'<*><周2-周6><09:00-18:30><SURE>',
+             '<*><周7><11:30-18:30><SURE>'}
+        )
+
+    def test_case_30(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('周二到周天早上10点至晚5点'
+                                     ).split('|')),
+            {'<*><周2-周7><10:00-17:00><SURE>'}
+        )
+
+    def test_case_31(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('8am~11pm'
+                                     ).split('|')),
+            {'<*><周1-周7><08:00-23:00><SURE>'}
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
