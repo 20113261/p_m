@@ -309,18 +309,22 @@ def fix_daodao_open_time(source_open_time):
     if any(map(lambda x: x in source_open_time, SKIP_KEY)):
         return ''
 
-    if '全天' in source_open_time:
+    if source_open_time in ['永久', '全日开放', '全年24小时', '24hours', '全年常开', '完全开放', '周一-周日：24小时',
+                            '一直开放', '全日全时段', '每天',
+                            '无限制',
+                            '24小时参观游览。', '24h', '24小时', '整天', '全年开放。', '24hr']:
         return '<*><*><00:00-23:59><SURE>'
     # 周替换
     __source_open_time = source_open_time.replace('星期', '周')
+
+    # 中文 ： 转换
+    __source_open_time = __source_open_time.replace('：', ':')
 
     # 换行符替换
     __source_open_time = __source_open_time.replace('\n', '|')
     # 数字替换
     for k, v in S2F.items():
         __source_open_time = __source_open_time.replace(k, v)
-
-    __source_open_time = __source_open_time.replace('：', ':')
 
     for k, v in work_replace_key.items():
         while k in __source_open_time:
@@ -346,8 +350,24 @@ def fix_daodao_open_time(source_open_time):
     except Exception:
         pass
 
+    # . 最终处理
+    if '.' in __source_open_time:
+        __source_open_time = __source_open_time.replace('.', ':')
+
+    # h 处理
+    if 'h' in __source_open_time:
+        __source_open_time.replace('h', '')
+
     if '周' not in __source_open_time:
         __source_open_time = '周一-周七 {}'.format(__source_open_time)
+
+    if 'am' in __source_open_time:
+        __source_open_time = __source_open_time.replace('am', '')
+
+    if 'pm' in __source_open_time:
+        for each in re.findall('(\d+):(\d+)pm', __source_open_time):
+            __source_open_time = __source_open_time.replace('{0}:{1}pm'.format(*each),
+                                                            '{0}:{1}'.format(int(each[0]) + 12, each[1]))
     try:
         open_time_desc = get_time_range(__source_open_time.strip())
         src_open_time = get_open_time(open_time_desc)

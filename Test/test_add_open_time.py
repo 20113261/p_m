@@ -174,6 +174,56 @@ class DaodaoOpenTimeFixTest(unittest.TestCase):
              '<*><周1-周5><09:30-17:00><SURE>'}
         )
 
+    def test_case_23(self):
+        cases = ['永久', '全日开放', '全年24小时', '24hours', '全年常开', '完全开放', '周一-周日：24小时', '一直开放', '全日全时段', '每天',
+                 '无限制',
+                 '24小时参观游览。', '24h', '24小时', '整天', '全年开放。', '24hr']
+        for each in cases:
+            self.assertSetEqual(
+                set(fix_daodao_open_time(each
+                                         ).split('|')),
+                {'<*><*><00:00-23:59><SURE>'}
+            )
+
+
+
+            # def test_case_23(self):
+            #     self.assertSetEqual(
+            #         set(fix_daodao_open_time('9:30-17:00，周四延长至21:00'
+            #                                  ).split('|')),
+            #         {'<*><周6><10:00-16:00><SURE>',
+            #          '<*><周1-周5><09:30-17:00><SURE>'}
+            #     )
+            #
+            # def test_case_24(self):
+            #     self.assertSetEqual(
+            #         set(fix_daodao_open_time('周一~周六：10:00~17:00，周日：12:00–17:00，关门前15分钟禁止入场'
+            #                                  ).split('|')),
+            #         {'<*><周6><10:00-16:00><SURE>',
+            #          '<*><周1-周5><09:30-17:00><SURE>'}
+            #     )
+
+    def test_case_24(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('周二至周日：09.30 -12.30h，14.30 -18.00 h。'
+                                     ).split('|')),
+            {'<*><周2-周7><09:30-12:30,14:30-18:00><SURE>'}
+        )
+
+    def test_case_25(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('9.30am-4.30pm'
+                                     ).split('|')),
+            {'<*><周1-周7><09:30-16:30><SURE>'}
+        )
+
+    def test_case_26(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('09：00-17：00'
+                                     ).split('|')),
+            {'<*><周1-周7><09:00-17:00><SURE>'}
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
