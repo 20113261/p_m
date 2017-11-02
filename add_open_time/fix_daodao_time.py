@@ -241,6 +241,8 @@ def fix_time_digits(source_open_time):
                         until_output_time = False
             else:
                 raise TypeError('Unknown {}'.format(date_or_time))
+        elif any(map(lambda x: x in date_or_time, ['闭馆', '不开放', '不开放', '歇业', '歇业', '关闭', '休馆'])):
+            print("Hello World")
         else:
             try:
                 hour, minute = re.findall("(\d{1,2}):(\d{2})", date_or_time)[0]
@@ -410,7 +412,8 @@ def fix_daodao_open_time(source_open_time):
             except:
                 _res = fix_time_digits(_test_each.strip())
 
-            if not _res:
+            if not _res and not any(
+                    map(lambda x: x in _test_each, ['闭馆', '不开放', '不开放', '歇业', '歇业', '关闭', '休馆'])):
                 continue
             final_time_desc.append(each)
         except Exception:
@@ -418,7 +421,7 @@ def fix_daodao_open_time(source_open_time):
 
     __source_open_time = '|'.join(final_time_desc)
 
-    if '周' not in __source_open_time:
+    if not re.match('周[一二三四五六七][\s\S]+?\d{1,2}:\d{1,2}', __source_open_time):
         __source_open_time = '周一-周七 {}'.format(__source_open_time)
 
     try:
