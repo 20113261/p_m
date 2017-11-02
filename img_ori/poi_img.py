@@ -84,6 +84,7 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
     max_size_img = ''
     file2md5 = dict()
     md5_set = set()
+    pic_total = set()
     for file_name, bucket_name, pic_size, pic_md5, use in cursor.fetchall():
         if poi_type == 'shop' and bucket_name not in ('attr_bucket', 'shop_bucket'):
             # shopping img upload to mioji-attr or mioji-shop
@@ -92,9 +93,22 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
             # rest img upload to mioji-rest
             # attr img upload to mioji-attr
             continue
+
+        # 生成 pic total，用于判定被过滤的图片是否为人工新添加的图片
+        pic_total.add(file_name)
+
         # img can be used
+        # pic size 为空一般是人工标的图片
         if not is_legal(pic_size):
-            continue
+            if file_name not in old_img:
+                continue
+            elif str(use) != '1':
+                continue
+            else:
+                # 老图，人工标的，不能过滤
+                md5_set.add(pic_md5)
+                file2md5[file_name] = pic_md5
+                continue
 
         # get max size
         h, w = literal_eval(pic_size)
@@ -157,12 +171,20 @@ WHERE is_available=0 AND poi_id IN ({});'''.format(
     new_img_list = []
     # 按照旧的图片排列顺序增加图片，并去重
     for _old_file_name in old_img_list:
+        # 原始数据为抓取数据
         if _old_file_name in file2md5:
             if file2md5[_old_file_name] not in old_md5:
                 # 人脸识别过滤
                 if _old_file_name not in face_detected:
                     old_md5.add(file2md5[_old_file_name])
                     new_img_list.append(_old_file_name)
+
+        # 原始数据为人工添加数据
+        elif _old_file_name not in pic_total:
+            # 如果数据合法
+            if is_legal(_old_file_name):
+                # 人工添加图片入栈，但无 md5 进行过滤，直接放过 md5 过滤规则
+                new_img_list.append(_old_file_name)
 
     # 当新增图片中有原先不存在的图片，按顺序增加图片
     for k, v in file2md5.items():
