@@ -11,11 +11,15 @@ import json
 import hashlib
 import toolbox.Date
 from data_source import MysqlSource
+from patched_mongo import mongo_patched_insert
+from logger import get_logger
 
 toolbox.Date.DATE_FORMAT = "%Y%m%d"
 
 client = pymongo.MongoClient(host='10.10.231.105')
 collections = client['MongoTask']['Task']
+
+logger = get_logger("insert_mongo_task")
 
 base_data_final_config = {
     'host': '10.10.228.253',
@@ -27,10 +31,8 @@ base_data_final_config = {
 
 
 def insert_mongo(data):
-    try:
-        collections.insert(data, continue_on_error=True)
-    except Exception as e:
-        pass
+    res = mongo_patched_insert(data)
+    logger.info("[insert info][ {} ]".format(res))
 
 
 def get_tasks():
@@ -65,6 +67,8 @@ def insert_mongo_task():
             },
             'priority': 10,
             'running': 0,
+            'used_times': 0,
+            'finished': 0,
             'utime': datetime.datetime.now()
         }
         task_info['task_token'] = hashlib.md5(json.dumps(task_info['args'], sort_keys=True).encode()).hexdigest()
