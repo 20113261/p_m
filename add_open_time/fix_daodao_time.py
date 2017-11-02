@@ -214,12 +214,15 @@ def standardized(src: str) -> str:
 
 def fix_time_digits(source_open_time):
     _res = []
+    _closed = []
     new_date = []
     new_time = []
     has_output_time = False
     until_output_time = True
     source_open_time = standardized(source_open_time)
-    for date_or_time in re.findall("(周一|周四|周三|周六|周五|周七|周二|周日|[\d:]+)", source_open_time):
+    closed_str = ['闭馆', '不开放', '歇业', '关闭', '不营业', '关门', '休馆', '休息', '不对外开放']
+    for date_or_time in re.findall("(周一|周四|周三|周六|周五|周七|周二|周日|[\d:]+|{})".format('|'.join(closed_str)),
+                                   source_open_time):
         if '周' in date_or_time:
             if has_output_time:
                 new_date = []
@@ -241,9 +244,9 @@ def fix_time_digits(source_open_time):
                         until_output_time = False
             else:
                 raise TypeError('Unknown {}'.format(date_or_time))
-        elif any(map(lambda x: x in date_or_time, ['闭馆', '不开放', '不开放', '歇业', '歇业', '关闭', '休馆'])):
-            print("Hello World")
-        else:
+
+        # 这里处理时间，但拿不是 close str 判断，close str 为最终判定标志，必须放在最后
+        elif not any(map(lambda x: x in date_or_time, closed_str)):
             try:
                 hour, minute = re.findall("(\d{1,2}):(\d{2})", date_or_time)[0]
             except Exception:
@@ -269,9 +272,17 @@ def fix_time_digits(source_open_time):
                             '<*><{0}><{1}-{2}><SURE>'.format(each_date, new_time[0], new_time[1]))
                     has_output_time = True
                     new_time = []
+
+        # close str 为最终判定标志，必须防止最后
+        else:
+            if not has_output_time:
+                _closed.extend(new_date)
+                has_output_time = True
+                new_time = []
+
     # if len(_res) != len(source_open_time.split('|')):
     #     raise TypeError('Error open time : {}'.format(source_open_time))
-    return '|'.join(_res)
+    return '|'.join(_res), _closed
 
 
 def split_sunday(b):
@@ -406,14 +417,9 @@ def fix_daodao_open_time(source_open_time):
             else:
                 _test_each = each
 
-            try:
-                open_time_desc = get_time_range(_test_each.strip())
-                _res = get_open_time(open_time_desc)
-            except:
-                _res = fix_time_digits(_test_each.strip())
+            _res, _closed = fix_time_digits(_test_each.strip())
 
-            if not _res and not any(
-                    map(lambda x: x in _test_each, ['闭馆', '不开放', '不开放', '歇业', '歇业', '关闭', '休馆'])):
+            if not _res and not _closed:
                 continue
             final_time_desc.append(each)
         except Exception:
@@ -424,15 +430,11 @@ def fix_daodao_open_time(source_open_time):
     if not re.match('周[一二三四五六七][\s\S]+?\d{1,2}:\d{1,2}', __source_open_time):
         __source_open_time = '周一-周七 {}'.format(__source_open_time)
 
-    try:
-        open_time_desc = get_time_range(__source_open_time.strip())
-        src_open_time = get_open_time(open_time_desc)
-    except:
-        src_open_time = fix_time_digits(__source_open_time)
+    src_open_time, _closed = fix_time_digits(__source_open_time)
 
     fixed_sunday_open_time = fix_sunday_open_time(src_open_time)
 
-    true_open_time = multi_days_handling(fixed_sunday_open_time)
+    true_open_time = multi_days_handling(fixed_sunday_open_time, closed=_closed)
     return true_open_time
 
 

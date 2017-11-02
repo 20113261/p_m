@@ -184,6 +184,7 @@ class DaodaoOpenTimeFixTest(unittest.TestCase):
                                          ).split('|')),
                 {'<*><*><00:00-23:59><SURE>'}
             )
+
     def test_case_24(self):
         self.assertSetEqual(
             set(fix_daodao_open_time('周二至周日：09.30 -12.30h，14.30 -18.00 h。'
@@ -288,7 +289,75 @@ class DaodaoOpenTimeFixTest(unittest.TestCase):
         self.assertSetEqual(
             set(fix_daodao_open_time('10:00–17:00，周一闭馆'
                                      ).split('|')),
-            {'<*><周1-周7><09:30-17:00><SURE>'}
+            {'<*><周2-周7><10:00-17:00><SURE>'}
+        )
+
+    def test_case_39(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('8:30-13:30，周五不开放'
+                                     ).split('|')),
+            {'<*><周6-周7><08:30-13:30><SURE>',
+             '<*><周1-周4><08:30-13:30><SURE>'}
+        )
+
+    def test_case_40(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('14:00-17:30，周四、周日、节假日不开放'
+                                     ).split('|')),
+            {'<*><周5-周6><14:00-17:30><SURE>',
+             '<*><周1-周3><14:00-17:30><SURE>'}
+        )
+
+    def test_case_41(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('12:00  - 18:00 ，周一歇业'
+                                     ).split('|')),
+            {'<*><周2-周7><12:00-18:00><SURE>'}
+        )
+
+    def test_case_42(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('8:30  - 18:00 ，周六、周日歇业'
+                                     ).split('|')),
+            {'<*><周1-周5><08:30-18:00><SURE>'}
+        )
+
+    def test_case_43(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('9:00-19:30，逢星期二关闭'
+                                     ).split('|')),
+            {'<*><周3-周7><09:00-19:30><SURE>',
+             '<*><周1><09:00-19:30><SURE>'}
+        )
+
+    def test_case_44(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('10:00-18:00 周二闭馆'
+                                     ).split('|')),
+            {'<*><周1><10:00-18:00><SURE>',
+             '<*><周3-周7><10:00-18:00><SURE>'}
+        )
+
+    def test_case_45(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('09:00-17:00 逢星期一关闭'
+                                     ).split('|')),
+            {'<*><周2-周7><09:00-17:00><SURE>'}
+        )
+
+    def test_case_46(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('8:30-19:30（周一休馆）'
+                                     ).split('|')),
+            {'<*><周2-周7><08:30-19:30><SURE>'}
+        )
+
+    def test_case_47(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('8：30--19：30 星期三关闭'
+                                     ).split('|')),
+            {'<*><周1-周2><08:30-19:30><SURE>',
+             '<*><周4-周7><08:30-19:30><SURE>'}
         )
 
 

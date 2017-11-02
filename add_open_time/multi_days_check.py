@@ -185,9 +185,14 @@ def day_merge(day_time_dict: dict):
     return result
 
 
-def multi_days_handling(source):
+def multi_days_handling(source, closed):
+    # 分割为每天时间
     day_time_dict = get_day_time_dict(source)
+    # 关闭日期
+    day_time_dict = {k: v for k, v in day_time_dict.items() if k not in closed}
+    # 合并小时
     day_time_dict = hours_merge(day_time_dict)
+    # 合并日期
     day_time_dict = day_merge(day_time_dict)
     return output_str(day_time_dict)
 
@@ -214,4 +219,4 @@ if __name__ == '__main__':
     # for k, v in day_time_dict.items():
     #     print k, '--->', sorted(v)
 
-    print(multi_days_handling(case_10))
+    print(multi_days_handling(case_10, []))
