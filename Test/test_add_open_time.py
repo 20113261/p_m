@@ -260,6 +260,49 @@ class DaodaoOpenTimeFixTest(unittest.TestCase):
             {'<*><周1-周7><08:00-23:00><SURE>'}
         )
 
+    def test_case_32(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('周一~周六：10:00~17:00，周日：12:00–17:00，关门前15分钟禁止入场'
+                                     ).split('|')),
+            {'<*><周1-周6><10:00-17:00><SURE>',
+             '<*><周7><12:00-17:00><SURE>'}
+        )
+
+    def test_case_33(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('9:00至17:00, 365 Days of the year'
+                                     ).split('|')),
+            {'<*><周1-周7><09:00-17:00><SURE>'}
+        )
+
+    def test_case_34(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('6:00-18:00，通常售票处下午5点停止售票'
+                                     ).split('|')),
+            {'<*><周1-周7><06:00-18:00><SURE>'}
+        )
+
+    def test_case_35(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('周一至周日9:00-18:00，冬季提前1小时关门'
+                                     ).split('|')),
+            {'<*><周1-周7><09:00-18:00><SURE>'}
+        )
+
+    def test_case_36(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('08:00-20:00，一周7天运行。'
+                                     ).split('|')),
+            {'<*><周1-周7><08:00-20:00><SURE>'}
+        )
+
+    def test_case_37(self):
+        self.assertSetEqual(
+            set(fix_daodao_open_time('9:30-17:00，周四延长至21:00'
+                                     ).split('|')),
+            {'<*><周1-周7><09:30-17:00><SURE>'}
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

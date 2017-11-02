@@ -7,7 +7,11 @@
 # @Software: PyCharm
 import unittest
 import re
+import functools
 from urllib.parse import urlparse
+from logger import get_logger
+
+logger = get_logger("utils")
 
 
 def is_legal(s):
@@ -61,6 +65,26 @@ class UtilTest(unittest.TestCase):
         self.assertEqual(
             modify_url('asdfasdfasdfasdf'), ''
         )
+
+
+def retry(times=3, raise_exc=True):
+    def wrapper(func):
+        @functools.wraps(func)
+        def f(*args, **kwargs):
+            _exc = None
+            for i in range(times):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as exc:
+                    _exc = exc
+                    logger.exception(msg="[retry exception][func: {}][count: {}]".format(func.__name__, i),
+                                     exc_info=exc)
+            if _exc and raise_exc:
+                raise _exc
+
+        return f
+
+    return wrapper
 
 
 if __name__ == '__main__':

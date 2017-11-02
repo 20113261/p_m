@@ -242,7 +242,10 @@ def fix_time_digits(source_open_time):
             else:
                 raise TypeError('Unknown {}'.format(date_or_time))
         else:
-            hour, minute = re.findall("(\d{1,2}):(\d{2})", date_or_time)[0]
+            try:
+                hour, minute = re.findall("(\d{1,2}):(\d{2})", date_or_time)[0]
+            except Exception:
+                continue
             if int(hour) >= 24:
                 hour = int(hour) - 24
             date_or_time = "{}:{}".format(hour, minute)
@@ -372,9 +375,6 @@ def fix_daodao_open_time(source_open_time):
     if 'h' in __source_open_time:
         __source_open_time.replace('h', '')
 
-    if '周' not in __source_open_time:
-        __source_open_time = '周一-周七 {}'.format(__source_open_time)
-
     if 'am' in __source_open_time:
         for each in re.findall('(\d+:\d+)am', __source_open_time):
             __source_open_time = __source_open_time.replace('{}am'.format(each), each)
@@ -394,6 +394,32 @@ def fix_daodao_open_time(source_open_time):
             for _index, each in enumerate(re.findall('(\d+)点', __source_open_time)):
                 __source_open_time = __source_open_time.replace('{}点'.format(each), '{}:00'.format(
                     int(each) + (0 if _index % 2 == 0 else 12)))
+
+    final_time_desc = []
+    # 预解析判定
+    for each in __source_open_time.split('|'):
+        try:
+            if '周' not in each:
+                _test_each = '周一-周七 {}'.format(each)
+            else:
+                _test_each = each
+
+            try:
+                open_time_desc = get_time_range(_test_each.strip())
+                _res = get_open_time(open_time_desc)
+            except:
+                _res = fix_time_digits(_test_each.strip())
+
+            if not _res:
+                continue
+            final_time_desc.append(each)
+        except Exception:
+            pass
+
+    __source_open_time = '|'.join(final_time_desc)
+
+    if '周' not in __source_open_time:
+        __source_open_time = '周一-周七 {}'.format(__source_open_time)
 
     try:
         open_time_desc = get_time_range(__source_open_time.strip())
