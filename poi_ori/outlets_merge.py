@@ -2,16 +2,33 @@
 import toolbox.Common
 from pymysql.cursors import DictCursor
 from my_lib.get_similar_word import get_similar_word
-from service_platform_conn_pool import poi_ori_pool
+from service_platform_conn_pool import poi_ori_pool, base_data_pool, spider_data_base_data_pool
 
 
 def get_shop_info(uid):
     conn = poi_ori_pool.connection()
     cursor = conn.cursor()
     cursor.execute('''SELECT name, name_en FROM chat_shopping WHERE id=%s;''', (uid,))
-    _res = cursor.fetchone()
+    _res_1 = cursor.fetchone()
     cursor.close()
     conn.close()
+
+    conn = base_data_pool.connection()
+    cursor = conn.cursor()
+    _res = cursor.execute('''SELECT
+  name,
+  name_en
+FROM chat_shopping
+WHERE tag_id = 9 AND id=%s;''', (uid,))
+    if _res:
+        _res_2 = cursor.fetchone()
+    else:
+        _res_2 = ('', '')
+    cursor.close()
+    conn.close()
+    _res = list()
+    _res.extend(_res_1)
+    _res.extend(_res_2)
     return _res
 
 
@@ -28,6 +45,7 @@ def latin_percent(string):
 
 
 priority = {
+    'online': 20,
     'qyer': 15,
     'daodao': 10,
 }
@@ -46,7 +64,25 @@ def get_name(names):
     ),
                reverse=True)
     print(r)
-    return r[0]
+    return r[0][0]
+
+
+def update_outlets(uid, name, cid):
+    conn = spider_data_base_data_pool.connection()
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE chat_shopping
+SET name = %s, tag_id = 9, city_id = %s
+WHERE id = %s;''', (name, cid, uid))
+    cursor.close()
+    conn.close()
+
+    conn = poi_ori_pool.connection()
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE chat_shopping
+SET name = %s, norm_tagid = '奥特莱斯', norm_tagid_en = 'Outlet', city_id = %s
+WHERE id = %s;''', (name, cid, uid))
+    cursor.close()
+    conn.close()
 
 
 def task():
@@ -83,15 +119,19 @@ WHERE city_id IS NOT NULL AND city_id != 'NULL';'''
         name_en = get_similar_word(line['name_en'])
         if (name in name_dict) and line['name'] != '':
             uid = name_dict.get(name, '')
-            u_name, u_name_en = get_shop_info(uid)
+            u_name, u_name_en, o_name, o_name_en = get_shop_info(uid)
             final_name = get_name(
-                [(line['name'], 'qyer'), (line['name_en'], 'qyer'), (u_name, 'daodao'), (u_name_en, 'daodao')])
+                [(line['name'], 'qyer'), (line['name_en'], 'qyer'), (u_name, 'daodao'), (u_name_en, 'daodao'),
+                 (o_name, 'online'), (o_name_en, 'online')])
+            update_outlets(cid=line['city_id'], name=final_name, uid=uid)
             print(uid, final_name, line['city_id'])
         elif (name_en in en_dict) and line['name_en'] != '':
             uid = en_dict.get(name_en, '')
-            u_name, u_name_en = get_shop_info(uid)
+            u_name, u_name_en, o_name, o_name_en = get_shop_info(uid)
             final_name = get_name(
-                [(line['name'], 'qyer'), (line['name_en'], 'qyer'), (u_name, 'daodao'), (u_name_en, 'daodao')])
+                [(line['name'], 'qyer'), (line['name_en'], 'qyer'), (u_name, 'daodao'), (u_name_en, 'daodao'),
+                 (o_name, 'online'), (o_name_en, 'online')])
+            update_outlets(cid=line['city_id'], name=final_name, uid=uid)
             print(uid, final_name, line['city_id'])
         else:
             continue

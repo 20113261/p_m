@@ -6,6 +6,7 @@
 # @File    : test_add_open_time.py
 # @Software: PyCharm
 import unittest
+import HtmlTestRunner
 from add_open_time.fix_daodao_time import fix_daodao_open_time
 
 
@@ -362,4 +363,4 @@ class DaodaoOpenTimeFixTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=HtmlTestRunner.HTMLTestRunner(output='/tmp/abc'))
