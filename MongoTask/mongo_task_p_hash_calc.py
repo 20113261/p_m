@@ -29,18 +29,25 @@ base_data_final_config = {
     'db': 'BaseDataFinal'
 }
 
+offset = 0
+
 
 def insert_mongo(data):
+    global offset
     res = mongo_patched_insert(data)
-    logger.info("[insert info][ {} ]".format(res))
+    offset += len(data)
+    logger.info("[insert info][ offset: {} ][ {} ]".format(offset, res))
 
 
 def get_tasks():
+    global offset
     query_sql = '''SELECT
       source,
       pic_md5,
       file_md5
-    FROM hotel_images;'''
+    FROM hotel_images
+    ORDER BY source,source_id
+    LIMIT {},999999999999999;'''.format(offset)
 
     for source, file_name, file_md5 in MysqlSource(db_config=base_data_final_config, table_or_query=query_sql,
                                                    size=10000, is_table=False,
@@ -48,7 +55,7 @@ def get_tasks():
         yield source, file_name, file_md5, 'mioji-hotel', 'hotel'
 
 
-def insert_mongo_task():
+def _insert_mongo_task():
     _count = 0
     data = []
     for source, file_name, file_md5, bucket_name, _type in get_tasks():
@@ -79,6 +86,15 @@ def insert_mongo_task():
 
     if data:
         insert_mongo(data)
+
+
+def insert_mongo_task():
+    while True:
+        try:
+            _insert_mongo_task()
+            break
+        except Exception as exc:
+            logger.exception(msg="[insert mongo task exc]", exc_info=exc)
 
 
 if __name__ == '__main__':
