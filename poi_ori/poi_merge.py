@@ -5,12 +5,14 @@
 # @Site    : 
 # @File    : poi_ori.py
 # @Software: PyCharm
+import re
 import time
+import json
 import redis
 import threading
 from collections import defaultdict
 from toolbox.Common import is_legal
-from data_source import MysqlSource, cursor_gen
+from data_source import MysqlSource
 from service_platform_conn_pool import base_data_pool, poi_ori_pool
 from logger import get_logger, func_time_logger
 from poi_ori.already_merged_city import update_already_merge_city
@@ -132,15 +134,18 @@ def get_data(cid_or_geohash):
     # 线上数据，按照优先级排序，先进入的数据优先使用 id
     _t = time.time()
     if poi_type == 'attr':
-        sql = '''SELECT id, name, name_en, alias
+        sql = '''SELECT id, name, name_en, alias, url
     FROM {1}
     WHERE city_id = '{0}'
     ORDER BY status_online DESC, status_test DESC, official DESC, grade;'''.format(cid_or_geohash, online_table_name)
     elif poi_type == 'rest':
-        # todo add rest online sql
-        sql = ''
+        sql = '''SELECT id, name, name_en, url
+        FROM {1}
+        WHERE city_id = '{0}'
+        ORDER BY status_online DESC, status_test DESC, official DESC, grade;'''.format(cid_or_geohash,
+                                                                                       online_table_name)
     elif poi_type == 'shop':
-        sql = '''SELECT id, name, name_en
+        sql = '''SELECT id, name, name_en, url
         FROM {1}
         WHERE city_id = '{0}'
         ORDER BY status_online DESC, status_test DESC, official DESC, grade;'''.format(cid_or_geohash,
@@ -153,6 +158,23 @@ def get_data(cid_or_geohash):
             keys.add(data['name'])
         if is_legal(data['name_en']):
             keys.add(data['name_en'])
+        _url = data['url']
+        if _url:
+            _j_url = json.loads(_url)
+            if 'qyer' in _j_url:
+                try:
+                    _source = 'qyer'
+                    _sid = re.findall('place.qyer.com/poi/([\s\S]+)/', _j_url['qyer'])[0]
+                    keys.add((_source, _sid))
+                except Exception:
+                    pass
+            if 'daodao' in _j_url:
+                try:
+                    _source = 'daodao'
+                    _sid = re.findall('-d(\d+)', _j_url['daodao'])[0]
+                    keys.add((_source, _sid))
+                except Exception:
+                    pass
         if poi_type == 'attr':
             for key in data['alias'].split('|'):
                 if is_legal(key):
@@ -167,7 +189,8 @@ def get_data(cid_or_geohash):
   id,
   source,
   name,
-  name_en
+  name_en,
+  url
 FROM {1}
 WHERE city_id = '{0}';'''.format(cid_or_geohash, data_source_table)
     for data in MysqlSource(data_db, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
@@ -176,6 +199,12 @@ WHERE city_id = '{0}';'''.format(cid_or_geohash, data_source_table)
             keys.add(data['name'])
         if is_legal(data['name_en']):
             keys.add(data['name_en'])
+        if data['source'] == 'qyer':
+            _sid = re.findall('place.qyer.com/poi/([\s\S]+)/', data['url'])[0]
+            keys.add(('qyer', _sid))
+        if data['source'] == 'daodao':
+            _sid = re.findall('-d(\d+)', data['url'])[0]
+            keys.add(('daodao', _sid))
         logger.debug("[source: {}][sid: {}][keys: {}]".format(data['source'], data['id'], keys))
         yield data['source'], data['id'], keys
     logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
@@ -435,4 +464,4 @@ def poi_merge(cid_or_geohash, poi_type):
 
 
 if __name__ == '__main__':
-    poi_merge(10001, 'shop')
+    poi_merge(10002, 'attr')
