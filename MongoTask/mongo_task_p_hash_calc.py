@@ -44,14 +44,19 @@ def get_tasks():
     query_sql = '''SELECT
       source,
       pic_md5,
-      file_md5
+      file_md5,
+      info
     FROM hotel_images
     ORDER BY source,source_id
     LIMIT {},999999999999999;'''.format(offset)
 
-    for source, file_name, file_md5 in MysqlSource(db_config=base_data_final_config, table_or_query=query_sql,
-                                                   size=10000, is_table=False,
-                                                   is_dict_cursor=False):
+    for source, file_name, file_md5, info in MysqlSource(db_config=base_data_final_config, table_or_query=query_sql,
+                                                         size=10000, is_table=False,
+                                                         is_dict_cursor=False):
+        if not info:
+            continue
+        elif 'p_hash' in json.loads(info):
+            continue
         yield source, file_name, file_md5, 'mioji-hotel', 'hotel'
 
 
