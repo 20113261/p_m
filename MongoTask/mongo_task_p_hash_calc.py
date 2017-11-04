@@ -30,17 +30,21 @@ base_data_final_config = {
 }
 
 offset = 0
+pre_offset = 0
 
 
 def insert_mongo(data):
     global offset
+    global pre_offset
     res = mongo_patched_insert(data)
-    offset += len(data)
+    logger.info("[update offset][offset: {}][pre offset: {}]".format(offset, pre_offset))
+    offset = pre_offset
     logger.info("[insert info][ offset: {} ][ {} ]".format(offset, res))
 
 
 def get_tasks():
     global offset
+    global pre_offset
     query_sql = '''SELECT
       source,
       pic_md5,
@@ -53,6 +57,7 @@ def get_tasks():
     for source, file_name, file_md5, info in MysqlSource(db_config=base_data_final_config, table_or_query=query_sql,
                                                          size=10000, is_table=False,
                                                          is_dict_cursor=False):
+        pre_offset += 1
         if not info:
             yield source, file_name, file_md5, 'mioji-hotel', 'hotel'
 
