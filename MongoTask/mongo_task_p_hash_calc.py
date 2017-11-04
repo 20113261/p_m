@@ -54,10 +54,7 @@ def get_tasks():
                                                          size=10000, is_table=False,
                                                          is_dict_cursor=False):
         if not info:
-            continue
-        elif 'p_hash' in json.loads(info):
-            continue
-        yield source, file_name, file_md5, 'mioji-hotel', 'hotel'
+            yield source, file_name, file_md5, 'mioji-hotel', 'hotel'
 
 
 def _insert_mongo_task():
