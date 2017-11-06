@@ -43,54 +43,54 @@ def insert_mongo(data):
 
 
 def get_tasks():
+    # global offset
+    # global pre_offset
+    # query_sql = '''SELECT
+    #   source,
+    #   pic_md5,
+    #   file_md5,
+    #   info
+    # FROM hotel_images
+    # ORDER BY source,source_id
+    # LIMIT {},999999999999999;'''.format(offset)
+    #
+    # for source, file_name, file_md5, info in MysqlSource(db_config=base_data_final_config, table_or_query=query_sql,
+    #                                                      size=10000, is_table=False,
+    #                                                      is_dict_cursor=False):
+    #     pre_offset += 1
+    #     if not info:
+    #         yield source, file_name, file_md5, 'mioji-hotel', 'hotel'
+
     global offset
     global pre_offset
     query_sql = '''SELECT
-      source,
-      pic_md5,
-      file_md5,
-      info
-    FROM hotel_images
-    ORDER BY source,source_id
-    LIMIT {},999999999999999;'''.format(offset)
+  source,
+  pic_md5,
+  pic_md5,
+  bucket_name,
+  info
+FROM poi_images
+ORDER BY source, sid
+LIMIT {}, 999999999999999;'''.format(offset)
 
-    for source, file_name, file_md5, info in MysqlSource(db_config=base_data_final_config, table_or_query=query_sql,
-                                                         size=10000, is_table=False,
-                                                         is_dict_cursor=False):
+    for source, file_name, file_md5, bucket, info in MysqlSource(db_config=base_data_final_config,
+                                                                 table_or_query=query_sql,
+                                                                 size=10000, is_table=False,
+                                                                 is_dict_cursor=False):
         pre_offset += 1
         if not info:
-            yield source, file_name, file_md5, 'mioji-hotel', 'hotel'
-
-#     global offset
-#     global pre_offset
-#     query_sql = '''SELECT
-#   source,
-#   pic_md5,
-#   pic_md5,
-#   bucket_name,
-#   info
-# FROM poi_images
-# ORDER BY source, sid
-# LIMIT {}, 999999999999999;'''.format(offset)
-#
-#     for source, file_name, file_md5, bucket, info in MysqlSource(db_config=base_data_final_config,
-#                                                                  table_or_query=query_sql,
-#                                                                  size=10000, is_table=False,
-#                                                                  is_dict_cursor=False):
-#         pre_offset += 1
-#         if not info:
-#             if 'attr' in bucket:
-#                 # bucket_name = 'mioji-attr'
-#                 continue
-#             elif 'rest' in bucket:
-#                 bucket_name = 'mioji-rest'
-#                 # continue
-#             elif 'shop' in bucket:
-#                 # bucket_name = 'mioji-shop'
-#                 continue
-#             else:
-#                 continue
-#             yield source, file_name, file_md5, bucket_name, 'poi'
+            if 'attr' in bucket:
+                bucket_name = 'mioji-attr'
+                # continue
+            elif 'rest' in bucket:
+                # bucket_name = 'mioji-rest'
+                continue
+            elif 'shop' in bucket:
+                bucket_name = 'mioji-shop'
+                # continue
+            else:
+                continue
+            yield source, file_name, file_md5, bucket_name, 'poi'
 
 
 def _insert_mongo_task():
