@@ -473,6 +473,55 @@ def _poi_merge(cid_or_geohash):
     similar_dict = defaultdict(set)
     merged_dict = defaultdict(set)
 
+    '''在查 英国国家美术馆，奥斯陆国家美术馆 没有融合的 case 中发现当前融合逻辑的存在问题。
+当前融合逻辑中会循环景点数据，当该景点能够融合时，进行融合，否则认为新增一条景点。
+导致原因：
+1、当前景点 A 与景点 B 不能进行融合，从而认定为新增的一条
+2、当前景点 C 可以与 A 与 B 进行融合，但 A 与 B 已经为两条景点，C 只会与其中一条融合
+最终需要结果：
+A、B、C 进行融合
+解决方案：
+增加预融合逻辑，直到所有景点均不能够融合，开始进行新增判定
+'''
+    # 预融合，只有景点需要预融合，代码与融合完全相同，只不过只更新融合用的 similar_dict，但是不进行融合
+    if poi_type == 'attr':
+        pre_merge_times = 0
+
+        while True:
+            pre_merge_finished = True
+            for source, sid, keys in get_data(cid_or_geohash=cid_or_geohash):
+                start = time.time()
+
+                # 遍历当前城市下全量的融合 key 获取 uid
+                def get_uid():
+                    for each_uid, similar_keys in similar_dict.items():
+                        for each_key in keys:
+                            if each_key in similar_keys:
+                                return each_uid
+                    if source == 'online':
+                        return sid
+                    return None
+
+                uid = get_uid()
+                if uid:
+                    # 预融合未完成的标志，当前有 key 不在 similar_dict 中
+                    for k in keys:
+                        if k not in similar_dict[uid]:
+                            pre_merge_finished = False
+                    # 更新相似判断字典
+                    similar_dict[uid].update(keys)
+
+                logger.info(
+                    "[pre_merge][city: {}][id: {}][pre_merge_times: {}][takes: {}]".format(cid_or_geohash, uid,
+                                                                                           pre_merge_times,
+                                                                                           time.time() - start))
+
+            # 更新状态位
+            pre_merge_times += 1
+            if pre_merge_finished:
+                # 当完成预融合，结束全部预融合操作
+                break
+
     # 使用此中方式可以每次增量全量融合，可避免融合中出现生成 id 问题
     for source, sid, keys in get_data(cid_or_geohash=cid_or_geohash):
         start = time.time()
@@ -553,4 +602,4 @@ def poi_merge(cid_or_geohash, poi_type):
 
 
 if __name__ == '__main__':
-    poi_merge(40002, 'attr')
+    poi_merge(10009, 'attr')
