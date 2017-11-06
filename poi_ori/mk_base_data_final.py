@@ -139,7 +139,16 @@ def dump_sql_and_upload():
 
     # dump data process for bak
     table_time = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    table_names = ['chat_attraction']
+    table_names = []
+    for line in poi_type_list:
+        if line == 'attr':
+            table_names.append('chat_attraction')
+        elif line == 'shop':
+            table_names.append('chat_attraction')
+        elif line == 'rest':
+            table_names.append('chat_restaurant')
+        else:
+            continue
     for each_table_name in table_names:
         logger.debug("[start dump data process sql][host: 10.10.242.173][table name: {}]".format(each_table_name))
         command = "mysqldump -h10.10.242.173 -u root -pshizuo0907 data_process {0} > {1}". \
