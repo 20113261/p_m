@@ -281,6 +281,7 @@ def _img_ori(_poi_type):
   first_image,
   official
 FROM {}
+WHERE id in ('v224672','v226636','v230118','v736196','v229247','v736147','v230048','v223967')
 ORDER BY id
 LIMIT {}, 99999999999999;'''.format(table_name, offset)
 

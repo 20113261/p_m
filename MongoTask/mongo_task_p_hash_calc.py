@@ -65,7 +65,7 @@ def get_tasks():
     global pre_offset
     query_sql = '''SELECT
   source,
-  pic_md5,
+  file_name,
   pic_md5,
   bucket_name,
   info
