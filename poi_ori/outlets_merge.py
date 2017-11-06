@@ -107,7 +107,6 @@ FROM chat_shopping;'''
     cursor.close()
     conn.close()
 
-    rows = []
     query_sql = '''SELECT *
 FROM qyer_outlets_new
 WHERE city_id IS NOT NULL AND city_id != 'NULL';'''
@@ -137,14 +136,6 @@ WHERE city_id IS NOT NULL AND city_id != 'NULL';'''
             continue
     cursor.close()
     conn.close()
-
-    import csv
-    f = open('/tmp/outlets.csv', 'w', encoding='utf8')
-    writer = csv.writer(f)
-    writer.writerow(['qyer_id', '名称', '英文名', 'city_id', '匹配条件', '匹配项', 'ID'])
-    for i in set(rows):
-        print(i)
-        writer.writerow(i)
 
 
 if __name__ == '__main__':
