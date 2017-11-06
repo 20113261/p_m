@@ -11,6 +11,7 @@ from pymysql.cursors import DictCursor
 from service_platform_conn_pool import poi_ori_pool
 from logger import get_logger
 from toolbox.Hash import get_token
+from collections import defaultdict
 
 logger = get_logger("init_white_list")
 
@@ -46,7 +47,7 @@ WHERE source = 'qyer';'''
 def insert_white_list(data):
     conn = poi_ori_pool.connection()
     cursor = conn.cursor()
-    _res = cursor.executemany('''INSERT INTO white_list (type, md5, info) VALUES (%s, %s, %s)''', data)
+    _res = cursor.executemany('''REPLACE INTO white_list (type, md5, info) VALUES (%s, %s, %s)''', data)
     conn.commit()
     logger.debug("[insert white list][total: {}][insert: {}]".format(len(data), _res))
     cursor.close()
@@ -78,6 +79,7 @@ def main(_poi_type):
 
         info = {
             'qyer': _qyer_sid,
+            'qyer_url_id': _url_id,
             'daodao': _daodao_sid
         }
         token = get_token(info)

@@ -130,17 +130,18 @@ def init_white_list():
 FROM white_list
 WHERE type = %s;''', (poi_type,))
 
-    _d = set()
     for line in cursor.fetchall():
+        _d = set()
         if not line:
             continue
         else:
-            _data = json.loads(line)
+            _data = json.loads(line[0])
             if 'qyer' in _data:
                 _d.add(('qyer', str(_data['qyer'])))
+                _d.add(('qyer_url_id', str(_data['qyer_url_id'])))
             if 'daodao' in _data:
                 _d.add(('daodao', str(_data['daodao'])))
-    white_list.append(_d)
+        white_list.append(_d)
     cursor.close()
     conn.close()
 
@@ -509,9 +510,29 @@ def _poi_merge(cid_or_geohash):
         # 更新白名单字典
         for _each in white_list:
             if (source, sid) in _each:
+                # 如果 source，sid 在白名单项目中，融合
                 for _s, _sid in _each:
+                    if _s == 'qyer_url_id':
+                        continue
                     merged_dict[uid].add((_s, _sid))
                     logger.info("[white list merge][uid: {}][source: {}][sid: {}]".format(uid, source, sid))
+
+            for _each_key in keys:
+                if _each_key in _each:
+                    # 如果融合 key 在白名单项目中，融合
+                    for _s, _sid in _each:
+                        if _s == 'qyer_url_id':
+                            continue
+                        merged_dict[uid].add((_s, _sid))
+                        logger.info("[white list merge][uid: {}][source: {}][sid: {}]".format(uid, source, sid))
+                if _each_key[0] == 'qyer' and ('qyer_url_id', _each_key[1]) in _each:
+                    # 如果融合 key 在白名单项目中，融合
+                    for _s, _sid in _each:
+                        if _s == 'qyer_url_id':
+                            continue
+                        merged_dict[uid].add((_s, _sid))
+                        logger.info("[white list merge][uid: {}][source: {}][sid: {}]".format(uid, source, sid))
+
         logger.info("[finish][city: {}][id: {}][takes: {}]".format(cid_or_geohash, uid, time.time() - start))
     return merged_dict
 
@@ -532,4 +553,4 @@ def poi_merge(cid_or_geohash, poi_type):
 
 
 if __name__ == '__main__':
-    poi_merge(10002, 'attr')
+    poi_merge(40002, 'attr')
