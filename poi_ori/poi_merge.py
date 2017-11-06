@@ -20,6 +20,7 @@ from poi_ori.already_merged_city import update_already_merge_city
 poi_type = None
 online_table_name = None
 data_source_table = None
+white_list = list()
 
 max_id = None
 lock = threading.Lock()
@@ -119,6 +120,31 @@ def get_max_uid():
 
 
 @func_time_logger
+def init_white_list():
+    global white_list
+    if white_list:
+        return
+    conn = poi_ori_pool.connection()
+    cursor = conn.cursor()
+    cursor.execute('''SELECT info
+FROM white_list;''')
+
+    _d = set()
+    for line in cursor.fetchall():
+        if not line:
+            continue
+        else:
+            _data = json.loads(line)
+            if 'qyer' in _data:
+                _d.add(('qyer', str(_data['qyer'])))
+            if 'daodao' in _data:
+                _d.add(('daodao', str(_data['daodao'])))
+    white_list.append(_d)
+    cursor.close()
+    conn.close()
+
+
+@func_time_logger
 def get_data(cid_or_geohash):
     global poi_type
     global online_table_name
@@ -212,6 +238,7 @@ WHERE city_id = '{0}';'''.format(cid_or_geohash, data_source_table)
 
 @func_time_logger
 def insert_poi_unid(merged_dict, cid_or_geohash):
+    global white_list
     global online_table_name
     global data_source_table
     start = time.time()
@@ -295,6 +322,38 @@ WHERE city_id='{}';'''.format(data_source_table, cid_or_geohash)
         total_data[(line[0], line[1])] = line[2:]
     _data_cursor.close()
     _data_conn.close()
+
+    # init white list total data
+    if white_list:
+        _s_sid = []
+        for _each in white_list:
+            _s_sid.extend(_each)
+
+        _ori_conn = poi_ori_pool.connection()
+        _ori_cursor = _ori_conn.cursor()
+        try:
+            _t = time.time()
+            query_sql = '''SELECT
+  source,
+  id,
+  name,
+  name_en,
+  map_info,
+  grade,
+  star,
+  ranking,
+  address,
+  url
+FROM {}
+WHERE (source, id) IN ({});'''.format(data_source_table, ','.join(map(lambda x: "('{}', '{}')".format(*x), _s_sid)))
+            _ori_cursor.execute(query_sql)
+            logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
+        except Exception as exc:
+            logger.exception("[sql exc][sql: {}]".format(sql), exc_info=exc)
+        for line in _ori_cursor.fetchall():
+            total_data[(line[0], line[1])] = line[2:]
+        _ori_cursor.close()
+        _ori_conn.close()
 
     data = []
     for uid, s_sid_set in merged_dict.items():
@@ -446,6 +505,12 @@ def _poi_merge(cid_or_geohash):
         similar_dict[uid].update(keys)
         # 更新融合内容字典
         merged_dict[uid].add((source, sid))
+        # 更新白名单字典
+        for _each in white_list:
+            if (source, sid) in _each:
+                for _s, _sid in _each:
+                    merged_dict[uid].add((_s, _sid))
+                    logger.info("[white list merge][uid: {}][source: {}][sid: {}]".format(uid, source, sid))
         logger.info("[finish][city: {}][id: {}][takes: {}]".format(cid_or_geohash, uid, time.time() - start))
     return merged_dict
 
@@ -455,6 +520,8 @@ def poi_merge(cid_or_geohash, poi_type):
     global data_source_table
     # 初始化融合需要的数据表名等
     init_global_name(poi_type)
+    # 初始化白名单信息
+    init_white_list()
     # 获取融合后的信息
     merged_dict = _poi_merge(cid_or_geohash)
 
