@@ -127,7 +127,8 @@ def init_white_list():
     conn = poi_ori_pool.connection()
     cursor = conn.cursor()
     cursor.execute('''SELECT info
-FROM white_list;''')
+FROM white_list
+WHERE type = %s;''', (poi_type,))
 
     _d = set()
     for line in cursor.fetchall():
