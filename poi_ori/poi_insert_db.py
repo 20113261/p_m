@@ -85,6 +85,8 @@ others_name_list = None
 json_name_list = None
 norm_name_list = None
 data_process_table_name = None
+white_list = []
+white_list_data = {}
 
 
 def init_global_name(_poi_type):
@@ -132,12 +134,68 @@ def init_global_name(_poi_type):
 
 
 @func_time_logger
+def init_white_list():
+    global white_list
+    if white_list:
+        return
+    conn = poi_ori_pool.connection()
+    cursor = conn.cursor()
+    cursor.execute('''SELECT info
+FROM white_list
+WHERE type = %s;''', (poi_type,))
+
+    _d = set()
+    for line in cursor.fetchall():
+        if not line:
+            continue
+        else:
+            _data = json.loads(line)
+            if 'qyer' in _data:
+                _d.add(('qyer', str(_data['qyer'])))
+            if 'daodao' in _data:
+                _d.add(('daodao', str(_data['daodao'])))
+    white_list.append(_d)
+    cursor.close()
+    conn.close()
+
+
+@func_time_logger
+def init_white_list_data():
+    global white_list
+    global white_list_data
+
+    _s_sid = []
+    for _each in white_list:
+        _s_sid.extend(_each)
+
+    if not _s_sid:
+        return
+
+    # get whole source data
+    _t = time.time()
+    conn = poi_ori_pool.connection()
+    cursor = conn.cursor(cursor=DictCursor)
+    sql = '''SELECT *
+FROM {}
+WHERE (source, id) IN ({});'''.format(poi_type, ','.join(map(lambda x: "('{}', '{}')".format(*x), _s_sid)))
+    cursor.execute(sql)
+    logger.debug('[query][sql: {}][takes: {}]'.format(sql, time.time() - _t))
+    for line in cursor.fetchall():
+        source = line['source']
+        source_id = line['id']
+        white_list_data[(source, source_id)] = line
+    cursor.close()
+    conn.close()
+
+
+@func_time_logger
 def get_poi_dict(city_id):
     """
     get all attraction info in the city
     :param city_id: city mioji id
     :return: city info dict
     """
+    global white_list_data
     _poi_dict = defaultdict(dict)
     _online_official_data = {}
     _online_nonofficial_data = {}
@@ -189,6 +247,9 @@ WHERE city_id='{}';'''.format(data_process_table_name, city_id)
         _poi_dict[(source, source_id)] = line
     cursor.close()
     conn.close()
+
+    for k, v in white_list_data.items():
+        _poi_dict[k] = v
     return _poi_dict, _online_official_data, _online_nonofficial_data
 
 
