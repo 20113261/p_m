@@ -907,4 +907,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(10009, 'shop')
+    poi_insert_data(30010, 'shop')
