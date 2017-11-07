@@ -80,14 +80,14 @@ LIMIT {}, 999999999999999;'''.format(offset)
         pre_offset += 1
         if not info:
             if 'attr' in bucket:
-                bucket_name = 'mioji-attr'
-                # continue
-            elif 'rest' in bucket:
-                # bucket_name = 'mioji-rest'
+                # bucket_name = 'mioji-attr'
                 continue
-            elif 'shop' in bucket:
-                bucket_name = 'mioji-shop'
+            elif 'rest' in bucket:
+                bucket_name = 'mioji-rest'
                 # continue
+            elif 'shop' in bucket:
+                # bucket_name = 'mioji-shop'
+                continue
             else:
                 continue
             yield source, file_name, file_md5, bucket_name, 'poi'
