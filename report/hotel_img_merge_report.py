@@ -6,6 +6,7 @@
 # @File    : hotel_img_merge_report.py
 # @Software: PyCharm
 import redis
+import pandas
 from collections import defaultdict
 
 r = redis.Redis(host='10.10.180.145', db=2)
@@ -34,15 +35,21 @@ def report(target):
         elif report_key == 'finished':
             img_finished['total'] += value
             img_finished[source] += value
+        elif report_key in ('0_10', '10_30', '30_max'):
+            img_percentage['total'] += value
+            img_percentage[report_key] += value
 
-        print(report_key, task_id, source, value)
-
-    print("hotel img num report")
+    data = []
     for k in sorted(img_all.keys()):
-        print(k, img_all[k], img_finished[k])
+        data.append((k, img_all[k], img_finished[k]))
 
-    print("hotel img final report")
+    table_source = pandas.DataFrame(columns=['source', 'total', 'finished'], data=data)
+    table_source['failed_percent'] = ((table_source['total'] - table_source['finished']) / table_source[
+        'total']) * 100
+
+    table_img_percent = pandas.DataFrame(columns=[''])
+    return table_source
 
 
-if __name__ == '__main__':
-    report(200000)
+table = report(200000)
+table
