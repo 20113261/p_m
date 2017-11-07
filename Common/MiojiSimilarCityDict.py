@@ -145,8 +145,7 @@ class MiojiSimilarCityDict(object):
   country.short_name_en AS country_short_name_en
 FROM city
   JOIN country ON city.country_id = country.mid
-  JOIN region ON region_id = region.id;
-''')
+  LEFT JOIN region ON region_id = region.id''')
         ]
         for __line in city_country_info:
             for key in self.get_keys(__line):
@@ -220,6 +219,10 @@ class SimilarCityDictTest(unittest.TestCase):
         REGION_KEY.append('prov_id')
         d = MiojiSimilarCityDict()
         self.assertSetEqual(d.get_mioji_city_id(('501', 'p501019', '斯普林菲尔德')), {'50815', })
+
+    def test_case_6(self):
+        d = MiojiSimilarCityDict()
+        self.assertSetEqual(d.get_mioji_city_id(('新西兰', '皇后镇')), {'30095', })
 
 
 if __name__ == '__main__':
