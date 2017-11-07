@@ -6,6 +6,7 @@
 # @File    : insert_poi_detect_task_info.py
 # @Software: PyCharm
 import pymysql
+import logging
 from warnings import filterwarnings
 from service_platform_conn_pool import service_platform_pool, base_data_pool
 from logger import get_logger
@@ -13,6 +14,7 @@ from logger import get_logger
 filterwarnings('ignore', category=pymysql.err.Warning)
 
 logger = get_logger("insert_poi_detect_task_info_from_img")
+logger.setLevel(logging.INFO)
 
 service_platform_conf = {
     'host': '10.10.228.253',
@@ -28,7 +30,7 @@ cid2grade = None
 
 def insert_task_data(data, _count):
     # 插入 pic detect task 数据
-    insert_sql = '''INSERT IGNORE INTO pic_detect_task_test (city_id, city_grade, poi_id, pic_name) VALUES (%s, %s, %s, %s);'''
+    insert_sql = '''INSERT IGNORE INTO pic_detect_task_new (city_id, city_grade, poi_id, pic_name) VALUES (%s, %s, %s, %s);'''
 
     max_retry_times = 3
     while max_retry_times:
@@ -40,7 +42,7 @@ def insert_task_data(data, _count):
             conn.commit()
             cursor.close()
             conn.close()
-            logger.debug(
+            logger.info(
                 "[insert data][now count: {}][insert data: {}][insert_ignore_count: {}]".format(_count, len(data),
                                                                                                 _insert_count))
             break
@@ -105,7 +107,7 @@ def get_info():
         if not c_grade:
             logger.debug("[unknown city grade][poi_id: {}][city_id: {}]".format(poi_id, cid))
             continue
-        data.append((c_grade, cid, poi_id, file_name))
+        data.append((cid, c_grade, poi_id, file_name))
 
         if len(data) == 2000:
             insert_task_data(data, _count)
