@@ -78,6 +78,15 @@ get_key.update_priority({
     }
 })
 
+online2source = {
+    'plantocounts': 'plantocount',
+    'beentocounts': 'beentocount',
+    'ranking': 'real_ranking',
+    'commentcounts': 'commentcount',
+    'site': 'website_url',
+    'opentime': 'open_desc',
+}
+
 poi_type = None
 merge_conf = None
 data_conf = None
@@ -372,11 +381,17 @@ def poi_insert_data(cid, _poi_type):
         # 初始化融合信息
         for each_name in (json_name_list + norm_name_list + others_name_list):
             data_dict[each_name] = {}
-            if o_official_data is not None:
+
+            def get_data(src_dict, is_official=False):
+                if each_name in online2source:
+                    source_name = online2source[each_name]
+                else:
+                    source_name = each_name
+
                 if each_name in json_name_list:
-                    if each_name in o_official_data:
+                    if source_name in src_dict:
                         try:
-                            _res = json.loads(o_official_data[each_name])
+                            _res = json.loads(src_dict[source_name])
                             if isinstance(_res, dict):
                                 data_dict[each_name] = {k: v for k, v in _res.items() if k in available_source}
                             else:
@@ -384,21 +399,13 @@ def poi_insert_data(cid, _poi_type):
                         except Exception:
                             pass
                 else:
-                    data_dict[each_name]['mioji_official'] = o_official_data.get(each_name, {})
+                    data_dict[each_name]['mioji_official' if is_official else 'mioji_nonofficial'] = src_dict.get(
+                        source_name, {})
 
+            if o_official_data is not None:
+                get_data(o_official_data, is_official=True)
             if o_nonofficial_data is not None:
-                if each_name in json_name_list:
-                    if each_name in o_nonofficial_data:
-                        try:
-                            _res = json.loads(o_nonofficial_data[each_name])
-                            if isinstance(_res, dict):
-                                data_dict[each_name] = _res
-                            else:
-                                pass
-                        except Exception:
-                            pass
-                else:
-                    data_dict[each_name]['mioji_nonofficial'] = o_nonofficial_data.get(each_name, {})
+                get_data(o_nonofficial_data, is_official=False)
 
         # 遍历所有需要融合的 source 以及 id，并生成 dict 类融合内容
         for s_sid in union_info.split('|_||_|'):
@@ -907,4 +914,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(30010, 'shop')
+    poi_insert_data(30010, 'attr')
