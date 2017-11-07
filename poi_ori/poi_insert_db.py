@@ -434,17 +434,17 @@ def poi_insert_data(cid, _poi_type):
             other_source = True
 
             # 加 key
-            for each_name in (json_name_list + norm_name_list):
+            for each_name in (json_name_list + norm_name_list + others_name_list):
                 if is_legal(poi_info[each_name]):
                     if isinstance(poi_info[each_name], str):
                         data_dict[each_name][source] = tradition2simple(poi_info[each_name]).decode()
                     else:
                         data_dict[each_name][source] = poi_info[each_name]
 
-            # 补空白的内容
-            for each_name in (json_name_list + norm_name_list):
-                if each_name not in data_dict:
-                    data_dict[each_name] = {}
+        # 补空白的内容
+        for each_name in (json_name_list + norm_name_list + others_name_list):
+            if each_name not in data_dict:
+                data_dict[each_name] = {}
 
         # 不能融合的内容包含两种
         if not o_official_data and not o_nonofficial_data and not other_source:
