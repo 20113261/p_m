@@ -132,9 +132,9 @@ class MiojiSimilarCityDict(object):
   city.name_en,
   city.alias,
   city.tri_code,
-  region.name           AS region,
-  region.name           AS region_cn,
-  region.name_en        AS region_en,
+  province.name           AS region,
+  province.name           AS region_cn,
+  province.name_en        AS region_en,
   city.prov_id,
   country.mid           AS country_id,
   country.country_code,
@@ -145,7 +145,7 @@ class MiojiSimilarCityDict(object):
   country.short_name_en AS country_short_name_en
 FROM city
   JOIN country ON city.country_id = country.mid
-  LEFT JOIN region ON region_id = region.id''')
+  LEFT JOIN province ON prov_id = province.id;''')
         ]
         for __line in city_country_info:
             for key in self.get_keys(__line):
