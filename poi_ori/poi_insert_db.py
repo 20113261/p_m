@@ -141,6 +141,9 @@ def init_global_name(_poi_type):
     else:
         raise TypeError("Unknown Type: {}".format(_poi_type))
 
+    init_white_list()
+    init_white_list_data()
+
 
 @func_time_logger
 def init_white_list():
@@ -148,7 +151,7 @@ def init_white_list():
     if white_list:
         return
     conn = poi_ori_pool.connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor=DictCursor)
     cursor.execute('''SELECT info
 FROM white_list
 WHERE type = %s;''', (poi_type,))
@@ -158,7 +161,7 @@ WHERE type = %s;''', (poi_type,))
         if not line:
             continue
         else:
-            _data = json.loads(line)
+            _data = json.loads(line['info'])
             if 'qyer' in _data:
                 _d.add(('qyer', str(_data['qyer'])))
             if 'daodao' in _data:
@@ -914,4 +917,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(30010, 'attr')
+    poi_insert_data(40002, 'attr')
