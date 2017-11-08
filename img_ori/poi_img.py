@@ -10,17 +10,22 @@ import gevent.monkey
 gevent.monkey.patch_all()
 import gevent.pool
 import logging
+import redis
+import json
 from toolbox.Common import is_legal
 from ast import literal_eval
 from service_platform_conn_pool import base_data_final_pool, poi_ori_pool, poi_face_detect_pool
 from logger import get_logger, func_time_logger
 from data_source import MysqlSource
 from StandardException import PoiTypeError
+from collections import defaultdict
 
 pool = gevent.pool.Pool(size=600)
 logger = get_logger("poi_img_merge")
 logger.setLevel(logging.DEBUG)
 offset = 0
+
+r = redis.Redis(host='10.10.180.145', db=1)
 
 data = []
 
@@ -73,7 +78,9 @@ def get_img(s_sid_set, poi_type, old_img='', old_first_img='', is_official=False
   bucket_name,
   pic_size,
   pic_md5,
-  `use`
+  `use`,
+  info,
+  url
 FROM poi_images
 WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')".format(x[0], x[1]), s_sid_set)))
     _res = cursor.execute(query_sql)
@@ -82,10 +89,10 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
 
     max_size = -1
     max_size_img = ''
-    file2md5 = dict()
-    md5_set = set()
+    file2phash = dict()
     pic_total = set()
-    for file_name, bucket_name, pic_size, pic_md5, use in cursor.fetchall():
+    p_hash_dict = defaultdict(list)
+    for file_name, bucket_name, pic_size, pic_md5, use, info, url in cursor.fetchall():
         if poi_type == 'shop' and bucket_name not in ('attr_bucket', 'shop_bucket'):
             # shopping img upload to mioji-attr or mioji-shop
             continue
@@ -97,6 +104,22 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
         # 生成 pic total，用于判定被过滤的图片是否为人工新添加的图片
         pic_total.add(file_name)
 
+        # 裂图，必须过滤
+        if r.get('error_img_{}'.format(file_name)) == '1':
+            continue
+
+        # pHash filter
+        if url in ('', 'NULL', None):
+            # 产品标注图片，不许过滤，直接使用
+            file2phash[file_name] = 'USE'
+            p_hash_dict["USE"].append(file_name)
+            continue
+        elif not info:
+            # 抓取图片，没有 pHash ，直接过滤
+            continue
+        else:
+            p_hash = json.loads(info)['p_hash']
+
         # img can be used
         # pic size 为空一般是人工标的图片
         if not is_legal(pic_size):
@@ -106,8 +129,8 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
                 continue
             else:
                 # 老图，人工标的，不能过滤
-                md5_set.add(pic_md5)
-                file2md5[file_name] = pic_md5
+                file2phash[file_name] = 'USE'
+                p_hash_dict["USE"].append(file_name)
                 continue
 
         # get max size
@@ -137,8 +160,7 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
             if scale > 2.5:
                 continue
 
-            md5_set.add(pic_md5)
-            file2md5[file_name] = pic_md5
+            p_hash_dict[p_hash].append((file_name, size))
 
     cursor.close()
     conn.close()
@@ -165,42 +187,56 @@ WHERE is_available=0 AND poi_id IN ({});'''.format(
     else:
         face_detected = set()
 
+    # 人工添加图片
+    human_pic = p_hash_dict["USE"]
+
+    # 机器图片，同一 pHash 中选取最大的一张图片
+    final_pic_dict = {}
+    for k, v in p_hash_dict.items():
+        pic_res = sorted(v, key=lambda x: x[1], reverse=True)
+        if pic_res:
+            final_pic_dict[pic_res[0][0]] = k
+
     old_img_list = old_img.split('|')
-    old_md5 = set()
 
     new_img_list = []
     # 按照旧的图片排列顺序增加图片，并去重
     for _old_file_name in old_img_list:
-        # 原始数据为抓取数据
-        if _old_file_name in file2md5:
-            if file2md5[_old_file_name] not in old_md5:
-                # 人脸识别过滤
-                if _old_file_name not in face_detected:
-                    old_md5.add(file2md5[_old_file_name])
-                    new_img_list.append(_old_file_name)
-
-        # 原始数据为人工添加数据
-        elif _old_file_name not in pic_total:
+        # 人工添加图片入栈，但无 md5 进行过滤，直接放过 md5 过滤规则
+        if (_old_file_name not in pic_total) or (_old_file_name in human_pic):
             # 如果数据合法
             if is_legal(_old_file_name):
-                # 人工添加图片入栈，但无 md5 进行过滤，直接放过 md5 过滤规则
-                new_img_list.append(_old_file_name)
+                if _old_file_name not in face_detected:
+                    if _old_file_name not in new_img_list:
+                        # 人工添加图片入栈，但无 md5 进行过滤，直接放过任何过滤规则
+                        new_img_list.append(_old_file_name)
+
+        elif _old_file_name in final_pic_dict:
+            if is_legal(_old_file_name):
+                # 人脸识别过滤
+                if _old_file_name not in face_detected:
+                    if _old_file_name not in new_img_list:
+                        new_img_list.append(_old_file_name)
 
     # 当新增图片中有原先不存在的图片，按顺序增加图片
-    for k, v in file2md5.items():
-        if v not in old_md5:
+    for k, v in final_pic_dict.items():
+        if is_legal(v):
             # 人脸识别过滤
             if k not in face_detected:
-                new_img_list.append(k)
+                if v not in new_img_list:
+                    new_img_list.append(k)
 
     if old_first_img:
-        # make new_first_img
-        new_first_img = old_first_img
-        # 从新图片列表中清除 first_img
         if old_first_img in new_img_list:
+            # 当首图没有被下掉的时候，使用原先首图
+            new_first_img = old_first_img
+            # 从新图片列表中清除 first_img
             new_img_list.remove(old_first_img)
-        # 在列表头部增加 first_img
-        new_img_list.insert(0, old_first_img)
+            # 在列表头部增加 first_img
+            new_img_list.insert(0, old_first_img)
+        else:
+            # 否则使用新的首图
+            new_first_img = new_img_list[0]
     else:
         if new_img_list:
             new_first_img = new_img_list[0]
@@ -281,7 +317,6 @@ def _img_ori(_poi_type):
   first_image,
   official
 FROM {}
-WHERE id in ('v224672','v226636','v230118','v736196','v229247','v736147','v230048','v223967')
 ORDER BY id
 LIMIT {}, 99999999999999;'''.format(table_name, offset)
 
