@@ -22,7 +22,7 @@ r = redis.Redis(host='10.10.180.145', db=1)
 
 if __name__ == '__main__':
     query_sql = '''SELECT file_name
-FROM error_f_md5_file;'''
+FROM error_f_md5_file_poi;'''
 
     _count = 0
     for line in MysqlSource(poi_ori_config, table_or_query=query_sql,
