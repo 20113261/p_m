@@ -38,18 +38,38 @@ def report(target):
         elif report_key in ('0_10', '10_30', '30_max'):
             img_percentage['total'] += value
             img_percentage[report_key] += value
+        elif report_key == 'all_filter':
+            img_percentage['all_failed'] += value
 
+        print(report_key, task_id, source, value)
+
+    print("hotel img num report")
     data = []
     for k in sorted(img_all.keys()):
         data.append((k, img_all[k], img_finished[k]))
 
-    table_source = pandas.DataFrame(columns=['source', 'total', 'finished'], data=data)
-    table_source['failed_percent'] = ((table_source['total'] - table_source['finished']) / table_source[
+    _table_source = pandas.DataFrame(columns=['source', 'total', 'finished'], data=data)
+    _table_source['failed_percent'] = ((_table_source['total'] - _table_source['finished']) / _table_source[
         'total']) * 100
 
-    table_img_percent = pandas.DataFrame(columns=[''])
-    return table_source
+    _table_img_percentage = pandas.DataFrame(
+        columns=['total', '0', 'all_failed (保留最好一张)', '1-10', '11-30', '>30'],
+        data=[
+
+            [img_percentage['total'], 0, img_percentage['all_failed'], img_percentage['0_10'], img_percentage['10_30'],
+             img_percentage['30_max']]]
+    )
+
+    _table_img_percentage['all_failed (保留最好一张)'] = (_table_img_percentage['all_failed (保留最好一张)'] / _table_img_percentage['total']) * 100
+    _table_img_percentage['1-10'] = (_table_img_percentage['1-10'] / _table_img_percentage['total']) * 100
+    _table_img_percentage['11-30'] = (_table_img_percentage['11-30'] / _table_img_percentage['total']) * 100
+    _table_img_percentage['>30'] = (_table_img_percentage['>30'] / _table_img_percentage['total']) * 100
+
+    return _table_source, _table_img_percentage
 
 
-table = report(200000)
-table
+table_source, table_img_percentage = report(200000)
+
+print(table_source)
+print()
+print(table_img_percentage)

@@ -58,3 +58,16 @@ WHERE id IN ('v233619', 'v510099', 'v285442', 'v249663');
 SELECT *
 FROM chat_attraction
 WHERE id IN ('v233619', 'v510099', 'v285442', 'v249663');
+
+UPDATE chat_attraction
+SET status_online = 'Close', status_test = 'Close'
+WHERE id = 'v243786';
+
+UPDATE chat_attraction
+SET name = '台北故宫博物院'
+WHERE id = 'v246748';
+
+UPDATE chat_attraction
+SET name = '英国国家美术馆',
+  alias  = ''
+WHERE id = 'v202459'

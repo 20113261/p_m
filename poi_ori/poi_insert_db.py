@@ -917,4 +917,4 @@ def poi_insert_data(cid, _poi_type):
 
 
 if __name__ == '__main__':
-    poi_insert_data(40002, 'attr')
+    poi_insert_data(10494, 'attr')

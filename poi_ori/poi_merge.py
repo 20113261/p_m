@@ -602,4 +602,4 @@ def poi_merge(cid_or_geohash, poi_type):
 
 
 if __name__ == '__main__':
-    poi_merge(10009, 'attr')
+    poi_merge(10494, 'attr')
