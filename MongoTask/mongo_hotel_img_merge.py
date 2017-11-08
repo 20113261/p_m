@@ -67,7 +67,7 @@ def _insert_mongo_task():
             'worker': 'proj.merge_tasks.hotel_img_merge',
             'queue': 'merge_task',
             'routing_key': 'merge_task',
-            'task_name': "merge_hotel_image_20171107",
+            'task_name': "merge_hotel_image_20171108",
             'args': {
                 'uid': uid,
                 'min_pixels': '200000',
