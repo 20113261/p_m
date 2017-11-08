@@ -40,5 +40,19 @@ WHERE id IN (SELECT old_id
                                                    GROUP BY id
                                                    HAVING count(*) > 1)
                 HAVING new_id != old_id
-                ORDER BY new_id) t)
+                ORDER BY new_id) t);
 
+DELETE FROM chat_attraction
+WHERE id IN (SELECT old_id
+             FROM
+               (SELECT
+                  id        AS new_id,
+                  source_id AS old_id
+                FROM attr_unid
+                WHERE source = 'online' AND id IN (SELECT id
+                                                   FROM attr_unid
+                                                   WHERE source = 'online'
+                                                   GROUP BY id
+                                                   HAVING count(*) > 1)
+                HAVING new_id != old_id
+                ORDER BY new_id) t);

@@ -35,7 +35,7 @@ WHERE id = 'v224519';
 # id 会变
 # UPDATE chat_attraction
 # SET name = 'Museum of King Jan III''s Palace at Wilanow'
-# WHERE id = 'v655926';
+# WHERE id = 'v656289';
 
 UPDATE chat_attraction
 SET status_test = 'Open', status_online = 'Open'
@@ -43,9 +43,18 @@ WHERE id = 'v204110';
 
 UPDATE chat_attraction
 SET fix_ranking = 200
-WHERE id = ('v501802', 'v513571');
+WHERE id in ('v501802', 'v513571');
 
 # 药剂师之家
 UPDATE chat_attraction
 SET status_test = 'Close', status_online = 'Close'
 WHERE id = 'v249111';
+
+# 融合后数据修改
+UPDATE chat_attraction
+SET status_test = 'Close', status_online = 'Close'
+WHERE id IN ('v233619', 'v510099', 'v285442', 'v249663');
+
+SELECT *
+FROM chat_attraction
+WHERE id IN ('v233619', 'v510099', 'v285442', 'v249663');

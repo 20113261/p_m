@@ -51,7 +51,7 @@ ORDER BY sid;'''
     img_name_set = set()
     _count = 0
 
-    result_f = open('/tmp/img_res', mode='w')
+    result_f = open('/tmp/img_res_new', mode='w')
 
     for line in MysqlSource(poi_ori_config, table_or_query=query_sql,
                             size=10000, is_table=False,
@@ -63,19 +63,22 @@ ORDER BY sid;'''
         if 'attr' not in line['bucket_name'] and not line['sid'].startswith('v'):
             continue
 
+        # 先获取 poi id
         poi_id = line['sid']
-        file_name = line['file_name']
-        img_name_set.add(file_name)
 
+        # id 变更后，查找图片，重新生成
         if poi_id != old_poi_id:
             if old_poi_id is not None:
-                has_detected_pic_file = get_poi_pic_detect(poi_id)
+                has_detected_pic_file = get_poi_pic_detect(old_poi_id)
                 lost_img = (img_name_set - has_detected_pic_file)
                 for i in lost_img:
-                    logger.debug("[img not detected][poi_id: {}][img: {}]".format(poi_id, i))
-                    result_f.write('{}###{}\n'.format(poi_id, i))
+                    logger.debug("[img not detected][poi_id: {}][img: {}]".format(old_poi_id, i))
+                    result_f.write('{}###{}\n'.format(old_poi_id, i))
             old_poi_id = poi_id
             img_name_set = set()
+
+        file_name = line['file_name']
+        img_name_set.add(file_name)
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ from logger import get_logger
 filterwarnings('ignore', category=pymysql.err.Warning)
 
 logger = get_logger("insert_poi_detect_task_info_from_img")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 service_platform_conf = {
     'host': '10.10.228.253',
@@ -30,7 +30,7 @@ cid2grade = None
 
 def insert_task_data(data, _count):
     # 插入 pic detect task 数据
-    insert_sql = '''INSERT IGNORE INTO pic_detect_task_new (city_id, city_grade, poi_id, pic_name) VALUES (%s, %s, %s, %s);'''
+    insert_sql = '''INSERT IGNORE INTO pic_detect_task_test (city_id, city_grade, poi_id, pic_name) VALUES (%s, %s, %s, %s);'''
 
     max_retry_times = 3
     while max_retry_times:
@@ -89,7 +89,7 @@ FROM chat_attraction;'''
 def get_info():
     _count = 0
     data = []
-    f = open('/tmp/img_res')
+    f = open('/tmp/img_res_new')
     poi2cid = prepare_poi_info()
     cid2grade = prepare_city_info()
     _count += 1
