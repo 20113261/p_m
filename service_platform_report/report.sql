@@ -1263,3 +1263,9 @@ CREATE OR REPLACE VIEW base_data_report_by_hour_shop AS
   SELECT *
   FROM base_data_report_by_hour
   WHERE type = 'shop';
+
+
+CREATE OR REPLACE VIEW service_platform_crawl_error_report_api AS
+  SELECT *
+  FROM service_platform_crawl_error_report
+  WHERE type LIKE '%api%'

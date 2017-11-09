@@ -144,7 +144,7 @@ def change_table():
 
 def insert_data(data, _count):
     replace_sql = '''REPLACE INTO workload_hotel_validation_new (workload_key, content, source, extra, status) 
-    VALUES ("%s", "%s", "%s", 0, 1);'''
+    VALUES (%s, %s, %s, 0, 1);'''
 
     max_retry_times = 3
     while max_retry_times:
