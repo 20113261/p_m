@@ -11,6 +11,7 @@ from urllib.parse import urlparse, urljoin
 from data_source import MysqlSource
 from logger import get_logger
 from service_platform_conn_pool import verify_info_pool
+from Common.Utils import retry
 
 filterwarnings('ignore', category=pymysql.err.Warning)
 logger = get_logger("update_hotel_validation")
@@ -99,8 +100,50 @@ def hilton(each_data):
     return workload_key, content, workload_source
 
 
+@retry(times=4)
+def create_table():
+    create_sql = '''CREATE TABLE IF NOT EXISTS `workload_hotel_validation_new` (
+  `id`           INT(11)    NOT NULL AUTO_INCREMENT,
+  `workload_key` VARCHAR(256)        DEFAULT NULL,
+  `content`      VARCHAR(256)        DEFAULT NULL,
+  `source`       VARCHAR(64)         DEFAULT NULL,
+  `extra`        TINYINT(1) NOT NULL,
+  `status`       TINYINT(4) NOT NULL DEFAULT '1'
+  COMMENT '0:close,1:open',
+  `updatetime`   TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `workload_key` (`workload_key`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;'''
+    truncate_sql = '''TRUNCATE workload_hotel_validation_new;'''
+    conn = verify_info_pool.connection()
+    cursor = conn.cursor()
+    cursor.execute(create_sql)
+    cursor.execute(truncate_sql)
+    cursor.close()
+    conn.close()
+
+
+@retry(times=4)
+def change_table():
+    _change_sql_old = '''ALTER TABLE workload_hotel_validation
+  RENAME workload_hotel_validation_old;'''
+    _change_sql_new = '''ALTER TABLE workload_hotel_validation_new
+  RENAME workload_hotel_validation;'''
+    _delete_sql = '''DROP TABLE workload_hotel_validation_old;'''
+
+    conn = verify_info_pool.connection()
+    cursor = conn.cursor()
+    cursor.execute(_change_sql_old)
+    cursor.execute(_change_sql_new)
+    cursor.execute(_delete_sql)
+    cursor.close()
+    conn.close()
+
+
 def insert_data(data, _count):
-    replace_sql = '''REPLACE INTO workload_hotel_validation (workload_key, content, source, extra, status) 
+    replace_sql = '''REPLACE INTO workload_hotel_validation_new (workload_key, content, source, extra, status) 
     VALUES ("%s", "%s", "%s", 0, 1);'''
 
     max_retry_times = 3
@@ -139,7 +182,6 @@ def update_per_hotel_validation(env='test'):
       uid,
       mid,
       name,
-      
       name_en,
       hotel_url
     FROM hotel_unid LIMIT {},999999999999;'''.format(offset)
@@ -231,9 +273,11 @@ def update_per_env_hotel_validation(env):
 
 
 def update_hotel_validation():
+    create_table()
     global offset
     offset = 0
     update_per_env_hotel_validation('test')
+    change_table()
     # offset = 0
     # update_per_env_hotel_validation('online')
 
