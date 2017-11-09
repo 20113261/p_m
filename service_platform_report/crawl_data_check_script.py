@@ -14,7 +14,8 @@ import json
 from math import radians, cos, sin, asin, sqrt
 from collections import defaultdict
 from data_source import MysqlSource
-from service_platform_conn_pool import service_platform_pool
+from service_platform_conn_pool import service_platform_pool, base_data_final_pool, base_data_pool, hotel_api_pool, \
+    hotel_api_config
 from logger import get_logger
 
 logger = get_logger("crawl_data_check")
@@ -71,7 +72,7 @@ def getDistByMap(map_info_1, map_info_2):
 
 
 def get_city_map():
-    conn = pymysql.connect(host=dev_ip, user=dev_user, passwd=dev_passwd, db=dev_db, charset='utf8')
+    conn = base_data_pool.connection()
     cursor = conn.cursor()
 
     sql = "select id,map_info from city;"
@@ -247,70 +248,106 @@ def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
 
 
 def detectOriData():
-    local_conn = pymysql.connect(host=ori_ip, user=ori_user, charset='utf8', passwd=ori_password, db=ori_db_name)
     city_map_info_dict = get_city_map()
     dt = datetime.datetime.now()
 
-    local_cursor = local_conn.cursor()
-    local_cursor.execute('''SELECT TABLE_NAME
+    # 从 base data final 中获取表信息
+    _conn = base_data_final_pool.connection()
+    _cursor = _conn.cursor()
+    _cursor.execute('''SELECT TABLE_NAME
 FROM information_schema.TABLES
 WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
-    table_list = list(map(lambda x: x[0], local_cursor.fetchall()))
-    local_cursor.close()
+    # table 中携带数据库链接信息
+    table_list = list(map(lambda x: (x[0], {
+        'host': ori_ip,
+        'user': ori_user,
+        'passwd': ori_password,
+        'db': ori_db_name
+    }, 'ota'), _cursor.fetchall()))
+    _cursor.close()
+    _conn.close()
+
+    _conn = hotel_api_pool.connection()
+    _cursor = _conn.cursor()
+    _cursor.execute('''SELECT TABLE_NAME
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = 'hotel_api';''')
+    table_list.extend(list(map(lambda x: (x[0], hotel_api_config, 'api'), _cursor.fetchall())))
+    _cursor.close()
+    _conn.close()
 
     report_data = []
-    for cand_table in table_list:
-        cand_list = cand_table.split('_')
-        # 使用 BaseDataFinal 中的数据进行数据校验，跳过不为 3 的表
-        # 其中的数据表名称类似 attr_final_20170929a
-        if len(cand_list) != 3:
-            continue
-
-        task_type, _, task_tag = cand_list
-
-        # 跳过非这四种抓取任务类型
-        if task_type not in ('attr', 'rest', 'hotel', 'total'):
-            continue
-
-        logger.debug(('[Begin Detect][table: {}]'.format(cand_table)))
+    for cand_table, conn_config, table_type in table_list:
         error_count = {}
         source_count = defaultdict(int)
         error_dict = defaultdict(int)
 
-        if task_type == 'hotel':
-            # 酒店类型
-            sql = '''SELECT
-      hotel_name,
-      hotel_name_en,
-      source,
-      source_id,
-      city_id,
-      map_info,
-      grade
-    FROM {};'''.format(cand_table)
+        if table_type == 'ota':
+            # 当判定为 ota 类型时字段查找使用以下方式进行
+            cand_list = cand_table.split('_')
+            # 使用 BaseDataFinal 中的数据进行数据校验，跳过不为 3 的表
+            # 其中的数据表名称类似 attr_final_20170929a
+            if len(cand_list) != 3:
+                continue
 
-        elif task_type in ('attr', 'shop', 'rest', 'total'):
-            # 景点、购物，餐厅当前 daodao 使用，以及全部 POI，qyer 使用
-            sql = '''SELECT
-      name,
-      name_en,
-      source,
-      id,
-      city_id,
-      map_info,
-      grade
-    FROM {};'''.format(cand_table)
+            task_type, _, task_tag = cand_list
+
+            # 跳过非这四种抓取任务类型
+            if task_type not in ('attr', 'rest', 'hotel', 'total'):
+                continue
+
+            logger.debug(('[Begin Detect][table: {}]'.format(cand_table)))
+
+            if task_type == 'hotel':
+                # 酒店类型
+                sql = '''SELECT
+          hotel_name,
+          hotel_name_en,
+          source,
+          source_id,
+          city_id,
+          map_info,
+          grade
+        FROM {};'''.format(cand_table)
+
+            elif task_type in ('attr', 'shop', 'rest', 'total'):
+                # 景点、购物，餐厅当前 daodao 使用，以及全部 POI，qyer 使用
+                sql = '''SELECT
+          name,
+          name_en,
+          source,
+          id,
+          city_id,
+          map_info,
+          grade
+        FROM {};'''.format(cand_table)
+            else:
+                # 未知类型，当前跳过
+                continue
+        elif table_type == 'api':
+            _test_list = cand_table.split('_')
+            if _test_list[0] == 'hotelinfo' and len(_test_list) == 2:
+                sql = '''SELECT
+                          hotel_name,
+                          hotel_name_en,
+                          source,
+                          source_id,
+                          city_id,
+                          map_info,
+                          grade
+                        FROM {};'''.format(cand_table)
+
+                task_type = 'hotel_api'
+                task_tag = datetime.datetime.now().strftime("%Y-%m-%d")
+            else:
+                logger.info("[don't known this table][table_name: {}]".format(cand_table))
+                continue
         else:
-            # 未知类型，当前跳过
+            logger.info("[unknown table type][type: {}]".format(table_type))
             continue
 
         # 获取数据，使用迭代的方式获得
-        datas = MysqlSource(db_config={
-            'host': ori_ip,
-            'user': ori_user,
-            'passwd': ori_password,
-            'db': ori_db_name
-        }, table_or_query=sql, size=10000, is_table=False)
+        datas = MysqlSource(db_config=conn_config, table_or_query=sql, size=10000, is_table=False)
 
         # 经纬度记录集合，用于判定重复内容
         map_info_set = defaultdict(set)

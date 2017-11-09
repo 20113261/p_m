@@ -134,7 +134,6 @@ db_config = dict(
 
 spider_data_base_data_pool = init_pool(**db_config)
 
-
 db_config = dict(
     user='mioji_admin',
     password='mioji1109',
@@ -144,7 +143,6 @@ db_config = dict(
 
 poi_merge_base_data_test_pool = init_pool(**db_config)
 
-
 db_config = dict(
     user='mioji_admin',
     password='mioji1109',
@@ -153,3 +151,12 @@ db_config = dict(
 )
 
 poi_merge_data_process_pool = init_pool(**db_config)
+
+hotel_api_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.228.253',
+    database='hotel_api'
+)
+
+hotel_api_pool = init_pool(**hotel_api_config)
