@@ -69,11 +69,23 @@ def elong(each_data):
     return workload_key, content, workload_source
 
 
-def expedia(each_data):
+def expedia(each_data, source='expedia'):
     workload_source = each_data["source"] + "Hotel"
     workload_key = 'NULL|{}|{}'.format(each_data["sid"], workload_source)
     # http://www.expedia.com.hk/cn/Sapporo-Hotels-La'gent-Stay-Sapporo-Oodori-Hokkaido.h15110395.Hotel-Information?&
-    content = "https://www.expedia.com.hk/cn" + urlparse(each_data['hotel_url']).path + '?&'
+    if source == 'expedia':
+        host = "https://www.expedia.com.hk/cn"
+    elif source == 'ebookers':
+        host = "https://www.ebookers.com"
+    elif source == 'orbitz':
+        host = "https://www.orbitz.com"
+    elif source == 'travelocity':
+        host = "https://www.travelocity.com"
+    elif source == 'cheaptickets':
+        host = "https://www.cheaptickets.com"
+    else:
+        host = "https://www.expedia.com.hk/cn"
+    content = host + urlparse(each_data['hotel_url']).path + '?&'
     return workload_key, content, workload_source
 
 
@@ -195,7 +207,7 @@ def update_per_hotel_validation(env='test'):
                 data.append(each_data)
             elif source in ("expedia", "cheaptickets", "orbitz", "ebookers", "travelocity"):
                 # ep 系，使用 url 类型的
-                each_data = expedia(line)
+                each_data = expedia(line, source=source)
                 data.append(each_data)
             elif source in ("hrs", "ctrip"):
                 # 单纯 sid 的
