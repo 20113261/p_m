@@ -9,7 +9,7 @@ import pymysql
 from warnings import filterwarnings
 from urllib.parse import urlparse, urljoin
 from data_source import MysqlSource
-from logger import get_logger
+from logger import get_logger, func_time_logger
 from service_platform_conn_pool import verify_info_pool
 from Common.Utils import retry
 
@@ -155,6 +155,7 @@ def change_table():
     conn.close()
 
 
+@func_time_logger
 def insert_data(data, _count):
     replace_sql = '''REPLACE INTO workload_hotel_validation_new (workload_key, content, source, extra, status) 
     VALUES (%s, %s, %s, 0, 1);'''
