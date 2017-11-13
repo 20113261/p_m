@@ -124,7 +124,8 @@ def create_table():
   COMMENT '0:close,1:open',
   `updatetime`   TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `workload_key` (`workload_key`)
+  UNIQUE KEY `_ix_workload_key` (`workload_key`),
+  KEY `_ix_source` (`source`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;'''
