@@ -5,6 +5,7 @@
 # @Site    : 
 # @File    : load_final_data.py
 # @Software: PyCharm
+import os
 import pymysql
 import time
 import pymysql.err
@@ -72,7 +73,9 @@ def create_table():
     final_conn = base_data_final_pool.connection()
     final_cursor = final_conn.cursor()
     for k, v in final_table.items():
-        final_sql = open('/search/hourong/PycharmProjects/PoiCommonScript/serviceplatform_data/sql/{}'.format(v)).read()
+        real_path = os.path.split(os.path.realpath(__file__))[0]
+        sql_path = os.path.join(real_path, 'sql', v)
+        final_sql = open(sql_path).read()
         table_name = "{}_final".format(k)
         final_cursor.execute(final_sql % (table_name,))
         logger.debug('[create table][name: {}]'.format(table_name))

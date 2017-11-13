@@ -5,6 +5,7 @@
 # @Site    : 
 # @File    : insert_final_data.py
 # @Software: PyCharm
+import os
 import pymysql
 import time
 import pymysql.err
@@ -44,8 +45,9 @@ def create_table(view_type, view_tag):
     sql_name = final_table.get(view_type, None)
     if sql_name is None:
         raise TypeError("[Unknown View Type: {}]".format(view_type))
-    final_sql = open(
-        '/search/hourong/PycharmProjects/PoiCommonScript/serviceplatform_data/sql/{}'.format(sql_name)).read()
+    real_path = os.path.split(os.path.realpath(__file__))[0]
+    sql_path = os.path.join(real_path, 'sql', sql_name)
+    final_sql = open(sql_path).read()
     table_name = "{}_final_{}".format(view_type, view_tag)
     final_cursor.execute(final_sql % (table_name,))
     logger.debug('[create table][name: {}]'.format(table_name))

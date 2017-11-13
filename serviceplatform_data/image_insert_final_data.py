@@ -5,6 +5,7 @@
 # @Site    : 
 # @File    : image_insert_final_data.py
 # @Software: PyCharm
+import os
 import pymysql
 import logging
 import time
@@ -42,8 +43,10 @@ def create_table(image_type):
     sql_name = final_table.get(image_type, None)
     if sql_name is None:
         raise TypeError("[Unknown View Type: {}]".format(image_type))
-    final_sql = open(
-        '/search/hourong/PycharmProjects/PoiCommonScript/serviceplatform_data/sql/{}'.format(sql_name)).read()
+
+    real_path = os.path.split(os.path.realpath(__file__))[0]
+    sql_path = os.path.join(real_path, 'sql', sql_name)
+    final_sql = open(sql_path).read()
     table_name = "{}_images".format(image_type_dict[image_type])
     final_cursor.execute(final_sql % (table_name,))
     logger.debug('[create table][name: {}]'.format(table_name))
