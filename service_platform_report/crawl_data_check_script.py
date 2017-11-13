@@ -17,6 +17,7 @@ from data_source import MysqlSource
 from service_platform_conn_pool import service_platform_pool, base_data_final_pool, base_data_pool, hotel_api_pool, \
     hotel_api_config
 from logger import get_logger
+from itertools import groupby
 
 logger = get_logger("crawl_data_check")
 
@@ -267,12 +268,24 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
     _cursor.close()
     _conn.close()
 
+    table_list = []
+
     _conn = hotel_api_pool.connection()
     _cursor = _conn.cursor()
     _cursor.execute('''SELECT TABLE_NAME
 FROM information_schema.TABLES
 WHERE TABLE_SCHEMA = 'hotel_api';''')
-    table_list.extend(list(map(lambda x: (x[0], hotel_api_config, 'api'), _cursor.fetchall())))
+    for i in groupby(
+            list(map(lambda x: x[0], _cursor.fetchall())),
+            lambda x: '_'.join(x.split('_')[:2])
+    ):
+        table_names = sorted(filter(lambda x: len(x.split('_')) >= 3 and 'bak' not in x, i[1]), reverse=True)[:7]
+        if not table_names:
+            continue
+
+        for t_name in table_names:
+            table_list.append((t_name, hotel_api_config, 'api'))
+
     _cursor.close()
     _conn.close()
 
@@ -326,7 +339,9 @@ WHERE TABLE_SCHEMA = 'hotel_api';''')
                 continue
         elif table_type == 'api':
             _test_list = cand_table.split('_')
-            if _test_list[0] == 'hotelinfo' and len(_test_list) == 2:
+            if _test_list[0] == 'hotelinfo' and len(_test_list) >= 5:
+                if not (_test_list[2].isdigit() and _test_list[3].isdigit() and _test_list[4].isdigit()):
+                    continue
                 sql = '''SELECT
                           hotel_name,
                           hotel_name_en,
@@ -336,9 +351,8 @@ WHERE TABLE_SCHEMA = 'hotel_api';''')
                           map_info,
                           grade
                         FROM {};'''.format(cand_table)
-
                 task_type = 'hotel_api'
-                task_tag = datetime.datetime.now().strftime("%Y-%m-%d")
+                task_tag = "{}-{}-{}".format(_test_list[2], _test_list[3], _test_list[4])
             else:
                 logger.info("[don't known this table][table_name: {}]".format(cand_table))
                 continue
