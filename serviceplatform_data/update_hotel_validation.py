@@ -156,26 +156,20 @@ def change_table():
 
 
 @func_time_logger
+@retry(times=4)
 def insert_data(data, _count):
     replace_sql = '''REPLACE INTO workload_hotel_validation_new (workload_key, content, source, extra, status) 
     VALUES (%s, %s, %s, 0, 1);'''
 
-    max_retry_times = 3
-    while max_retry_times:
-        max_retry_times -= 1
-        try:
-            conn = verify_info_pool.connection()
-            cursor = conn.cursor()
-            _replace_count = cursor.executemany(replace_sql, data)
-            conn.commit()
-            cursor.close()
-            conn.close()
-            logger.debug(
-                "[insert data][now count: {}][insert data: {}][replace_count: {}]".format(_count, len(data),
-                                                                                          _replace_count))
-            break
-        except Exception as exc:
-            logger.exception(msg="[run sql error]", exc_info=exc)
+    conn = verify_info_pool.connection()
+    cursor = conn.cursor()
+    _replace_count = cursor.executemany(replace_sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
+    logger.debug(
+        "[insert data][now count: {}][insert data: {}][replace_count: {}]".format(_count, len(data),
+                                                                                  _replace_count))
 
 
 def update_per_hotel_validation(env='test'):
@@ -274,16 +268,10 @@ def update_per_hotel_validation(env='test'):
     insert_data(data, _count)
 
 
+@retry(times=10000)
 def update_per_env_hotel_validation(env):
     global offset
-    max_retry_times = 10000
-    while max_retry_times:
-        max_retry_times -= 1
-        try:
-            update_per_hotel_validation(env=env)
-            break
-        except Exception as exc:
-            logger.exception(msg="[update hotel validation error]", exc_info=exc)
+    update_per_hotel_validation(env=env)
 
 
 def update_hotel_validation():
