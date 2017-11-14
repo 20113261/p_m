@@ -268,8 +268,6 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
     _cursor.close()
     _conn.close()
 
-    table_list = []
-
     _conn = hotel_api_pool.connection()
     _cursor = _conn.cursor()
     _cursor.execute('''SELECT TABLE_NAME
