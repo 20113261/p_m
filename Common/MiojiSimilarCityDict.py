@@ -5,8 +5,10 @@
 # @Site    : 
 # @File    : MiojiSimilarCityDict.py
 # @Software: PyCharm
+import pandas
 import dataset
 import unittest
+import datetime
 from collections import defaultdict
 from Common.Utils import is_legal
 
@@ -24,7 +26,7 @@ COUNTRY_MULTI_KEYS = ['country_alias']
 NEED_REGION = True
 # region 匹配严格方法，如果我方城市有 region 且带 region 没有匹配，则返回空
 # region 匹配非严格方法，优先进行 region 匹配，如果没有匹配到，自动降级为国家，城市匹配
-REGION_STRICT_METHOD = False
+# 优先使用严格方法匹配，如无匹配，则使用非严格方法匹配
 # Region 使用的字段
 REGION_KEY = ['region', 'region_en', 'region_cn']
 
@@ -50,6 +52,14 @@ class MiojiSimilarCityDict(object):
         self.can_use_region = defaultdict(bool)
         self.city_info_dict = defaultdict(str)
         self.dict = self.get_mioji_similar_dict()
+        self.report_data = []
+
+    def __del__(self):
+        # 当程序退出时候，打印报表
+        # (keys, match_type, result)
+        csv_file_name = datetime.datetime.now().strftime("./city_match_report_%Y_%m_%d_%H_%M_%S.csv")
+        table = pandas.DataFrame(data=self.report_data, columns=["keys", "match_type", "result"])
+        table.to_csv(csv_file_name)
 
     def get_keys(self, __line):
         country_key_set = set()
@@ -172,40 +182,32 @@ FROM city
 
     def get_mioji_city_id(self, keys):
         keys = self.modify_keys(keys)
+        result, match_type = self._get_mioji_city_id(keys)
+        self.report_data.append((keys, match_type, result))
+        return result
+
+    def _get_mioji_city_id(self, keys):
+        keys = self.modify_keys(keys)
+        result = set()
+        match_type = "未匹配"
         if keys in self.dict:
-            return self.dict[keys]
+            match_type = "直接获取"
+            result = self.dict[keys]
+            return result, match_type
 
         if NEED_REGION:
-            if REGION_STRICT_METHOD:
-                if not self.can_use_mioji_region((keys[0], keys[-1])):
-                    if (keys[0], keys[-1]) in self.dict:
-                        return self.dict[(keys[0], keys[-1])]
-            else:
+            if not self.can_use_mioji_region((keys[0], keys[-1])):
                 if (keys[0], keys[-1]) in self.dict:
-                    return self.dict[(keys[0], keys[-1])]
+                    match_type = "region 降级，严格模式"
+                    result = self.dict[(keys[0], keys[-1])]
+                    return result, match_type
 
-        return set()
+            if (keys[0], keys[-1]) in self.dict:
+                match_type = "region 降级，非严格模式"
+                result = self.dict[(keys[0], keys[-1])]
+                return result, match_type
 
-        # if __name__ == '__main__':
-        # mioji_similar_dict = MiojiSimilarCityDict()
-        # db = dataset.connect('mysql+pymysql://hourong:hourong@localhost/hotel_api?charset=utf8')
-        # table = db['gta_city']
-        #
-        # for line in table:
-        #     city_id = None
-        #     # 按国家二字码和城市名匹配
-        #     if is_legal(line['country_code']):
-        #         city_id = mioji_similar_dict.get_mioji_city_id(
-        #             (key_modify(line['country_code']), key_modify(line['city_name'])))
-        #
-        #     # 按国家名和城市名进行匹配
-        #     if city_id is None:
-        #         if is_legal(line['country_name']):
-        #             city_id = mioji_similar_dict.get_mioji_city_id(
-        #                 (key_modify(line['country_name']), key_modify(line['city_name'])))
-        #
-        #     if city_id is not None:
-        #         print(line['city_code'], city_id)
+        return result, match_type
 
 
 class SimilarCityDictTest(unittest.TestCase):
