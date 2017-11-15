@@ -160,3 +160,14 @@ hotel_api_config = dict(
 )
 
 hotel_api_pool = init_pool(**hotel_api_config)
+
+spider_data_tmp_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.228.253',
+    database='tmp'
+)
+
+spider_data_tmp_pool = init_pool(**spider_data_tmp_config)
+
+spider_data_tmp_str = "mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/tmp?charset=utf8"

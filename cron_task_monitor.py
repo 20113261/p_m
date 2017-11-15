@@ -12,9 +12,11 @@ import requests
 import functools
 import inspect
 import asyncio
+import pymongo
 from logging import getLogger, StreamHandler, FileHandler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.mongodb import MongoDBJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from service_platform_report.task_progress_report_mongo import main as task_progress_report_mongo
 from service_platform_report.task_progress_report import main as task_progress_report
@@ -134,6 +136,11 @@ schedule.add_job(on_exc_send_email(delete_already_scanned_file), 'cron', hour='*
                  max_instances=1)
 schedule.add_job(on_exc_send_email(poi_merge_report_total), 'cron', minute='*/30', id='poi_merge_report_total',
                  max_instances=1)
+
+# 添加 job store
+client = pymongo.MongoClient(host='10.10.231.105', port=27017)
+store = MongoDBJobStore(client=client, database="SchedulerJob", collection="data_report_jobs")
+schedule.add_jobstore(store, 'mongo')
 
 if __name__ == '__main__':
     schedule.start()

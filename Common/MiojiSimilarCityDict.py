@@ -21,7 +21,10 @@ COUNTRY_KEYS = ['country_name', 'country_name_en', 'country_short_name_cn', 'cou
 # 从国家表中获取的多字段，中间用 MULTI_SPLIT_KEY 分割
 COUNTRY_MULTI_KEYS = ['country_alias']
 # 是否使用 Region 做 key 进行匹配
-NEED_REGION = False
+NEED_REGION = True
+# region 匹配严格方法，如果我方城市有 region 且带 region 没有匹配，则返回空
+# region 匹配非严格方法，优先进行 region 匹配，如果没有匹配到，自动降级为国家，城市匹配
+REGION_STRICT_METHOD = False
 # Region 使用的字段
 REGION_KEY = ['region', 'region_en', 'region_cn']
 
@@ -153,19 +156,35 @@ FROM city
 
         return __dict
 
+    @staticmethod
+    def modify_keys(keys):
+        if KEY_TYPE == 'tuple':
+            keys = tuple([k.lower() for k in keys])
+        elif KEY_TYPE == 'str':
+            keys = keys.lower()
+        else:
+            raise TypeError('未知分割类型，当前支持 str, tuple')
+
+        return keys
+
     def get_mioji_city_info(self, city_id):
         return self.city_info_dict[str(city_id)]
 
     def get_mioji_city_id(self, keys):
+        keys = self.modify_keys(keys)
         if keys in self.dict:
             return self.dict[keys]
 
         if NEED_REGION:
-            if not self.can_use_mioji_region((keys[0], keys[-1])):
+            if REGION_STRICT_METHOD:
+                if not self.can_use_mioji_region((keys[0], keys[-1])):
+                    if (keys[0], keys[-1]) in self.dict:
+                        return self.dict[(keys[0], keys[-1])]
+            else:
                 if (keys[0], keys[-1]) in self.dict:
                     return self.dict[(keys[0], keys[-1])]
 
-        return None
+        return set()
 
         # if __name__ == '__main__':
         # mioji_similar_dict = MiojiSimilarCityDict()
@@ -223,6 +242,12 @@ class SimilarCityDictTest(unittest.TestCase):
     def test_case_6(self):
         d = MiojiSimilarCityDict()
         self.assertSetEqual(d.get_mioji_city_id(('新西兰', '皇后镇')), {'30095', })
+
+    def test_case_7(self):
+        d = MiojiSimilarCityDict()
+        self.assertSetEqual(d.get_mioji_city_id(('usa', 'anaheim')), {'50245'})
+        self.assertSetEqual(d.get_mioji_city_id(('usa', '123123123123', 'anaheim')), {'50245'})
+        self.assertSetEqual(d.get_mioji_city_id(('usa', '123123123123', '1123123123123')), set())
 
 
 if __name__ == '__main__':
