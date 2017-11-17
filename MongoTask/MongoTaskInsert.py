@@ -76,13 +76,14 @@ class InsertTask(object):
         self.source = source
         self.type = _type
         self.task_name = task_name
-        self.collection_name = self.generate_collection_name()
         self.routine_key = routine_key
         self.queue = queue
 
         self.priority = int(kwargs.get("priority", 3))
         self.logger = get_logger("InsertMongoTask")
         self.tasks = TaskList()
+
+        self.collection_name = self.generate_collection_name()
 
         # 数据游标偏移量，用于在查询时发生异常恢复游标位置
         self.offset = 0
@@ -108,7 +109,7 @@ class InsertTask(object):
         self.logger.info("[init InsertTask]")
 
     def generate_collection_name(self):
-        return "Task__TaskName__{}".format(self.task_name)
+        return "Task_Queue_{}_TaskName_{}".format(self.queue, self.task_name)
 
     def create_mongo_indexes(self):
         collections = self.db[self.collection_name]
