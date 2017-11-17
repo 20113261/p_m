@@ -64,11 +64,13 @@ def _insert_mongo_task():
     for uid in get_tasks():
         _count += 1
         task_info = {
-            'worker': 'proj.merge_tasks.hotel_img_merge',
+            'worker': 'proj.total_tasks.hotel_img_merge_task',
             'queue': 'merge_task',
             'routing_key': 'merge_task',
             # 'task_name': "merge_hotel_image_20171109_20",
-            'task_name': "merge_hotel_image_20171109_40",
+            'task_name': "merge_hotel_image_20171116_40",
+            'source': 'Any',
+            'type': 'HotelImgDownloader',
             'args': {
                 'uid': uid,
                 # 'min_pixels': '200000',

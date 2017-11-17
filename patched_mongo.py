@@ -10,10 +10,11 @@ import pymongo
 import patched_mongo_insert
 
 client = pymongo.MongoClient(host='10.10.231.105')
-collections = client['MongoTask']['Task']
+db = client['MongoTask']
 
 
-def mongo_patched_insert(data):
+def mongo_patched_insert(data, task_name='Task'):
+    collections = db[task_name]
     with mock.patch('pymongo.collection.Collection._insert', patched_mongo_insert.Collection._insert):
         result = collections.insert(data, continue_on_error=True)
         return result

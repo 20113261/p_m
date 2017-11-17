@@ -340,6 +340,31 @@ CREATE VIEW service_platform_crawl_error_report AS
   FROM serviceplatform_crawl_report_summary
   GROUP BY tag, source, type, date;
 
+SHOW CREATE VIEW service_platform_crawl_error_report_api;
+
+CREATE ALGORITHM = UNDEFINED
+  DEFINER =`mioji_admin`@`10.10.228.253`
+  SQL SECURITY DEFINER VIEW `service_platform_crawl_error_report_api` AS
+  SELECT
+    `service_platform_crawl_error_report`.`tag`                      AS `tag`,
+    `service_platform_crawl_error_report`.`source`                   AS `source`,
+    `service_platform_crawl_error_report`.`type`                     AS `type`,
+    `service_platform_crawl_error_report`.`全量`                       AS `全量`,
+    `service_platform_crawl_error_report`.`数据源错误`                    AS `数据源错误`,
+    `service_platform_crawl_error_report`.`无 name、name_en`           AS `无 name、name_en`,
+    `service_platform_crawl_error_report`.`中英文名字相反`                  AS `中英文名字相反`,
+    `service_platform_crawl_error_report`.`中文名中含有英文名`                AS `中文名中含有英文名`,
+    `service_platform_crawl_error_report`.`坐标错误(NULL)`               AS `坐标错误(NULL)`,
+    `service_platform_crawl_error_report`.`坐标错误(坐标为空或坐标格式错误，除去NULL)` AS `坐标错误(坐标为空或坐标格式错误，除去NULL)`,
+    `service_platform_crawl_error_report`.`经纬度重复`                    AS `经纬度重复`,
+    `service_platform_crawl_error_report`.`坐标与所属城市距离过远`              AS `坐标与所属城市距离过远`,
+    `service_platform_crawl_error_report`.`距离过远坐标翻转后属于所属城市`          AS `距离过远坐标翻转后属于所属城市`,
+    `service_platform_crawl_error_report`.`静态评分异常(评分高于10分)`          AS `静态评分异常(评分高于10分)`,
+    `service_platform_crawl_error_report`.`date`                     AS `date`
+  FROM `service_platform_crawl_error_report`
+  WHERE (`service_platform_crawl_error_report`.`type` LIKE '%api%')
+
+
 SELECT *
 FROM service_platform_crawl_error_report;
 
@@ -1268,4 +1293,56 @@ CREATE OR REPLACE VIEW base_data_report_by_hour_shop AS
 CREATE OR REPLACE VIEW service_platform_crawl_error_report_api AS
   SELECT *
   FROM service_platform_crawl_error_report
-  WHERE type LIKE '%api%'
+  WHERE type LIKE '%api%';
+
+SELECT TABLE_NAME
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = 'hotel_api' AND TABLE_NAME LIKE 'hotelinfo_daolv%';
+
+CREATE TABLE `base_data_api_error_report` (
+  `id`                       INT(11) NOT NULL AUTO_INCREMENT,
+  `tag`                      VARCHAR(32)      DEFAULT 'NULL',
+  `source`                   VARCHAR(32)      DEFAULT 'NULL',
+  `type`                     VARCHAR(16)      DEFAULT 'NULL',
+  `全量`                       INT(11)          DEFAULT 0,
+  `正确`                       INT(11)          DEFAULT 0,
+  `数据源错误`                    INT(11)          DEFAULT 0,
+  `无 name、name_en`           INT(11)          DEFAULT 0,
+  `中英文名字相反`                  INT(11)          DEFAULT 0,
+  `中文名中含有英文名`                INT(11)          DEFAULT 0,
+  `坐标错误(NULL)`               INT(11)          DEFAULT 0,
+  `坐标错误(坐标为空或坐标格式错误，除去NULL)` INT(11)          DEFAULT 0,
+  `经纬度重复`                    INT(11)          DEFAULT 0,
+  `坐标与所属城市距离过远`              INT(11)          DEFAULT 0,
+  `距离过远坐标翻转后属于所属城市`          INT(11)          DEFAULT 0,
+  `静态评分异常(评分高于10分)`          INT(11)          DEFAULT 0,
+  `date`                     CHAR(8)          DEFAULT 'NULL',
+  `datetime`                 CHAR(12)         DEFAULT 'NULL',
+  `hour`                     CHAR(4)          DEFAULT 'NULL',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `source_type_date_hour` (`tag`, `source`, `type`, `date`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+
+CREATE TABLE `base_data_wanle_api_error_report` (
+  `id`        INT(11) NOT NULL AUTO_INCREMENT,
+  `tag`       VARCHAR(32)      DEFAULT 'NULL',
+  `source`    VARCHAR(32)      DEFAULT 'NULL',
+  `type`      VARCHAR(16)      DEFAULT 'NULL',
+  `全量`        INT(11)          DEFAULT 0,
+  `正确`        INT(11)          DEFAULT 0,
+  `包换999999`  INT(11)          DEFAULT 0,
+  `检查pid_3rd` INT(11)          DEFAULT 0,
+  `时间格式`      INT(11)          DEFAULT 0,
+  `融合数据量`     INT(11)          DEFAULT 0,
+  `可用数据量`     INT(11)          DEFAULT 0,
+  `有产品无票`     INT(11)          DEFAULT 0,
+  `date`      CHAR(8)          DEFAULT 'NULL',
+  `datetime`  CHAR(12)         DEFAULT 'NULL',
+  `hour`      CHAR(4)          DEFAULT 'NULL',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `source_type_date_hour` (`tag`, `source`, `type`, `date`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
