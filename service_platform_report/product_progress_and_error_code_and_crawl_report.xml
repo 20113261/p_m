@@ -26,9 +26,9 @@
             <field key="true" extend="false" name="任务名">`task_name`</field>
             <field key="true" extend="false" name="任务类型">`type`</field>
             <field name="任务总量">`all`</field>
-            <field name="任务完成">round((`done` + `final_failed`)/`all`*100,2)</field>
-            <field name="任务完成无数据">round(`final_failed`/`all`*100,2)</field>
-            <field name="列表页无数据（只有列表页关注此项）">round(100-`city_done`/`all`*100,2)</field>
+            <field name="任务完成比率">round((`done` + `final_failed`)/`all`*100,2)</field>
+            <field name="任务完成无数据比率">round(`final_failed`/`all`*100,2)</field>
+            <field name="已抓取城市数目（列表页关注）">`city_done`</field>
         </item>
         <!--<item name="任务进度统计(快速统计)" type="2" table="service_platform_product_report" orderby="tag,source,crawl_type"-->
         <!--showystday="true"-->
