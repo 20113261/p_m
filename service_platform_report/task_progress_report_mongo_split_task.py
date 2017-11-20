@@ -77,7 +77,7 @@ def _each_task_progress(collections):
         }
 
         try:
-            product_table.upsert(data, keys=['tag', 'source', 'crawl_type', 'type', 'report_key', 'date'],
+            product_table.upsert(data, keys=['task_name', 'date', 'date'],
                                  ensure=None)
             logger.debug("[final data][{}]".format(json.dumps(data, indent=4, sort_keys=True)))
         except Exception as exc:
