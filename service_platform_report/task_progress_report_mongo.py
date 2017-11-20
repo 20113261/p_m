@@ -16,10 +16,10 @@ from logger import get_logger
 logger = get_logger("task_progress_mongo")
 
 client = pymongo.MongoClient(host='10.10.231.105')
-collections = client['MongoTask']['Task']
+db = client['MongoTask']
 
 
-def main():
+def _each_task_progress(collections):
     dt = datetime.datetime.now()
     product_count = defaultdict(int)
 
@@ -85,5 +85,12 @@ def main():
     db.commit()
 
 
+def task_progress_report_main():
+    for each_collections in db.collection_names():
+        if str(each_collections).startswith('Task_Queue_'):
+            collections = db[each_collections]
+            _each_task_progress(collections=collections)
+
+
 if __name__ == '__main__':
-    main()
+    task_progress_report_main()

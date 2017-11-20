@@ -18,7 +18,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
-from service_platform_report.task_progress_report_mongo import main as task_progress_report_mongo
+from service_platform_report.task_progress_report_mongo import task_progress_report_main as task_progress_report_mongo
 from service_platform_report.task_progress_report import main as task_progress_report
 from service_platform_report.crawl_data_check_script import detectOriData
 from service_platform_report.data_coverage import data_coverage
