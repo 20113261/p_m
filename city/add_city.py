@@ -55,9 +55,10 @@ continent_max_id_dict = get_continent_max_id_dict()
 
 
 def generate_id(country_id: str) -> str:
-    continent_id = (int(country_id) % 100) * 10
+    continent_id = (int(country_id) // 100) * 10
+    continent_id = str(continent_id)
     continent_max_id_dict[continent_id] += 1
-    return str(continent_max_id_dict[continent_id])
+    return str(continent_max_id_dict[str(continent_id)])
 
 
 def get_country_id_dict() -> dict:
@@ -103,9 +104,9 @@ if __name__ == '__main__':
     # xlsx_path = '/tmp/new_city.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
-    xlsx_path = '/Users/hourong/Downloads/new_city_1016.xlsx'
+    xlsx_path = '/Users/hourong/Downloads/1116.xlsx'
 
-    need_change_map_info = False
+    need_change_map_info = True
     global change_map_info_key
     # change_map_info_key = ['border_map_1', 'border_map_2']
     change_map_info_key = ['map_info']
@@ -153,6 +154,9 @@ if __name__ == '__main__':
                 if res:
                     if value not in ('NULL', 'null', ''):
                         data[key] = value
+            # 去除无用行
+            if not data:
+                continue
 
             # 补充字段
             if 'id' not in data.keys():
