@@ -36,6 +36,7 @@ from serviceplatform_data.insert_poi_detect_task_info import get_task_info
 from serviceplatform_data.delete_already_scanned_file import delete_already_scanned_file
 from logger import get_logger
 from service_platform_report.merge_report import poi_merged_report
+from service_platform_report.task_progress_report_mongo_split_task import task_progress_report_split_task_main
 
 SEND_TO = ['hourong@mioji.com', "luwanning@mioji.com"]
 
@@ -135,6 +136,9 @@ schedule.add_job(on_exc_send_email(get_task_info), 'cron', hour='3', id='insert_
 schedule.add_job(on_exc_send_email(delete_already_scanned_file), 'cron', hour='*/2', id='delete_already_scanned_file',
                  max_instances=1)
 schedule.add_job(on_exc_send_email(poi_merge_report_total), 'cron', minute='*/30', id='poi_merge_report_total',
+                 max_instances=1)
+schedule.add_job(on_exc_send_email(task_progress_report_split_task_main), 'cron', minute='*/5so',
+                 id='task_progress_report_split_task',
                  max_instances=1)
 
 # 添加 job store

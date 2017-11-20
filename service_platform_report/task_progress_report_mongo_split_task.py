@@ -85,7 +85,7 @@ def _each_task_progress(collections):
     db.commit()
 
 
-def task_progress_report_main():
+def task_progress_report_split_task_main():
     for each_collections in db.collection_names():
         if str(each_collections).startswith('Task_Queue_'):
             collections = db[each_collections]
@@ -93,4 +93,4 @@ def task_progress_report_main():
 
 
 if __name__ == '__main__':
-    task_progress_report_main()
+    task_progress_report_split_task_main()
