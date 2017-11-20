@@ -27,17 +27,6 @@ toolbox.Date.DATE_FORMAT = "%Y%m%d"
 INSERT_WHEN = 2000
 
 
-def call_once(f):
-    @functools.wraps(f)
-    def wrapper(*args, **kwargs):
-        if not wrapper.called:
-            wrapper.called = True
-            return f(*args, **kwargs)
-
-    wrapper.called = False
-    return wrapper
-
-
 class TaskType(object):
     NORMAL = 0
     LIST_TASK = 1
@@ -66,6 +55,8 @@ class Task(object):
 
         # 任何任务都获得 list_task_token 默认与 task_token 相同，只有 list 中不同
         self.list_task_token = self.get_task_id(list_task_token=True)
+        # city task 专属添加值
+        self.date_list = kwargs.get("date_list", None)
 
     def get_task_id(self, list_task_token=False):
         if not list_task_token:
@@ -103,6 +94,8 @@ class Task(object):
                 'data_count': [],
                 # 本次任务 成功 / 失败
                 'task_result': [],
+                # 当前使用的时间序列
+                'date_list': self.date_list,
                 # 当前最大使用的日期
                 'date_index': 0,
                 # 其他参数
@@ -158,6 +151,12 @@ class InsertTask(object):
         # 建立所需要的全部索引
         self.create_mongo_indexes()
 
+        # CITY TASK 获取 date_list
+        if self.task_type == TaskType.CITY_TASK:
+            self.date_list = self.generate_list_date()
+        else:
+            self.date_list = None
+
         # 修改 logger 日志打印
         # modify handler's formatter
         datefmt = "%Y-%m-%d %H:%M:%S"
@@ -199,7 +198,6 @@ class InsertTask(object):
         collections.create_index([('finished', 1)])
         self.logger.info("[完成索引建立]")
 
-    @call_once
     def generate_list_date(self):
         collection_name = "CityTaskDate"
         collections = self.db[collection_name]
@@ -214,7 +212,9 @@ class InsertTask(object):
             })
             self.logger.info("[new date list][task_name: {}][dates: {}]".format(self.task_name, dates))
         else:
-            self.logger.info("[date already generate][task_name: {}][dates: {}]".format(_res['task_name'], _res['dates']))
+            self.logger.info(
+                "[date already generate][task_name: {}][dates: {}]".format(_res['task_name'], _res['dates']))
+        return _res['_id']
 
     def mongo_patched_insert(self, data):
         collections = self.db[self.collection_name]
@@ -244,15 +244,10 @@ class InsertTask(object):
         yield
 
     def _insert_task(self, args):
-        if self.task_type == TaskType.CITY_TASK:
-            # 如果是城市任务，则入库时间序列
-            # 如果第一次运行则执行，否则不执行
-            self.generate_list_date()
-
         if isinstance(args, dict):
             __t = Task(worker=self.worker, source=self.source, _type=self.type, task_name=self.task_name,
                        routine_key=self.routine_key,
-                       queue=self.queue, task_type=self.task_type, _args=args)
+                       queue=self.queue, task_type=self.task_type, date_list=self.date_list, _args=args)
             self.tasks.append_task(__t)
             self.pre_offset += 1
 
