@@ -97,7 +97,7 @@ class Task(object):
                 # 当前使用的时间序列
                 'date_list': self.date_list,
                 # 当前最大使用的日期
-                'date_index': 0,
+                'date_index': -1,
                 # 其他参数
                 'worker': self.worker,
                 'queue': self.queue,
