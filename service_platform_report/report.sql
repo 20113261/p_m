@@ -34,6 +34,22 @@ CREATE TABLE `serviceplatform_product_mongo_summary` (
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
+DROP TABLE IF EXISTS serviceplatform_product_mongo_split_task_summary;
+CREATE TABLE `serviceplatform_product_mongo_split_task_summary` (
+  `id`         INT(11) NOT NULL AUTO_INCREMENT,
+  `task_name`  VARCHAR(256)      DEFAULT 'NULL',
+  `type`       VARCHAR(64)      DEFAULT 'NULL',
+  `report_key` VARCHAR(64)      DEFAULT 'NULL',
+  `num`        INT(11)          DEFAULT '0',
+  `date`       CHAR(8)          DEFAULT NULL,
+  `datetime`   CHAR(12)         DEFAULT 'NULL',
+  `hour`       TEXT,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `source_type_date_hour` (`task_name`, `report_key`, `date`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+
 
 DROP TABLE IF EXISTS serviceplatform_product_error_summary;
 CREATE TABLE `serviceplatform_product_error_summary` (
@@ -1346,3 +1362,6 @@ CREATE TABLE `base_data_wanle_api_error_report` (
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
+
+SELECT *
+FROM base_data_wanle_api_error_report;
