@@ -25,7 +25,7 @@ def _each_task_progress(collections):
     product_count = defaultdict(int)
     '''
     :key (task_name, task_type)
-    :value (all, done, final_failed, city_done)
+    :value (all, done, final_failed, city_all, city_done)
     '''
 
     start = time.time()
@@ -45,17 +45,25 @@ def _each_task_progress(collections):
                                               hint=[('task_name', 1), ('finished', 1), ('used_times', 1)])
 
         if task_type == 'list':
-            # 已完成的任务，通过 task_token 去重后
+            # 已完成的任务，通过 list_task_token 去重后
+            # 城市总数
+            list_task_all = len(
+                collections.find({'task_name': each_task_name},
+                                 hint=[('task_name', 1)]).distinct("list_task_token"))
+            # 城市有数据比率
             list_task_has_data = len(
                 collections.find({'task_name': each_task_name, 'finished': 1},
                                  hint=[('task_name', 1), ('finished', 1)]).distinct("list_task_token"))
-            product_count[(each_task_name, task_type)] = (task_all, task_done, task_final_failed, list_task_has_data)
-
-            logger.debug(" ".join(
-                map(lambda x: str(x), [each_task_name, task_all, task_done, task_final_failed, list_task_has_data])))
         else:
-            product_count[(each_task_name, task_type)] = (task_all, task_done, task_final_failed, 0)
-            logger.debug(" ".join(map(lambda x: str(x), [each_task_name, task_all, task_done, task_final_failed])))
+            list_task_all = list_task_has_data = 0
+
+        # 统计对象添加数值
+        product_count[(each_task_name, task_type)] = (
+            task_all, task_done, task_final_failed, list_task_all, list_task_has_data)
+
+        logger.debug(" ".join(
+            map(lambda x: str(x),
+                [each_task_name, task_all, task_done, task_final_failed, list_task_all, list_task_has_data])))
 
     logger.debug('[get info][takes: {}]'.format(time.time() - start))
 
@@ -63,13 +71,14 @@ def _each_task_progress(collections):
     product_table = db['serviceplatform_product_mongo_split_task_summary']
     for keys, values in product_count.items():
         task_name, task_type = keys
-        _all, _done, _final_failed, _city_done = values
+        _all, _done, _final_failed, _city_all, _city_done = values
         data = {
             'task_name': task_name,
             'type': task_type,
             'all': _all,
             'done': _done,
             'final_failed': _final_failed,
+            'city_all': _city_all,
             'city_done': _city_done,
             'date': datetime.datetime.strftime(dt, '%Y%m%d'),
             'hour': datetime.datetime.strftime(dt, '%H'),

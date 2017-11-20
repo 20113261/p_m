@@ -28,7 +28,8 @@
             <field name="任务总量">`all`</field>
             <field name="任务完成比率">round((`done` + `final_failed`)/`all`*100,2)</field>
             <field name="任务完成无数据比率">round(`final_failed`/`all`*100,2)</field>
-            <field name="已抓取城市数目（列表页关注）">`city_done`</field>
+            <field name="任务城市总量 (列表页关注)">`city_all`</field>
+            <field name="有数据城市比率 (列表页关注)">round(`city_done`/`city_all`*100,2)</field>
         </item>
         <!--<item name="任务进度统计(快速统计)" type="2" table="service_platform_product_report" orderby="tag,source,crawl_type"-->
         <!--showystday="true"-->
