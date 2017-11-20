@@ -27,7 +27,7 @@ WHERE source = 'qyer';'''
 
 if __name__ == '__main__':
     with InsertTask(worker='proj.total_tasks.qyer_list_task', queue='poi_list', routine_key='poi_list',
-                    task_name='list_total_qyer_20170929a', source='Qyer', _type='QyerList',
+                    task_name='city_total_qyer_20171120a', source='Qyer', _type='QyerList',
                     priority=3, task_type=TaskType.CITY_TASK) as it:
         for line in get_tasks():
             args = {

@@ -206,15 +206,16 @@ class InsertTask(object):
         })
         if not _res:
             dates = list(date_takes(360, 5, 10))
-            collections.save({
+            date_obj_id = collections.save({
                 'task_name': self.task_name,
                 'dates': dates
             })
             self.logger.info("[new date list][task_name: {}][dates: {}]".format(self.task_name, dates))
         else:
+            date_obj_id = _res['id']
             self.logger.info(
                 "[date already generate][task_name: {}][dates: {}]".format(_res['task_name'], _res['dates']))
-        return _res['_id']
+        return date_obj_id
 
     def mongo_patched_insert(self, data):
         collections = self.db[self.collection_name]
