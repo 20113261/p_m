@@ -137,7 +137,7 @@ schedule.add_job(on_exc_send_email(delete_already_scanned_file), 'cron', hour='*
                  max_instances=1)
 schedule.add_job(on_exc_send_email(poi_merge_report_total), 'cron', minute='*/30', id='poi_merge_report_total',
                  max_instances=1)
-schedule.add_job(on_exc_send_email(task_progress_report_split_task_main), 'cron', minute='*/5so',
+schedule.add_job(on_exc_send_email(task_progress_report_split_task_main), 'cron', minute='*/5',
                  id='task_progress_report_split_task',
                  max_instances=1)
 
