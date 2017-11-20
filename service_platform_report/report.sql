@@ -36,16 +36,19 @@ CREATE TABLE `serviceplatform_product_mongo_summary` (
 
 DROP TABLE IF EXISTS serviceplatform_product_mongo_split_task_summary;
 CREATE TABLE `serviceplatform_product_mongo_split_task_summary` (
-  `id`         INT(11) NOT NULL AUTO_INCREMENT,
-  `task_name`  VARCHAR(256)      DEFAULT 'NULL',
-  `type`       VARCHAR(64)      DEFAULT 'NULL',
-  `report_key` VARCHAR(64)      DEFAULT 'NULL',
-  `num`        INT(11)          DEFAULT '0',
-  `date`       CHAR(8)          DEFAULT NULL,
-  `datetime`   CHAR(12)         DEFAULT 'NULL',
-  `hour`       TEXT,
+  `id`           INT(11) NOT NULL AUTO_INCREMENT,
+  `task_name`    VARCHAR(256)     DEFAULT 'NULL',
+  `type`         VARCHAR(64)      DEFAULT 'NULL',
+  `all`          INT(11)          DEFAULT 0,
+  `done`         INT(11)          DEFAULT 0,
+  `final_failed` INT(11)          DEFAULT 0,
+  `city_all`     INT(11)          DEFAULT 0,
+  `city_done`    INT(11)          DEFAULT 0,
+  `date`         CHAR(8)          DEFAULT NULL,
+  `datetime`     CHAR(12)         DEFAULT 'NULL',
+  `hour`         TEXT,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `source_type_date_hour` (`task_name`, `report_key`, `date`)
+  UNIQUE KEY `source_type_date_hour` (`task_name`, `date`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
