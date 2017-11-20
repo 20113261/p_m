@@ -6,6 +6,7 @@
 # @File    : MongoTaskInsert.py
 # @Software: PyCharm
 import mock
+import copy
 import datetime
 import pymongo
 import logging
@@ -13,18 +14,16 @@ import patched_mongo_insert
 from toolbox.Hash import get_token
 from logger import get_logger
 
-spider_data_base_data_config = {
-    'host': '10.10.228.253',
-    'user': 'mioji_admin',
-    'password': 'mioji1109',
-    'charset': 'utf8',
-    'db': 'base_data'
-}
-
 # 当 task 数积攒到每多少时进行一次插入
 # 当程序退出后也会执行一次插入，无论当前 task 积攒为多少
 
 INSERT_WHEN = 2000
+
+
+class TaskType(object):
+    NORMAL = 0
+    LIST_TASK = 1
+    CITY_TASK = 2
 
 
 class Task(object):
@@ -37,6 +36,9 @@ class Task(object):
         self.routine_key = routine_key
         self.queue = queue
 
+        # 任务类型
+        self.task_type = kwargs.get('task_type', TaskType.NORMAL)
+
         self.priority = int(kwargs.get("priority", 3))
         self.finished = 0
         self.used_times = 0
@@ -44,25 +46,65 @@ class Task(object):
         self.utime = datetime.datetime.now()
         self.id = self.get_task_id()
 
-    def get_task_id(self):
-        return get_token(self.args)
+        # 任何任务都获得 list_task_token 默认与 task_token 相同，只有 list 中不同
+        self.list_task_token = self.get_task_id(list_task_token=True)
+
+    def get_task_id(self, list_task_token=False):
+        if not list_task_token:
+            return get_token(self.args)
+        else:
+            c_args = copy.copy(self.args)
+            if 'check_in' in c_args:
+                dict(c_args).pop('check_in')
+            return get_token(c_args)
 
     def to_dict(self):
-        return {
-            'task_token': self.id,
-            'worker': self.worker,
-            'queue': self.queue,
-            'routing_key': self.routine_key,
-            'task_name': self.task_name,
-            'source': self.source,
-            'type': self.type,
-            'args': self.args,
-            'priority': self.priority,
-            'running': self.running,
-            'used_times': self.used_times,
-            'finished': self.finished,
-            'utime': self.utime
-        }
+        if self.task_type in (TaskType.NORMAL, TaskType.LIST_TASK):
+            task_dict = {
+                'task_token': self.id,
+                'worker': self.worker,
+                'queue': self.queue,
+                'routing_key': self.routine_key,
+                'task_name': self.task_name,
+                'source': self.source,
+                'type': self.type,
+                'args': self.args,
+                'priority': self.priority,
+                'running': self.running,
+                'used_times': self.used_times,
+                'finished': self.finished,
+                'utime': self.utime
+            }
+            if self.task_type == TaskType.LIST_TASK:
+                # 针对列表页 task 添加列表页 task_token
+                task_dict['list_task_token'] = self.list_task_token
+        elif self.task_type == TaskType.CITY_TASK:
+            task_dict = {
+                'list_task_token': self.list_task_token,
+                # 数据新增数目
+                'data_count': [],
+                # 本次任务 成功 / 失败
+                'task_result': [],
+                # 当前最大使用的日期
+                'date_index': 0,
+                # 其他参数
+                'worker': self.worker,
+                'queue': self.queue,
+                'routing_key': self.routine_key,
+                'task_name': self.task_name,
+                'source': self.source,
+                'type': self.type,
+                'args': self.args,
+                'priority': self.priority,
+                'running': self.running,
+                'used_times': self.used_times,
+                'finished': self.finished,
+                'utime': self.utime
+            }
+        else:
+            raise TypeError("Unknown Type: {}".format(self.task_type))
+
+        return task_dict
 
 
 class TaskList(list):
@@ -72,12 +114,14 @@ class TaskList(list):
 
 class InsertTask(object):
     def __init__(self, worker, source, _type, task_name, routine_key, queue, **kwargs):
+        # 任务基本信息
         self.worker = worker
         self.source = source
         self.type = _type
         self.task_name = task_name
         self.routine_key = routine_key
         self.queue = queue
+        self.task_type = kwargs.get('task_type', TaskType.NORMAL)
 
         self.priority = int(kwargs.get("priority", 3))
         self.logger = get_logger("InsertMongoTask")
@@ -109,7 +153,10 @@ class InsertTask(object):
         self.logger.info("[init InsertTask]")
 
     def generate_collection_name(self):
-        return "Task_Queue_{}_TaskName_{}".format(self.queue, self.task_name)
+        if self.task_type != TaskType.CITY_TASK:
+            return "Task_Queue_{}_TaskName_{}".format(self.queue, self.task_name)
+        else:
+            return "City_Queue_{}_TaskName_{}".format(self.queue, self.task_name)
 
     def create_mongo_indexes(self):
         collections = self.db[self.collection_name]
@@ -126,7 +173,10 @@ class InsertTask(object):
         collections.create_index([('task_name', 1), ('finished', 1)])
         collections.create_index([('task_name', 1), ('finished', 1), ('used_times', 1)])
         collections.create_index([('task_name', 1), ('list_task_token', 1)])
-        collections.create_index([('task_token', 1)], unique=True)
+        if self.task_type in (TaskType.NORMAL, TaskType.LIST_TASK):
+            collections.create_index([('task_token', 1)], unique=True)
+        elif self.task_type == TaskType.CITY_TASK:
+            collections.create_index([('list_task_token', 1)], unique=True)
         collections.create_index([('utime', 1)])
         collections.create_index([('finished', 1)])
         self.logger.info("[完成索引建立]")
@@ -162,7 +212,7 @@ class InsertTask(object):
         if isinstance(args, dict):
             __t = Task(worker=self.worker, source=self.source, _type=self.type, task_name=self.task_name,
                        routine_key=self.routine_key,
-                       queue=self.queue, _args=args)
+                       queue=self.queue, task_type=self.task_type, _args=args)
             self.tasks.append_task(__t)
             self.pre_offset += 1
 

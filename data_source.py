@@ -18,6 +18,7 @@ class MysqlSource:
             self._db_config['cursorclass'] = SSDictCursor
         else:
             self._db_config['cursorclass'] = SSCursor
+        self._db_config['charset'] = 'utf8mb4'
         self._size = size
         self._table = table_or_query
         if is_table:
