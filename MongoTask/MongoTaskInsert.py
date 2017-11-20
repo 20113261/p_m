@@ -10,14 +10,32 @@ import copy
 import datetime
 import pymongo
 import logging
+import functools
+import toolbox.Date
 import patched_mongo_insert
 from toolbox.Hash import get_token
 from logger import get_logger
+from toolbox.Date import date_takes
+
+# 配置 toolbox 日期格式
+
+toolbox.Date.DATE_FORMAT = "%Y%m%d"
 
 # 当 task 数积攒到每多少时进行一次插入
 # 当程序退出后也会执行一次插入，无论当前 task 积攒为多少
 
 INSERT_WHEN = 2000
+
+
+def call_once(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        if not wrapper.called:
+            wrapper.called = True
+            return f(*args, **kwargs)
+
+    wrapper.called = False
+    return wrapper
 
 
 class TaskType(object):
@@ -181,6 +199,23 @@ class InsertTask(object):
         collections.create_index([('finished', 1)])
         self.logger.info("[完成索引建立]")
 
+    @call_once
+    def generate_list_date(self):
+        collection_name = "CityTaskDate"
+        collections = self.db[collection_name]
+        _res = collections.find_one({
+            'task_name': self.task_name
+        })
+        if not _res:
+            dates = list(date_takes(360, 5, 10))
+            collections.save({
+                'task_name': self.task_name,
+                'dates': dates
+            })
+            self.logger.info("[new date list][task_name: {}][dates: {}]".format(self.task_name, dates))
+        else:
+            self.logger.info("[date already generate][task_name: {}][dates: {}]".format(_res['task_name'], _res['dates']))
+
     def mongo_patched_insert(self, data):
         collections = self.db[self.collection_name]
         with mock.patch('pymongo.collection.Collection._insert', patched_mongo_insert.Collection._insert):
@@ -209,6 +244,11 @@ class InsertTask(object):
         yield
 
     def _insert_task(self, args):
+        if self.task_type == TaskType.CITY_TASK:
+            # 如果是城市任务，则入库时间序列
+            # 如果第一次运行则执行，否则不执行
+            self.generate_list_date()
+
         if isinstance(args, dict):
             __t = Task(worker=self.worker, source=self.source, _type=self.type, task_name=self.task_name,
                        routine_key=self.routine_key,
@@ -223,6 +263,7 @@ class InsertTask(object):
             raise TypeError('错误的 args 类型 < {0} >'.format(type(args).__name__))
 
     def insert_task(self):
+        # 正常入任务
         for args in self.get_task():
             self._insert_task(args)
 
