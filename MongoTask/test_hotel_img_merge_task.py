@@ -34,12 +34,12 @@ ORDER BY uid;'''
 
 if __name__ == '__main__':
     with InsertTask(worker='proj.total_tasks.hotel_img_merge_task', queue='merge_task', routine_key='merge_task',
-                    task_name='merge_hotel_image_20171116_40', source='Any', _type='HotelImgDownloader',
+                    task_name='merge_hotel_image_20171121_20', source='Any', _type='HotelImgMerge',
                     priority=11) as it:
         for uid in get_tasks():
             args = {
                 'uid': uid,
-                'min_pixels': '400000',
-                'target_table': 'hotel_40'
+                'min_pixels': '200000',
+                'target_table': 'hotel'
             }
-            it._insert_task(args)
+            it.insert_task(args)
