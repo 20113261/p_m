@@ -97,7 +97,7 @@ class Task(object):
                 # 当前使用的时间序列
                 'date_list': self.date_list,
                 # 当前最大使用的日期
-                'date_index': -1,
+                'date_index': 0,
                 # 其他参数
                 'worker': self.worker,
                 'queue': self.queue,
@@ -212,7 +212,7 @@ class InsertTask(object):
             })
             self.logger.info("[new date list][task_name: {}][dates: {}]".format(self.task_name, dates))
         else:
-            date_obj_id = _res['id']
+            date_obj_id = _res['_id']
             self.logger.info(
                 "[date already generate][task_name: {}][dates: {}]".format(_res['task_name'], _res['dates']))
         return date_obj_id
@@ -224,15 +224,16 @@ class InsertTask(object):
             return result
 
     def insert_mongo(self):
-        res = self.mongo_patched_insert(self.tasks)
-        self.logger.info("[update offset][offset: {}][pre offset: {}]".format(self.offset, self.pre_offset))
-        self.offset = self.pre_offset
-        self.logger.info("[insert info][ offset: {} ][ {} ]".format(self.offset, res))
-        self.logger.info('[ 本次准备入库任务数：{0} ][ 实际入库数：{1} ][ 库中已有任务：{2} ][ 已完成总数：{3} ]'.format(
-            self.tasks.__len__(), res['n'], res.get('err', 0), self.offset))
+        if len(self.tasks) > 0:
+            res = self.mongo_patched_insert(self.tasks)
+            self.logger.info("[update offset][offset: {}][pre offset: {}]".format(self.offset, self.pre_offset))
+            self.offset = self.pre_offset
+            self.logger.info("[insert info][ offset: {} ][ {} ]".format(self.offset, res))
+            self.logger.info('[ 本次准备入库任务数：{0} ][ 实际入库数：{1} ][ 库中已有任务：{2} ][ 已完成总数：{3} ]'.format(
+                self.tasks.__len__(), res['n'], res.get('err', 0), self.offset))
 
-        # 入库完成，清空任务列表
-        self.tasks = TaskList()
+            # 入库完成，清空任务列表
+            self.tasks = TaskList()
 
     def insert_stat(self):
         """
@@ -244,7 +245,7 @@ class InsertTask(object):
     def get_task(self):
         yield
 
-    def _insert_task(self, args):
+    def insert_task(self, args):
         if isinstance(args, dict):
             __t = Task(worker=self.worker, source=self.source, _type=self.type, task_name=self.task_name,
                        routine_key=self.routine_key,
@@ -257,11 +258,6 @@ class InsertTask(object):
                 self.insert_mongo()
         else:
             raise TypeError('错误的 args 类型 < {0} >'.format(type(args).__name__))
-
-    def insert_task(self):
-        # 正常入任务
-        for args in self.get_task():
-            self._insert_task(args)
 
     def __enter__(self):
         return self
