@@ -13,8 +13,9 @@ from logger import get_logger
 logger = get_logger("city_pic_update")
 
 if __name__ == '__main__':
-    path = '/Volumes/国家及城市图片/02_已处理图片（技术使用）/美之旅城市图片'
-    db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/base_data?charset=utf8')
+    path = '/Volumes/国家及城市图片/02_已处理图片（技术使用）/塞舌尔'
+    db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.230.206/tmp?charset=utf8')
+    # db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/base_data?charset=utf8')
     target_table = db['city']
     cid_set = set()
     # 获取需要更新的 city_id

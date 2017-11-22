@@ -36,4 +36,4 @@ if __name__ == '__main__':
                 'source': line['source'],
                 'city_url': line['suggest']
             }
-            it._insert_task(args)
+            it.insert_task(args)
