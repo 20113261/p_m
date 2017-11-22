@@ -24,6 +24,7 @@ if __name__ == '__main__':
             new_data['city_id'] = int(line['city_id'])
 
             new_data.pop('id')
+            new_data.pop('time2city_center')
             print('#' * 100)
             print(_count)
             print(new_data)
