@@ -28,8 +28,9 @@ WHERE source = '{}' AND city_id in ('40050', '40051', '40052', '40053', '51516',
 
 
 if __name__ == '__main__':
-    source_list = ['booking', 'agoda', 'ctrip', 'hotels', 'expedia', 'elong']
-
+    # source_list = ['booking', 'agoda', 'ctrip', 'hotels', 'expedia', 'elong']
+    # source_list = ['expedia']
+    source_list = ['hotels']
     for source in source_list:
         task_name = 'city_hotel_{}_20171122a'.format(source)
         with InsertTask(worker='proj.total_tasks.hotel_list_task', queue='hotel_list', routine_key='hotel_list',

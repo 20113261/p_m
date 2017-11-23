@@ -28,7 +28,7 @@ conn.close()
 if __name__ == '__main__':
     # city_id_key = 'id'
     city_id_key = 'Unnamed: 0'
-    source = 'agoda'
+    source = 'hotels'
     label = '2017-11-23a'
     db = dataset.connect(source_info_str)
     table = db['ota_location']
@@ -103,13 +103,15 @@ if __name__ == '__main__':
             else:
                 logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
                 continue
+                # sid = 'geo-cid-{}'.format(city_id)
         else:
             continue
         res = table.find_one(source=source, sid=sid)
         # print(sid, suggest, res)
         if res:
             cid, country_id, city_name, country_name = city_info[city_id]
-            data = {'id': res['id'], 'city_id': city_id, 'country_id': country_id, 'label_batch': label}
+            data = {'id': res['id'], 'city_id': city_id, 'country_id': country_id, 'label_batch': label,
+                    'suggest': suggest, 'suggest_type': '1', }
             table.update(data, keys=['id'])
             logger.info("[update city info][data: {}]".format(data))
         else:
