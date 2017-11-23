@@ -14,10 +14,11 @@ from service_platform_conn_pool import source_info_config
 logger = get_logger("insert_mongo_task")
 
 
-def get_tasks():
+def get_tasks(source):
     query_sql = '''SELECT *
 FROM ota_location
-WHERE source = 'daodao' AND city_id in ('40050', '40051', '40052', '40053', '51516', '51517', '51518', '51519', '51520', '51521', '51522', '20371');'''
+WHERE source = '{}' AND city_id in ('40050', '40051', '40052', '40053', '51516', '51517', '51518', '51519', '51520', '51521', '51522', '20371');'''.format(
+        source)
 
     for _l in MysqlSource(db_config=source_info_config,
                           table_or_query=query_sql,
@@ -27,23 +28,29 @@ WHERE source = 'daodao' AND city_id in ('40050', '40051', '40052', '40053', '515
 
 
 if __name__ == '__main__':
-    with InsertTask(worker='proj.total_tasks.qyer_list_task', queue='poi_list', routine_key='poi_list',
-                    task_name='city_total_daodao_20171120a', source='Daodao', _type='PoiList',
-                    priority=3, task_type=TaskType.CITY_TASK) as it:
-        for line in get_tasks():
-            # args = {
-            #     'city_id': line['city_id'],
-            #     'country_id': line['country_id'],
-            #     'source': line['source'],
-            #     'city_url': line['suggest']
-            # }
+    source_list = ['booking', 'agoda', 'ctrip', 'hotels', 'expedia', 'elong']
 
-            args = {
-                'source': 'daodao',
-                'url': urllib.parse.urlparse(line['suggest']).path,
-                'city_id': line['city_id'],
-                'country_id': line['country_id'],
-                'poi_type': 'attr'
-            }
+    for source in source_list:
+        task_name = 'city_hotel_{}_20171122a'.format(source)
+        with InsertTask(worker='proj.total_tasks.hotel_list_task', queue='hotel_list', routine_key='hotel_list',
+                        task_name=task_name, source=source.title(), _type='HotelList',
+                        priority=3, task_type=TaskType.CITY_TASK) as it:
+            for line in get_tasks(source=source):
+                # args = {
+                #     'city_id': line['city_id'],
+                #     'country_id': line['country_id'],
+                #     'source': line['source'],
+                #     'city_url': line['suggest']
+                # }
 
-            it.insert_task(args)
+                args = {
+                    'source': source,
+                    'city_id': line['city_id'],
+                    'country_id': line['country_id'],
+                    'part': task_name.split('_')[-1],
+                    'is_new_type': 1,
+                    'suggest_type': line['suggest_type'],
+                    'suggest': line['suggest'],
+                }
+
+                it.insert_task(args)
