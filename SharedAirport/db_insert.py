@@ -12,7 +12,7 @@ import copy
 if __name__ == '__main__':
     db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.230.206:3306/tmp?charset=utf8')
     airport_table = db['airport']
-    table = pandas.read_csv('/Users/hourong/Downloads/share_airport.csv')
+    table = pandas.read_csv('/tmp/share_airprot(3).csv')
 
     _count = 0
     for i in range(len(table)):

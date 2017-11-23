@@ -87,6 +87,7 @@ source_info_config = dict(
 )
 
 source_info_pool = init_pool(**source_info_config, max_connections=30)
+source_info_str = 'mysql+pymysql://mioji_admin:mioji1109@10.10.230.206/source_info?charset=utf8'
 
 db_config = dict(
     user='mioji_admin',
