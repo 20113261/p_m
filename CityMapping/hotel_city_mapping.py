@@ -28,7 +28,7 @@ conn.close()
 if __name__ == '__main__':
     # city_id_key = 'id'
     city_id_key = 'Unnamed: 0'
-    source = 'elong'
+    source = 'agoda'
     label = '2017-11-23a'
     db = dataset.connect(source_info_str)
     table = db['ota_location']
@@ -44,8 +44,18 @@ if __name__ == '__main__':
             else:
                 logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
                 continue
-        # elif source == 'agoda':
-        #     pass
+        elif source == 'agoda':
+            suggest = line[source]
+            _l_sid = re.findall('area=(\d+)', suggest)
+            if _l_sid:
+                sid = "area-{}".format(_l_sid[0])
+            else:
+                _l_sid = re.findall('poi=(\d+)', suggest)
+                if _l_sid:
+                    sid = "poi-{}".format(_l_sid[0])
+                else:
+                    logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+                    continue
         elif source == 'elong':
             suggest = line[source]
             if 'poi_' in suggest:
