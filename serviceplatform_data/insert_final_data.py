@@ -106,9 +106,6 @@ def insert_data(limit=1000):
     local_cursor.close()
 
     for each_view_final in view_list:
-        if 'hotel' in each_view_final:
-            # todo 暂时关闭酒店数据的整合例行
-            continue
         start = time.time()
         u_time = get_seek(each_view_final)
 
