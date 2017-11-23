@@ -268,24 +268,25 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
     _cursor.close()
     _conn.close()
 
-    _conn = hotel_api_pool.connection()
-    _cursor = _conn.cursor()
-    _cursor.execute('''SELECT TABLE_NAME
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'hotel_api';''')
-    for i in groupby(
-            list(map(lambda x: x[0], _cursor.fetchall())),
-            lambda x: '_'.join(x.split('_')[:2])
-    ):
-        table_names = sorted(filter(lambda x: len(x.split('_')) >= 3 and 'bak' not in x, i[1]), reverse=True)[:7]
-        if not table_names:
-            continue
-
-        for t_name in table_names:
-            table_list.append((t_name, hotel_api_config, 'api'))
-
-    _cursor.close()
-    _conn.close()
+    # 暂停 hotel-api 数据统计
+    #     _conn = hotel_api_pool.connection()
+    #     _cursor = _conn.cursor()
+    #     _cursor.execute('''SELECT TABLE_NAME
+    # FROM information_schema.TABLES
+    # WHERE TABLE_SCHEMA = 'hotel_api';''')
+    #     for i in groupby(
+    #             list(map(lambda x: x[0], _cursor.fetchall())),
+    #             lambda x: '_'.join(x.split('_')[:2])
+    #     ):
+    #         table_names = sorted(filter(lambda x: len(x.split('_')) >= 3 and 'bak' not in x, i[1]), reverse=True)[:7]
+    #         if not table_names:
+    #             continue
+    #
+    #         for t_name in table_names:
+    #             table_list.append((t_name, hotel_api_config, 'api'))
+    #
+    #     _cursor.close()
+    #     _conn.close()
 
     report_data = []
     for cand_table, conn_config, table_type in table_list:
