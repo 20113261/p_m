@@ -51,6 +51,7 @@ db_config = dict(
 )
 
 base_data_pool = init_pool(**db_config, max_connections=30)
+base_data_str = 'mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8'
 
 db_config = dict(
     user='root',
