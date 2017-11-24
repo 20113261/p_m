@@ -85,7 +85,7 @@ def expedia(each_data, source='expedia'):
         host = "https://www.cheaptickets.com"
     else:
         host = "https://www.expedia.com.hk/cn"
-    content = host + urlparse(each_data['hotel_url']).path + '?&'
+    content = "{}{}{}".format(host, urlparse(each_data['hotel_url']).path, '?&')
     return workload_key, content, workload_source
 
 
@@ -256,6 +256,7 @@ def update_per_hotel_validation(env='test'):
                 logger.warning("[Unknown Source: {}]".format(source))
         except Exception as exc:
             logger.exception(msg="[make workload key has exception][source: {}]".format(source), exc_info=exc)
+            raise exc
 
         _count += 1
         offset += 1
