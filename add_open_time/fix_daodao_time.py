@@ -2,6 +2,7 @@ import datetime
 import re
 import unittest
 from .multi_days_check import multi_days_handling
+from toolbox.Common import is_chinese
 
 SKIP_KEY = ['休息', '月', '次日']
 
@@ -221,6 +222,17 @@ def fix_time_digits(source_open_time):
     until_output_time = True
     source_open_time = standardized(source_open_time)
     closed_str = ['闭馆', '不开放', '歇业', '关闭', '不营业', '关门', '休馆', '休息', '不对外开放']
+
+    is_real_closed = True
+    for c in closed_str:
+        if c in source_open_time:
+            # 不是最后一个字符
+            if len(source_open_time) > source_open_time.index(c) + len(c) + 2:
+                # 下一个字符是汉字，则不是关门
+                if is_chinese(source_open_time[source_open_time.index(c) + len(c) + 1]):
+                    is_real_closed = False
+                    continue
+
     for date_or_time in re.findall("(周一|周四|周三|周六|周五|周七|周二|周日|[\d:]+|{})".format('|'.join(closed_str)),
                                    source_open_time):
         if '周' in date_or_time:
@@ -274,15 +286,14 @@ def fix_time_digits(source_open_time):
                     new_time = []
 
         # close str 为最终判定标志，必须防止最后
+        # 同时保证类似关门这样的语句后面没有其他汉字
         else:
             if not has_output_time:
                 _closed.extend(new_date)
                 has_output_time = True
                 new_time = []
 
-    # if len(_res) != len(source_open_time.split('|')):
-    #     raise TypeError('Error open time : {}'.format(source_open_time))
-    return '|'.join(_res), _closed
+    return '|'.join(_res), _closed, is_real_closed
 
 
 def split_sunday(b):
@@ -417,7 +428,7 @@ def fix_daodao_open_time(source_open_time):
             else:
                 _test_each = each
 
-            _res, _closed = fix_time_digits(_test_each.strip())
+            _res, _closed, _ = fix_time_digits(_test_each.strip())
 
             if not _res and not _closed:
                 continue
@@ -430,11 +441,11 @@ def fix_daodao_open_time(source_open_time):
     if not re.match('周[一二三四五六七][\s\S]+?\d{1,2}:\d{1,2}', __source_open_time):
         __source_open_time = '周一-周七 {}'.format(__source_open_time)
 
-    src_open_time, _closed = fix_time_digits(__source_open_time)
+    src_open_time, _closed, is_real_close = fix_time_digits(__source_open_time)
 
     fixed_sunday_open_time = fix_sunday_open_time(src_open_time)
 
-    true_open_time = multi_days_handling(fixed_sunday_open_time, closed=_closed)
+    true_open_time = multi_days_handling(fixed_sunday_open_time, closed=_closed, is_real_close=is_real_close)
     return true_open_time
 
 

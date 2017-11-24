@@ -185,11 +185,12 @@ def day_merge(day_time_dict: dict):
     return result
 
 
-def multi_days_handling(source, closed):
+def multi_days_handling(source, closed, is_real_close=True):
     # 分割为每天时间
     day_time_dict = get_day_time_dict(source)
     # 关闭日期
-    day_time_dict = {k: v for k, v in day_time_dict.items() if k not in closed}
+    if is_real_close:
+        day_time_dict = {k: v for k, v in day_time_dict.items() if k not in closed}
     # 合并小时
     day_time_dict = hours_merge(day_time_dict)
     # 合并日期
