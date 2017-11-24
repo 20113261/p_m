@@ -604,4 +604,4 @@ def poi_merge(cid_or_geohash, poi_type):
 if __name__ == '__main__':
     cids = [40050, 40051, 40052, 51516, 51517, 51518, 40053, 51519, 51520, 51521, 51522, 20371]
     for city_id in cids:
-        poi_merge(city_id, 'attr')
+        poi_merge(city_id, 'shop')
