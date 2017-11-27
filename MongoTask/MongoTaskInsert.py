@@ -8,6 +8,7 @@
 import mock
 import copy
 import json
+import random
 import datetime
 import pymongo
 import logging
@@ -207,7 +208,11 @@ class InsertTask(object):
             'task_name': self.task_name
         })
         if not _res:
-            dates = list(date_takes(360, 5, 10))
+            # 之后的 360 天
+            dates = list(date_takes(90, 1, 3))
+            # 随机排序
+            random.shuffle(dates)
+
             date_obj_id = collections.save({
                 'task_name': self.task_name,
                 'dates': dates
