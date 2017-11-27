@@ -510,7 +510,9 @@ WHERE task_name = '{}';'''.format(task_name))
         return _count == 0
 
     def start(self):
-        self.create_table()
+        # 当 offset 不为 0 时，不更新表
+        if self.offset == 0:
+            self.create_table()
         self.update_per_hotel_validation(env='test')
 
         if self.table_can_be_used():
