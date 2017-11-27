@@ -154,18 +154,14 @@ CREATE VIEW service_platform_product_mongo_report AS
     crawl_type,
 
     # 列表页统计函数
-    CASE WHEN crawl_type = 'hotel'
-      THEN round(sum(CASE WHEN type = 'List' AND report_key = 'Done'
-        THEN num
-                     ELSE 0 END) / 10, 2)
-    ELSE sum(CASE WHEN type = 'List' AND report_key = 'Done'
+    sum(CASE WHEN type = 'List' AND report_key = 'Done'
       THEN num
-             ELSE 0 END) END AS list_done,
+        ELSE 0 END)          AS list_done,
 
     CASE WHEN crawl_type = 'hotel'
-      THEN round(sum(CASE WHEN type = 'List' AND report_key = 'FinalFailed'
+      THEN sum(CASE WHEN type = 'List' AND report_key = 'FinalFailed'
         THEN num
-                     ELSE 0 END) / 10, 2)
+               ELSE 0 END)
     ELSE sum(CASE WHEN type = 'List' AND report_key = 'FinalFailed'
       THEN num
              ELSE 0 END) END AS list_final_failed,
@@ -176,9 +172,9 @@ CREATE VIEW service_platform_product_mongo_report AS
         ELSE 0 END)          AS list_city_done,
 
     CASE WHEN crawl_type = 'hotel'
-      THEN round(sum(CASE WHEN type = 'List' AND report_key = 'All'
+      THEN sum(CASE WHEN type = 'List' AND report_key = 'All'
         THEN num
-                     ELSE 0 END) / 10, 2)
+               ELSE 0 END)
     ELSE sum(CASE WHEN type = 'List' AND report_key = 'All'
       THEN num
              ELSE 0 END) END AS list_all,
@@ -1365,6 +1361,9 @@ CREATE TABLE `base_data_wanle_api_error_report` (
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
+
+SELECT *
+FROM base_data_wanle_api_error_report;
 
 SELECT *
 FROM base_data_wanle_api_error_report;
