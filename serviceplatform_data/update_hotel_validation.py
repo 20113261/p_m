@@ -42,6 +42,9 @@ class ReportException(Exception):
     def type(self):
         return self.__class__.__name__
 
+    def __str__(self):
+        return self.__repr__()
+
 
 class UnknownSource(ReportException):
     def __init__(self, source):
@@ -174,7 +177,7 @@ WHERE task_name = '{}';'''.format(task_name))
         workload_source = each_data["source"] + "Hotel"
         workload_key = 'NULL|{}|{}'.format(each_data["sid"], workload_source)
         # http://www.expedia.com.hk/cn/Sapporo-Hotels-La'gent-Stay-Sapporo-Oodori-Hokkaido.h15110395.Hotel-Information?&
-        if each_data['hotel_url']:
+        if not each_data['hotel_url']:
             raise UrlNone(source='agoda')
         content = urljoin("https://www.agoda.com", urlparse(each_data['hotel_url']).path) + '&'
         return workload_key, content, workload_source
@@ -343,7 +346,7 @@ WHERE task_name = '{}';'''.format(task_name))
                 if ret_data:
                     data.append(ret_data)
             except ReportException as r_exc:
-                logger.warning("[report error][msg: {}]".format(r_exc))
+                logger.warning("[report error][msg: {}]".format(str(r_exc)))
                 self.report_dict[(str(r_exc), r_exc.type)] += 1
             except Exception as exc:
                 logger.exception(msg="[make workload key has exception][source: {}]".format(source), exc_info=exc)
