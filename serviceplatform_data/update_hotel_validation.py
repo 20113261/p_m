@@ -507,7 +507,7 @@ WHERE task_name = '{}';'''.format(task_name))
                 _count += v
         if _count > 0:
             self.send_error_report()
-        return _count > 0
+        return _count == 0
 
     def start(self):
         self.create_table()
