@@ -166,7 +166,7 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
     cursor.close()
     conn.close()
 
-    if poi_type == 'attr':
+    if poi_type in ('attr', 'shop'):
         # 获取人脸识别数据
         _conn = poi_face_detect_pool.connection()
         _cursor = _conn.cursor()
