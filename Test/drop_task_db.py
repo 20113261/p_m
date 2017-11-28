@@ -13,6 +13,7 @@ db = client['MongoTask']
 
 def drop_collections():
     for name in filter(lambda x: x.endswith('_20171127a'), db.collection_names()):
+        print(name)
         db.drop_collection(name_or_collection=name)
 
 

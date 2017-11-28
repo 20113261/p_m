@@ -31,7 +31,7 @@ from service_platform_report.routine_report import main as routine_report
 from service_platform_report.send_error_email import send_error_report_email
 from serviceplatform_data.insert_data_mongo import insert_hotel_data, insert_city_data
 from serviceplatform_data.get_nearby_hotel_city import get_nearby_city
-from serviceplatform_data.update_hotel_validation import update_hotel_validation
+from serviceplatform_data.update_hotel_validation import UpdateHotelValidation
 from serviceplatform_data.insert_poi_detect_task_info import get_task_info
 from serviceplatform_data.delete_already_scanned_file import delete_already_scanned_file
 from logger import get_logger
@@ -109,6 +109,11 @@ def poi_merge_report_total():
     poi_merged_report('shop')
 
 
+def start_update_hotel_validation():
+    update_hotel_validation = UpdateHotelValidation()
+    update_hotel_validation.start()
+
+
 '''
 #1 * * * * /usr/local/bin/python3 /search/hourong/PycharmProjects/PoiCommonScript/service_platform_report/routine_report.py >> /root/data/PycharmProjects/PoiCommonScript/service_platform_report/task_routine_log
 '''
@@ -129,7 +134,7 @@ schedule.add_job(on_exc_send_email(send_error_report_email), 'cron', hour='*/1',
                  max_instances=10)
 schedule.add_job(on_exc_send_email(get_near_city), 'cron', hour='1', id='get_near_city',
                  max_instances=1)
-schedule.add_job(on_exc_send_email(update_hotel_validation), 'cron', hour='2', id='update_hotel_validation',
+schedule.add_job(on_exc_send_email(start_update_hotel_validation), 'cron', hour='2', id='update_hotel_validation',
                  max_instances=1)
 schedule.add_job(on_exc_send_email(get_task_info), 'cron', hour='3', id='insert_poi_detect_task_info',
                  max_instances=1)

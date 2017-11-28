@@ -80,3 +80,6 @@ mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --skip-lock-tables --insert-
 
 # init poi image
 mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --skip-lock-tables --insert-ignore --no-create-info --no-create-db --complete-insert  BaseDataFinal poi_images | sed 's/`poi_images`/`poi_images_new`/g' > poi_images.sql
+
+# init validation task
+mysqldump -h10.10.230.206 -umioji_admin -pmioji1109 --skip-lock-tables --insert-ignore --no-create-info --no-create-db --complete-insert  verify_info workload_hotel_validation_new | sed 's/`workload_hotel_validation_new`/`workload_hotel_validation`/g' > workload_hotel_validation.sql
