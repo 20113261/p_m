@@ -247,7 +247,11 @@ WHERE is_available=0 AND poi_id IN ({});'''.format(
     if new_first_img == '':
         new_img = new_first_img = max_size_img
     else:
-        new_img = '|'.join(filter(lambda x: is_legal(x), new_img_list))
+        # 图片序列去重，不改变原来次序
+        final_new_img_list = list(set(new_img_list))
+        final_new_img_list.sort(key=new_img_list.index)
+
+        new_img = '|'.join(filter(lambda x: is_legal(x), final_new_img_list))
 
     return new_img, new_first_img
 
