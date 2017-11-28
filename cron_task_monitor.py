@@ -119,12 +119,14 @@ def start_update_hotel_validation():
 '''
 
 schedule = BackgroundScheduler()
-schedule.add_job(on_exc_send_email(task_progress_report_mongo), 'cron', hour='*/2', id='task_progress_report_mongo',
+schedule.add_job(on_exc_send_email(task_progress_report_mongo), 'cron', hour='*', minute='*/10',
+                 id='task_progress_report_mongo',
                  max_instances=10)
 schedule.add_job(on_exc_send_email(task_progress_report), 'cron', hour='*/2', id='task_progress_report',
                  max_instances=10)
-schedule.add_job(on_exc_send_email(detectOriData), 'cron', hour='*/2', id='detectOriData', max_instances=10)
-schedule.add_job(on_exc_send_email(data_coverage), 'cron', hour='*/2', id='data_coverage')
+schedule.add_job(on_exc_send_email(detectOriData), 'cron', hour='*', minute='*/30', id='detectOriData',
+                 max_instances=10)
+schedule.add_job(on_exc_send_email(data_coverage), 'cron', hour='*', minute='*/30', id='data_coverage')
 schedule.add_job(on_exc_send_email(detail_insert_final_data), 'cron', minute='*/2', id='detail_insert_final_data')
 schedule.add_job(on_exc_send_email(image_insert_final_data), 'cron', second='*/50', id='image_insert_final_data')
 # schedule.add_job(on_exc_send_email(load_final_data), 'cron', minute='*/1', id='load_final_data')
