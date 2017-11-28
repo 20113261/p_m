@@ -94,10 +94,10 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
     pic_total = set()
     p_hash_dict = defaultdict(list)
     for file_name, bucket_name, pic_size, pic_md5, use, info, url in cursor.fetchall():
-        if poi_type == 'shop' and bucket_name not in ('attr_bucket', 'shop_bucket'):
+        if poi_type == 'shop' and bucket_name not in ('attr_bucket', 'shop_bucket', 'mioji-attr', 'mioji-shop'):
             # shopping img upload to mioji-attr or mioji-shop
             continue
-        elif poi_type not in bucket_name:
+        elif poi_type != 'shop' and poi_type not in bucket_name:
             # rest img upload to mioji-rest
             # attr img upload to mioji-attr
             continue
@@ -368,4 +368,4 @@ def img_ori(_poi_type):
 
 
 if __name__ == '__main__':
-    img_ori('attr')
+    img_ori('shop')
