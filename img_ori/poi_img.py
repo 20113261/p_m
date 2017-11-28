@@ -237,7 +237,10 @@ WHERE is_available=0 AND poi_id IN ({});'''.format(
             new_img_list.insert(0, old_first_img)
         else:
             # 否则使用新的首图
-            new_first_img = new_img_list[0]
+            if new_img_list:
+                new_first_img = new_img_list[0]
+            else:
+                new_first_img = ''
     else:
         if new_img_list:
             new_first_img = new_img_list[0]
