@@ -127,6 +127,9 @@ FROM {};'''.format(
                 data = []
                 logger.debug("[update tag id][table_name: {}][update count: {}]".format(task_table, res))
 
+    res = cursor.executemany('update base_data.{} set tag_id=%s, tagB=%s where id=%s'.format(task_table),
+                             data)
+    logger.debug("[update tag id][table_name: {}][update count: {}]".format(task_table, res))
     logger.debug("[mk data finished][poi_type: {}][len: {}]".format(poi_type, _count))
     conn.commit()
     cursor.close()
