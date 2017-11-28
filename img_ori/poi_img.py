@@ -14,7 +14,8 @@ import redis
 import json
 from toolbox.Common import is_legal
 from ast import literal_eval
-from service_platform_conn_pool import base_data_final_pool, poi_ori_pool, poi_face_detect_pool,spider_data_base_data_pool
+from service_platform_conn_pool import base_data_final_pool, poi_ori_pool, poi_face_detect_pool, \
+    spider_data_base_data_pool
 from logger import get_logger, func_time_logger
 from data_source import MysqlSource
 from StandardException import PoiTypeError
@@ -243,10 +244,11 @@ WHERE is_available=0 AND poi_id IN ({});'''.format(
         else:
             new_first_img = ''
 
-    if new_img_list == '':
-        new_img_list = new_first_img = max_size_img
+    if new_first_img == '':
+        new_img = new_first_img = max_size_img
+    else:
+        new_img = '|'.join(filter(lambda x: is_legal(x), new_img_list))
 
-    new_img = '|'.join(filter(lambda x: is_legal(x), new_img_list))
     return new_img, new_first_img
 
 
