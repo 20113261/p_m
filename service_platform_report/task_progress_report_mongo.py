@@ -25,6 +25,8 @@ def _each_task_progress(collections):
 
     start = time.time()
     for each_task_name in collections.distinct('task_name', {}):
+        if not isinstance(each_task_name, str):
+            continue
         task_list = each_task_name.split('_')
         if len(task_list) != 4:
             logger.debug("[unknown task name][name: {}]".format(each_task_name))
