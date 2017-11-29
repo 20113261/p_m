@@ -19,7 +19,7 @@ collections = client['MongoTask']['Task']
 
 def task_enter():
     _count = 0
-    for line in open('/tmp/target_url'):
+    for line in open('/search/hourong/task/target_url_1128'):
         s_l = line.strip().split('###')
         yield s_l
         _count += 1
