@@ -36,7 +36,7 @@ poi_ori_config = {
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
-    'db': 'poi_merge'
+    'db': 'base_data'
 }
 
 table_name = ''
@@ -113,7 +113,7 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
         if url in ('', 'NULL', None):
             # 产品标注图片，不许过滤，直接使用
             file2phash[file_name] = 'USE'
-            p_hash_dict["USE"].append(file_name)
+            p_hash_dict["USE"].append((file_name, -1))
             continue
         elif not info:
             # 抓取图片，没有 pHash ，直接过滤
@@ -131,7 +131,7 @@ WHERE (`source`, `sid`) IN ({});'''.format(','.join(map(lambda x: "('{}', '{}')"
             else:
                 # 老图，人工标的，不能过滤
                 file2phash[file_name] = 'USE'
-                p_hash_dict["USE"].append(file_name)
+                p_hash_dict["USE"].append((file_name, -1))
                 continue
 
         # get max size
