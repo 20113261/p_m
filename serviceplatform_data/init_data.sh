@@ -83,3 +83,8 @@ mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --skip-lock-tables --insert-
 
 # init validation task
 mysqldump -h10.10.230.206 -umioji_admin -pmioji1109 --skip-lock-tables --insert-ignore --no-create-info --no-create-db --complete-insert  verify_info workload_hotel_validation_new | sed 's/`workload_hotel_validation_new`/`workload_hotel_validation`/g' > workload_hotel_validation.sql
+
+# 酒店数据导出
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert BaseDataFinal hotel_final_20171122a |sed 's/`hotel_final_20171122a`/`hotel_final`/g' > hotel_final_20171122a.sql
+
+mysqldump -h10.10.238.148 -umioji_admin -pmioji1109 --skip-lock-tables --no-create-info --no-create-db tmp hotel_final > hotel_final_new.sql
