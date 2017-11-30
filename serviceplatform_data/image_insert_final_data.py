@@ -133,7 +133,7 @@ def insert_data(limit=1000):
             local_cursor = local_conn.cursor()
             if task_type in ('attr', 'rest', 'total'):
                 query_sql = '''INSERT IGNORE INTO {0}.{1}
-(file_name, source, sid, url, pic_size, bucket_name, url_md5, pic_md5, `use`, part, date)
+(file_name, source, sid, url, pic_size, bucket_name, url_md5, pic_md5, `use`, part, date, info)
   SELECT
     file_name,
     source,
@@ -145,11 +145,12 @@ def insert_data(limit=1000):
     pic_md5,
     `use`,
     part,
-    date
+    date,
+    info
   FROM
     {2} where id > {3} ORDER BY id LIMIT {4};;'''.format(final_database, to_table_name, each_table_final, seek, limit)
             elif task_type == 'hotel':
-                query_sql = '''INSERT IGNORE INTO {0}.{1} (source, source_id, pic_url, pic_md5, part, hotel_id, status, update_date, size, flag, file_md5)
+                query_sql = '''INSERT IGNORE INTO {0}.{1} (source, source_id, pic_url, pic_md5, part, hotel_id, status, update_date, size, flag, file_md5, info)
   SELECT
     source,
     source_id,
@@ -161,7 +162,8 @@ def insert_data(limit=1000):
     update_date,
     size,
     flag,
-    file_md5
+    file_md5,
+    info
   FROM
     {2}
   WHERE id > {3}
