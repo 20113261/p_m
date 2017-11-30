@@ -13,7 +13,7 @@ from logger import get_logger
 logger = get_logger("hotel_too_far")
 
 spider_task_data_config = {
-    'host': '10.10.238.148',
+    'host': '10.10.213.148',
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
@@ -63,16 +63,34 @@ WHERE map_info IS NOT NULL AND map_info != 'NULL';''')
     return res
 
 
-def update_data(data):
-    conn = spider_task_tmp_pool.connection()
-    cursor = conn.cursor()
-    _res = cursor.executemany('''UPDATE hotel_final
-SET city_id = 'NULL'
-WHERE source = %s AND source_id = %s AND city_id = %s;''', data)
-    conn.commit()
-    cursor.close()
-    conn.close()
-    logger.info("[update too far hotel][count: {}][update: {}]".format(len(data), _res))
+# def update_data(data):
+#     conn = spider_task_tmp_pool.connection()
+#     cursor = conn.cursor()
+#     _res = cursor.executemany('''UPDATE hotel_final
+# SET city_id = 'NULL'
+# WHERE source = %s AND source_id = %s AND city_id = %s;''', data)
+#     conn.commit()
+#     cursor.close()
+#     conn.close()
+#     logger.info("[update too far hotel][count: {}][update: {}]".format(len(data), _res))
+
+def get_sql(res_f, res_del_f, data):
+    """
+    :param res_f:
+    :param res_del_f:
+    :param data:
+    :return:
+    """
+    # type: open(), open(), list
+    update_sql = '''UPDATE IGNORE `hotel_final` SET city_id = 'NULL' WHERE (source, source_id, city_id) in ({});\n'''.format(
+        ",".join(map(lambda x: "('{}', '{}', '{}')".format(*x), data))
+    )
+    delete_sql = '''DELETE FROM hotel_final WHERE (source, source_id, city_id) in ({})'''.format(
+        ",".join(map(lambda x: "('{}', '{}', '{}')".format(*x), data))
+    )
+    res_f.write(update_sql)
+    res_del_f.write(delete_sql)
+    logger.info("[get data][count: {}]".format(len(data)))
 
 
 def main():
@@ -110,23 +128,19 @@ WHERE city_id != 'NULL' AND city_id IS NOT NULL;'''
 
         if get_distance(_c_map_info, _map_info) > 50:
             error += 1
-            f_res.write(
-                '''UPDATE IGNORE `hotel_final` SET city_id = 'NULL' WHERE source = '{}' AND source_id = '{}' AND city_id = '{}';\n'''.format(
-                    _source, _source_id, _city_id))
-            f_del.write(
-                '''DELETE FROM hotel_final WHERE source = '{}' AND source_id = '{}' AND city_id = '{}';\n'''.format(
-                    _source, _source_id, _city_id))
-            # new_data.append((_source, _source_id, _city_id))
-            # if len(new_data) == 2000:
-            #     update_data(data=new_data)
-            #     new_data = []
+
+            new_data.append((_source, _source_id, _city_id))
+            if len(new_data) == 1000:
+                get_sql(res_f=f_res, res_del_f=f_del, data=new_data)
+                new_data = []
             logger.info(
                 "[error_distance][offset: {}][error: {}][dist: {}][source: {}][source_id: {}][city_id: {}]".format(
                     offset, error, dist, _source, _source_id,
                     _city_id))
-
+    if new_data:
+        get_sql(res_f=f_res, res_del_f=f_del, data=new_data)
     f_res.close()
-    f_del.close(x)
+    f_del.close()
 
 
 if __name__ == '__main__':
