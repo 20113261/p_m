@@ -85,7 +85,7 @@ def get_sql(res_f, res_del_f, data):
     update_sql = '''UPDATE IGNORE `hotel_final` SET city_id = 'NULL' WHERE (source, source_id, city_id) in ({});\n'''.format(
         ",".join(map(lambda x: "('{}', '{}', '{}')".format(*x), data))
     )
-    delete_sql = '''DELETE FROM hotel_final WHERE (source, source_id, city_id) in ({})'''.format(
+    delete_sql = '''DELETE FROM `hotel_final` WHERE (source, source_id, city_id) in ({});\n'''.format(
         ",".join(map(lambda x: "('{}', '{}', '{}')".format(*x), data))
     )
     res_f.write(update_sql)
@@ -130,7 +130,7 @@ WHERE city_id != 'NULL' AND city_id IS NOT NULL;'''
             error += 1
 
             new_data.append((_source, _source_id, _city_id))
-            if len(new_data) == 1000:
+            if len(new_data) == 200:
                 get_sql(res_f=f_res, res_del_f=f_del, data=new_data)
                 new_data = []
             logger.info(
