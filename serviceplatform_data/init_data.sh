@@ -88,3 +88,10 @@ mysqldump -h10.10.230.206 -umioji_admin -pmioji1109 --skip-lock-tables --insert-
 mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert BaseDataFinal hotel_final_20171122a |sed 's/`hotel_final_20171122a`/`hotel_final`/g' > hotel_final_20171122a.sql
 
 mysqldump -h10.10.238.148 -umioji_admin -pmioji1109 --skip-lock-tables --no-create-info --no-create-db tmp hotel_final > hotel_final_new.sql
+
+mysqldump -h10.10.213.148 -umioji_admin -pmioji1109 --insert-ignore --skip-lock-tables --no-create-info --no-create-db --where="1 limit 3000000" tmp hotel_final |sed 's/`hotel_final`/`hotel_final_1`/g' > hotel_final_1.sql
+
+mysqldump -h10.10.213.148 -umioji_admin -pmioji1109 --insert-ignore --skip-lock-tables --no-create-info --no-create-db --where="1 limit 6000000,99999999999" tmp hotel_final |sed 's/`hotel_final`/`hotel_final_2`/g' > hotel_final_2.sql
+
+mysqldump -h10.10.213.148 -umioji_admin -pmioji1109 --insert-ignore --skip-lock-tables --no-create-info --no-create-db --where="1 limit 3000000,3000000" tmp hotel_final |sed 's/`hotel_final`/`hotel_final_3`/g' > hotel_final_3.sql
+
