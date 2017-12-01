@@ -5,6 +5,7 @@
 # @Site    : 
 # @File    : hotel_too_far.py
 # @Software: PyCharm
+import os
 import numpy as np
 from data_source import MysqlSource
 from service_platform_conn_pool import base_data_pool, spider_task_tmp_pool
@@ -12,8 +13,10 @@ from logger import get_logger
 
 logger = get_logger("hotel_too_far")
 
+SQL_PATH = '/search/hourong/data_sql'
+
 spider_task_data_config = {
-    'host': '10.10.213.148',
+    'host': '10.10.238.148',
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
@@ -74,38 +77,73 @@ WHERE map_info IS NOT NULL AND map_info != 'NULL';''')
 #     conn.close()
 #     logger.info("[update too far hotel][count: {}][update: {}]".format(len(data), _res))
 
-def get_sql(res_f, res_del_f, data):
+def get_sql(table_name, res_f, res_del_f, data):
     """
+    :param table_name:
     :param res_f:
     :param res_del_f:
     :param data:
     :return:
     """
-    # type: open(), open(), list
-    update_sql = '''UPDATE IGNORE `hotel_final` SET city_id = 'NULL' WHERE (source, source_id, city_id) in ({});\n'''.format(
-        ",".join(map(lambda x: "('{}', '{}', '{}')".format(*x), data))
+    # type: str, open(), open(), list
+    update_sql = '''UPDATE IGNORE `{}` SET city_id = 'NULL' WHERE (source, source_id, city_id) in ({});\n'''.format(
+        table_name, ",".join(map(lambda x: "('{}', '{}', '{}')".format(*x), data))
     )
-    delete_sql = '''DELETE FROM `hotel_final` WHERE (source, source_id, city_id) in ({});\n'''.format(
-        ",".join(map(lambda x: "('{}', '{}', '{}')".format(*x), data))
+    delete_sql = '''DELETE FROM `{}` WHERE (source, source_id, city_id) in ({});\n'''.format(
+        table_name, ",".join(map(lambda x: "('{}', '{}', '{}')".format(*x), data))
     )
     res_f.write(update_sql)
     res_del_f.write(delete_sql)
     logger.info("[get data][count: {}]".format(len(data)))
 
 
-def main():
+def update_table(u_sql_name, d_sql_name):
+    # execute update sql
+    command = '/usr/bin/mysql -h{host} -u{user} -p{password} {db} < "{sql_path}/{sql_name}"'. \
+        format(**
+               {
+                   'host': spider_task_data_config['host'],
+                   'user': spider_task_data_config['user'],
+                   'password': spider_task_data_config['password'],
+                   'db': spider_task_data_config['db'],
+                   'sql_path': SQL_PATH,
+                   'sql_name': u_sql_name
+               }
+               )
+    os.system(command=command)
+    logger.info("[execute][command: {}]".format(command))
+
+    # execute delete sql
+    command = 'mysql -h{host} -u{user} -p{password} {db} < "{sql_path}/{sql_name}"'. \
+        format(**
+               {
+                   'host': spider_task_data_config['host'],
+                   'user': spider_task_data_config['user'],
+                   'password': spider_task_data_config['password'],
+                   'db': spider_task_data_config['db'],
+                   'sql_path': SQL_PATH,
+                   'sql_name': d_sql_name
+               }
+               )
+    os.system(command=command)
+    logger.info("[execute][command: {}]".format(command))
+
+
+def detect_table(table_name):
     c_dict = get_c_info()
 
     _sql = '''SELECT map_info, city_id, source, source_id
-FROM hotel_final
-WHERE city_id != 'NULL' AND city_id IS NOT NULL;'''
+FROM {}
+WHERE city_id != 'NULL' AND city_id IS NOT NULL;'''.format(table_name)
 
     offset = 0
     error = 0
     new_data = []
 
-    f_res = open('/search/hourong/no_cid_hotel.sql', 'w')
-    f_del = open('/search/hourong/no_cid_hotel_del.sql', 'w')
+    update_sql_name = 'no_cid_hotel|_|{}.sql'.format(table_name)
+    del_sql_name = 'no_cid_hotel_del|_|{}.sql'.format(table_name)
+    f_res = open(os.path.join(SQL_PATH, update_sql_name), 'w')
+    f_del = open(os.path.join(SQL_PATH, del_sql_name), 'w')
 
     for line in MysqlSource(db_config=spider_task_data_config,
                             table_or_query=_sql,
@@ -131,16 +169,31 @@ WHERE city_id != 'NULL' AND city_id IS NOT NULL;'''
 
             new_data.append((_source, _source_id, _city_id))
             if len(new_data) == 200:
-                get_sql(res_f=f_res, res_del_f=f_del, data=new_data)
+                get_sql(table_name=table_name, res_f=f_res, res_del_f=f_del, data=new_data)
                 new_data = []
             logger.info(
                 "[error_distance][offset: {}][error: {}][dist: {}][source: {}][source_id: {}][city_id: {}]".format(
                     offset, error, dist, _source, _source_id,
                     _city_id))
     if new_data:
-        get_sql(res_f=f_res, res_del_f=f_del, data=new_data)
+        get_sql(table_name=table_name, res_f=f_res, res_del_f=f_del, data=new_data)
     f_res.close()
     f_del.close()
+
+    update_table(u_sql_name=update_sql_name, d_sql_name=del_sql_name)
+
+
+def main():
+    _sql = '''SELECT TABLE_NAME
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = 'tmp';'''
+    for line in MysqlSource(db_config=spider_task_data_config,
+                            table_or_query=_sql,
+                            size=10000, is_table=False,
+                            is_dict_cursor=False):
+        table_name = line[0]
+        logger.info("[start][table_name: {}]".format(table_name))
+        detect_table(table_name=table_name)
 
 
 if __name__ == '__main__':
