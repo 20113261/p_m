@@ -136,8 +136,8 @@ schedule.add_job(on_exc_send_email(send_error_report_email), 'cron', hour='*/1',
                  max_instances=10)
 schedule.add_job(on_exc_send_email(get_near_city), 'cron', hour='1', id='get_near_city',
                  max_instances=1)
-schedule.add_job(on_exc_send_email(start_update_hotel_validation), 'cron', hour='2', id='update_hotel_validation',
-                 max_instances=1)
+# schedule.add_job(on_exc_send_email(start_update_hotel_validation), 'cron', hour='2', id='update_hotel_validation',
+#                  max_instances=1)
 schedule.add_job(on_exc_send_email(get_task_info), 'cron', hour='3', id='insert_poi_detect_task_info',
                  max_instances=1)
 schedule.add_job(on_exc_send_email(delete_already_scanned_file), 'cron', hour='*/2', id='delete_already_scanned_file',
