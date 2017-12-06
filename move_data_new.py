@@ -58,7 +58,7 @@ FROM {};'''.format(source_table_name)
         if len(data) == 1000:
             insert_data(data)
             data = []
-            logger.debug("[move data][count: {}]".format(_count))
+            logger.debug("[table_name: {}][move data][count: {}]".format(source_table_name, _count))
     if data:
         insert_data(data)
 
