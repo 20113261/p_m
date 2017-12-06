@@ -321,7 +321,9 @@ def _update_per_uid_img(_uid, _poi_type, _old_img_list, _old_first_img, _officia
     _s_sid_set = get_source_sid_set(_uid)
     _img_list, _first_img = get_img(s_sid_set=_s_sid_set, poi_type=_poi_type, old_img=_old_img_list,
                                     old_first_img=_old_first_img, is_official=(int(_official) == 1))
-    logger.debug("[get img info][uid: {}][img_list: {}][first_img: {}]".format(_uid, _img_list, _first_img))
+    logger.debug(
+        "[get img info][uid: {}][img_list_len: {}][img_list: {}][first_img: {}]".format(_uid, len(_img_list), _img_list,
+                                                                                        _first_img))
     # 按照 uid 排序，每当 uid 更新后，执行图片更新命令
     data.append((_first_img, _img_list, _uid))
 
