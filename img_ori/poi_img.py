@@ -36,7 +36,7 @@ poi_ori_config = {
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
-    'db': 'base_data'
+    'db': 'poi_merge'
 }
 
 table_name = ''
