@@ -335,7 +335,6 @@ def _img_ori(_poi_type):
   first_image,
   official
 FROM {}
-WHERE city_id=12617
 ORDER BY id
 LIMIT {}, 99999999999999;'''.format(table_name, offset)
 
