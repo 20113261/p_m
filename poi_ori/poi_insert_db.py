@@ -78,11 +78,12 @@ get_key.update_priority({
     }
 })
 
+# 不使用 online 的 plan_to_count、been_to_count、comment_count 这三个信息
 online2source = {
-    'plantocounts': 'plantocount',
-    'beentocounts': 'beentocount',
+    # 'plantocounts': 'plantocount',
+    # 'beentocounts': 'beentocount',
     'ranking': 'real_ranking',
-    'commentcounts': 'commentcount',
+    # 'commentcounts': 'commentcount',
     'site': 'website_url',
     'opentime': 'open_desc',
 }
@@ -798,17 +799,25 @@ def poi_insert_data(cid, _poi_type):
                     if is_legal(tagid_data['daodao']):
                         if '游览' in tagid_data['daodao']:
                             if 'online' in union_info:
-                                filter_data_already_online(poi_type, miaoji_id, "tag 中包含游览被过滤")
-                            logger.debug("[tour filter][data: {}]".format(tagid_data['daodao']))
-                            continue
+                                # 这种内容本来是要被删除的，但是由于 online 环境的某些购物还必须要更新，所以只能保留
+                                # 并参加融合，这种内容算是特殊处理吧，对于新增的，一定不能加入游览
+                                # filter_data_already_online(poi_type, miaoji_id, "tag 中包含游览被过滤")
+                                pass
+                            else:
+                                logger.debug("[tour filter][data: {}]".format(tagid_data['daodao']))
+                                continue
             except Exception as exc:
                 logger.exception(msg="[tour filter error]", exc_info=exc)
 
             if norm_tag == '' and other_tag != '':
                 # 景点中包含购物被清除
                 if 'online' in union_info:
-                    filter_data_already_online(poi_type, miaoji_id, "景点类中存在购物数据被过滤")
-                continue
+                    # 这种内容本来是要被删除的，但是由于 online 环境的某些购物还必须要更新，所以只能保留
+                    # 并参加融合，这种内容算是特殊处理吧，对于新增的，一定不能添加购物进入
+                    # filter_data_already_online(poi_type, miaoji_id, "景点类中存在购物数据被过滤")
+                    pass
+                else:
+                    continue
 
             data.append(per_data)
         elif poi_type == 'rest':
