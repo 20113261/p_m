@@ -6,15 +6,15 @@
 # @File    : update_qyer_city_id.py
 # @Software: PyCharm
 import json
-from service_platform_conn_pool import spider_data_base_data_pool
+from service_platform_conn_pool import source_info_pool, spider_data_base_data_pool
 
 
 def get_tasks():
     sql = '''SELECT
   others_info,
   city_id
-FROM ota_location_qyer_1204;'''
-    conn = spider_data_base_data_pool.connection()
+FROM ota_location WHERE source='qyer';'''
+    conn = source_info_pool.connection()
     cursor = conn.cursor()
     cursor.execute(sql)
     for line in cursor.fetchall():
@@ -31,9 +31,9 @@ def update_db(data):
     __conn = spider_data_base_data_pool.connection()
     __cursor = __conn.cursor()
     print('start', line)
-    __res = __cursor.executemany('''UPDATE attr_1204
+    __res = __cursor.executemany('''UPDATE attr_1206
     SET city_id = %s
-    WHERE attr_1204.source_city_id = %s;''', data)
+    WHERE attr_1206.source_city_id = %s;''', data)
     print('end', line, len(data), __res, _count)
     __conn.commit()
     __conn.close()

@@ -16,11 +16,13 @@ logger = get_logger("hotel_too_far")
 SQL_PATH = '/search/hourong/data_sql'
 
 spider_task_data_config = {
-    'host': '10.10.238.148',
+    # 'host': '10.10.238.148',
+    'host': '10.10.228.253',
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
-    'db': 'tmp'
+    # 'db': 'tmp'
+    'db': 'hotel_api'
 }
 
 
@@ -197,4 +199,5 @@ WHERE TABLE_SCHEMA = 'tmp';'''
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    detect_table(table_name='hotelinfo_gta_2017_12_01xz')

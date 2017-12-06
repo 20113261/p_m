@@ -92,9 +92,14 @@ def task(vid, img_name):
 
 if __name__ == '__main__':
     task_info = [
-        ('v740906', 'beb78198d4a41bd75ca523769d397f32.jpg'),
-        ('v740860', '32f01f5b9b01741f56bf3eeba381d464.jpg'),
-        ('v740909', 'cf2426d495d07d110b27349b7e3ef14e.jpg')
+        # ('v740906', 'beb78198d4a41bd75ca523769d397f32.jpg'),
+        # ('v740860', '32f01f5b9b01741f56bf3eeba381d464.jpg'),
+        # ('v740909', 'cf2426d495d07d110b27349b7e3ef14e.jpg')
+
+        ('v714996', 'f462eb3d22f8e259f49e333d3961bb36.jpg'),
+        ('v714996', '935fb56780f244b49f8a38d5c591be5b.jpg'),
+        ('v714996', '86c72f0a4aa673d77dcfff3154539f88.jpg'),
+        ('v714996', 'b8b6bb32698868745acea8014b7a8a7a.jpg'),
     ]
 
     for _vid, _img_name in task_info:

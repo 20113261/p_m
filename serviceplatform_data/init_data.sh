@@ -95,3 +95,6 @@ mysqldump -h10.10.213.148 -umioji_admin -pmioji1109 --insert-ignore --skip-lock-
 
 mysqldump -h10.10.213.148 -umioji_admin -pmioji1109 --insert-ignore --skip-lock-tables --no-create-info --no-create-db --where="1 limit 3000000,3000000" tmp hotel_final |sed 's/`hotel_final`/`hotel_final_3`/g' > hotel_final_3.sql
 
+# qyer 图片数据合并
+mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 --replace --skip-lock-tables --no-create-info --no-create-db --complete-insert --allow-keywords "" ServicePlatform  |sed 's/`images_total_qyer_20171120a`/`poi_images`/g' > images_total_qyer_20171120a.sql
+
