@@ -64,19 +64,18 @@ FROM city;''')
     return _res
 
 
-def _get_per_table_task_info(table_name):
+def _get_per_table_task_info():
     global offset
     sql = '''SELECT
-            {0}.city_id                    AS poi_city_id,
-            {0}.source                     AS poi_source,
-            sid                            AS poi_sid,
-            file_name                      AS pic_name
-          FROM BaseDataFinal.poi_images
-            JOIN {0}
-              ON BaseDataFinal.poi_images.source = {0}.source AND
-                 BaseDataFinal.poi_images.sid = {0}.source_id
-          WHERE city_id != 'NULL' and BaseDataFinal.poi_images.`use` != '0'
-          LIMIT {1},999999999;'''.format(table_name, offset)
+  attr_unid.city_id AS poi_city_id,
+  attr_unid.source  AS poi_source,
+  sid               AS poi_sid,
+  file_name         AS pic_name
+FROM BaseDataFinal.poi_images, poi_merge.attr_unid
+WHERE
+  attr_unid.source = 'qyer' AND BaseDataFinal.poi_images.source = 'qyer' AND BaseDataFinal.poi_images.`use` != '0' AND
+  attr_unid.source = BaseDataFinal.poi_images.source AND attr_unid.source_id = BaseDataFinal.poi_images.sid
+  LIMIT {0},999999999;'''.format(offset)
     data = []
     _count = 0
     for line in MysqlSource(service_platform_conf, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
@@ -96,7 +95,7 @@ def _get_per_table_task_info(table_name):
     insert_task_data(data, _count)
 
 
-def get_per_table_task_info(table_name):
+def get_per_table_task_info():
     global offset
     global cid2grade
     cid2grade = prepare_city_info()
@@ -105,37 +104,11 @@ def get_per_table_task_info(table_name):
     while max_retry_times:
         max_retry_times -= 1
         try:
-            _get_per_table_task_info(table_name)
+            _get_per_table_task_info()
             break
         except Exception as exc:
             logger.exception(msg="[get task info error]", exc_info=exc)
 
 
-def get_task_info():
-    # detect list
-    # get image
-    local_conn = service_platform_pool.connection()
-    local_cursor = local_conn.cursor()
-    local_cursor.execute('''SELECT TABLE_NAME
-        FROM information_schema.TABLES
-        WHERE TABLE_SCHEMA = 'ServicePlatform';''')
-    # 强制要求按照 tag 的先后顺序排列
-    list_tables = list(
-        sorted(
-            filter(lambda x: x.startswith('list_total_qyer') and x.split('_')[-1] >= '20171020a',
-                   map(lambda x: x[0],
-                       local_cursor.fetchall()
-                       )
-                   ),
-            key=lambda x: x.split('_')[-1]
-        )
-    )
-    local_cursor.close()
-    local_conn.close()
-
-    for each_table_name in list_tables:
-        get_per_table_task_info(each_table_name)
-
-
 if __name__ == '__main__':
-    get_task_info()
+    get_per_table_task_info()
