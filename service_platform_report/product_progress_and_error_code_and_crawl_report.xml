@@ -9,15 +9,15 @@
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field key="true" extend="false" name="抓取类型">`crawl_type`</field>
-            <field name="列表页完成">concat(round((`list_done` + `list_final_failed`)/`list_all`*100,2),'%')</field>
-            <field name="列表页完成无数据">concat(round(`list_final_failed`/`list_all`*100,2),'%')</field>
-            <field name="列表页无城市数据">concat(round(100-`list_city_done`/`list_all`*100,2),'%')</field>
+            <field name="列表页完成">round((`list_done` + `list_final_failed`)/`list_all`*100,2)</field>
+            <field name="列表页完成无数据">round(`list_final_failed`/`list_all`*100,2)</field>
+            <field name="列表页无城市数据">100-round(100-`list_city_done`/`list_all`*100,2)</field>
             <field name="列表页全部">`list_all`</field>
-            <field name="详情页完成">concat(round((`detail_done` + `detail_final_failed`)/`detail_all`*100,2),'%')</field>
-            <field name="详情页完成无数据">concat(round(`detail_final_failed`/`detail_all`*100,2),'%')</field>
+            <field name="详情页完成">round((`detail_done` + `detail_final_failed`)/`detail_all`*100,2)</field>
+            <field name="详情页完成无数据">round(`detail_final_failed`/`detail_all`*100,2)</field>
             <field name="详情页全部">`detail_all`</field>
-            <field name="图片完成">concat(round((`img_done` + `img_final_failed`)/`img_all`*100,2),'%')</field>
-            <field name="图片完成无数据">concat(round(`img_final_failed`/`img_all`*100,2),'%')</field>
+            <field name="图片完成">round((`img_done` + `img_final_failed`)/`img_all`*100,2)</field>
+            <field name="图片完成无数据">round(`img_final_failed`/`img_all`*100,2)</field>
             <field name="图片全部">`img_all`</field>
         </item>
         <item name="任务进度统计(分支统计)" type="2" table="serviceplatform_product_mongo_split_task_summary" orderby="task_name"
@@ -60,14 +60,14 @@
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field key="true" extend="false" name="类型">`type`</field>
             <field name="总量">`全量`</field>
-            <field name="数据源错误比率">concat(round(`数据源错误`/`全量`*100,2),'%')</field>
-            <field name="无 name、name_en 比率">concat(round(`无 name、name_en`/`全量`*100,2),'%')</field>
-            <field name="中英文名字相反比率">concat(round(`中英文名字相反`/`全量`*100,2),'%')</field>
-            <field name="中文名中含有英文名比率">concat(round(`中文名中含有英文名`/`全量`*100,2),'%')</field>
-            <field name="经纬度重复比率">concat(round(`经纬度重复`/`全量`*100,2),'%')</field>
-            <field name="坐标与所属城市距离过远比率">concat(round(`坐标与所属城市距离过远`/`全量`*100,2),'%')</field>
-            <field name="距离过远坐标翻转后属于所属城市比率">concat(round(`距离过远坐标翻转后属于所属城市`/`全量`*100,2),'%')</field>
-            <field name="静态评分异常(评分高于10分)比率">concat(round(`静态评分异常(评分高于10分)`/`全量`*100,2),'%')</field>
+            <field name="数据源错误比率">round(`数据源错误`/`全量`*100,2)</field>
+            <field name="无 name、name_en 比率">round(`无 name、name_en`/`全量`*100,2)</field>
+            <field name="中英文名字相反比率">round(`中英文名字相反`/`全量`*100,2)</field>
+            <field name="中文名中含有英文名比率">round(`中文名中含有英文名`/`全量`*100,2)</field>
+            <field name="经纬度重复比率">round(`经纬度重复`/`全量`*100,2)</field>
+            <field name="坐标与所属城市距离过远比率">round(`坐标与所属城市距离过远`/`全量`*100,2)</field>
+            <field name="距离过远坐标翻转后属于所属城市比率">round(`距离过远坐标翻转后属于所属城市`/`全量`*100,2)</field>
+            <field name="静态评分异常(评分高于10分)比率">round(`静态评分异常(评分高于10分)`/`全量`*100,2)</field>
         </item>
     </group>
     <group name="(成功入库数据)数据字段覆盖率统计">
@@ -77,22 +77,22 @@
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field name="总量">`total`</field>
-            <field name="hotel_name_ratio">concat(round(`hotel_name`/`total`*100,2),'%')</field>
-            <field name="hotel_name_en_ratio">concat(round(`hotel_name_en`/`total`*100,2),'%')</field>
-            <field name="map_info_ratio">concat(round(`map_info`/`total`*100,2),'%')</field>
-            <field name="star_ratio">concat(round(`star`/`total`*100,2),'%')</field>
-            <field name="grade_ratio">concat(round(`grade`/`total`*100,2),'%')</field>
-            <field name="review_num_ratio">concat(round(`review_num`/`total`*100,2),'%')</field>
-            <field name="has_wifi_ratio">concat(round(`has_wifi`/`total`*100,2),'%')</field>
-            <field name="is_wifi_free_ratio">concat(round(`is_wifi_free`/`total`*100,2),'%')</field>
-            <field name="has_parking_ratio">concat(round(`has_parking`/`total`*100,2),'%')</field>
-            <field name="is_parking_free_ratio">concat(round(`is_parking_free`/`total`*100,2),'%')</field>
-            <field name="service_ratio">concat(round(`service`/`total`*100,2),'%')</field>
-            <field name="img_items_ratio">concat(round(`img_items`/`total`*100,2),'%')</field>
-            <field name="description_ratio">concat(round(`description`/`total`*100,2),'%')</field>
-            <field name="accepted_cards_ratio">concat(round(`accepted_cards`/`total`*100,2),'%')</field>
-            <field name="check_in_time_ratio">concat(round(`check_in_time`/`total`*100,2),'%')</field>
-            <field name="check_out_time_ratio">concat(round(`check_in_time`/`total`*100,2),'%')</field>
+            <field name="hotel_name_ratio">round(`hotel_name`/`total`*100,2)</field>
+            <field name="hotel_name_en_ratio">round(`hotel_name_en`/`total`*100,2)</field>
+            <field name="map_info_ratio">round(`map_info`/`total`*100,2)</field>
+            <field name="star_ratio">round(`star`/`total`*100,2)</field>
+            <field name="grade_ratio">round(`grade`/`total`*100,2)</field>
+            <field name="review_num_ratio">round(`review_num`/`total`*100,2)</field>
+            <field name="has_wifi_ratio">round(`has_wifi`/`total`*100,2)</field>
+            <field name="is_wifi_free_ratio">round(`is_wifi_free`/`total`*100,2)</field>
+            <field name="has_parking_ratio">round(`has_parking`/`total`*100,2)</field>
+            <field name="is_parking_free_ratio">round(`is_parking_free`/`total`*100,2)</field>
+            <field name="service_ratio">round(`service`/`total`*100,2)</field>
+            <field name="img_items_ratio">round(`img_items`/`total`*100,2)</field>
+            <field name="description_ratio">round(`description`/`total`*100,2)</field>
+            <field name="accepted_cards_ratio">round(`accepted_cards`/`total`*100,2)</field>
+            <field name="check_in_time_ratio">round(`check_in_time`/`total`*100,2)</field>
+            <field name="check_out_time_ratio">round(`check_in_time`/`total`*100,2)</field>
         </item>
 
         <item name="景点字段覆盖率统计" type="2" table="service_platform_attr_data_coverage_report" orderby="tag,source"
@@ -101,20 +101,20 @@
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field name="总量">`total`</field>
-            <field name="name_ratio">concat(round(`name`/`total`*100,2),'%')</field>
-            <field name="name_en_ratio">concat(round(`name_en`/`total`*100,2),'%')</field>
-            <field name="map_info_ratio">concat(round(`map_info`/`total`*100,2),'%')</field>
-            <field name="address_ratio">concat(round(`address`/`total`*100,2),'%')</field>
-            <field name="star_ratio">concat(round(`star`/`total`*100,2),'%')</field>
-            <field name="ranking_ratio">concat(round(`ranking`/`total`*100,2),'%')</field>
-            <field name="grade_ratio">concat(round(`grade`/`total`*100,2),'%')</field>
-            <field name="commentcounts_ratio">concat(round(`commentcounts`/`total`*100,2),'%')</field>
-            <field name="tagid_ratio">concat(round(`tagid`/`total`*100,2),'%')</field>
-            <field name="phone_ratio">concat(round(`phone`/`total`*100,2),'%')</field>
-            <field name="site_ratio">concat(round(`site`/`total`*100,2),'%')</field>
-            <field name="imgurl_ratio">concat(round(`imgurl`/`total`*100,2),'%')</field>
-            <field name="introduction_ratio">concat(round(`introduction`/`total`*100,2),'%')</field>
-            <field name="opentime_ratio">concat(round(`opentime`/`total`*100,2),'%')</field>
+            <field name="name_ratio">round(`name`/`total`*100,2)</field>
+            <field name="name_en_ratio">round(`name_en`/`total`*100,2)</field>
+            <field name="map_info_ratio">round(`map_info`/`total`*100,2)</field>
+            <field name="address_ratio">round(`address`/`total`*100,2)</field>
+            <field name="star_ratio">round(`star`/`total`*100,2)</field>
+            <field name="ranking_ratio">round(`ranking`/`total`*100,2)</field>
+            <field name="grade_ratio">round(`grade`/`total`*100,2)</field>
+            <field name="commentcounts_ratio">round(`commentcounts`/`total`*100,2)</field>
+            <field name="tagid_ratio">round(`tagid`/`total`*100,2)</field>
+            <field name="phone_ratio">round(`phone`/`total`*100,2)</field>
+            <field name="site_ratio">round(`site`/`total`*100,2)</field>
+            <field name="imgurl_ratio">round(`imgurl`/`total`*100,2)</field>
+            <field name="introduction_ratio">round(`introduction`/`total`*100,2)</field>
+            <field name="opentime_ratio">round(`opentime`/`total`*100,2)</field>
         </item>
 
         <item name="购物字段覆盖率统计" type="2" table="service_platform_shop_data_coverage_report" orderby="tag,source"
@@ -123,20 +123,20 @@
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field name="总量">`total`</field>
-            <field name="name_ratio">concat(round(`name`/`total`*100,2),'%')</field>
-            <field name="name_en_ratio">concat(round(`name_en`/`total`*100,2),'%')</field>
-            <field name="map_info_ratio">concat(round(`map_info`/`total`*100,2),'%')</field>
-            <field name="address_ratio">concat(round(`address`/`total`*100,2),'%')</field>
-            <field name="star_ratio">concat(round(`star`/`total`*100,2),'%')</field>
-            <field name="ranking_ratio">concat(round(`ranking`/`total`*100,2),'%')</field>
-            <field name="grade_ratio">concat(round(`grade`/`total`*100,2),'%')</field>
-            <field name="commentcounts_ratio">concat(round(`commentcounts`/`total`*100,2),'%')</field>
-            <field name="tagid_ratio">concat(round(`tagid`/`total`*100,2),'%')</field>
-            <field name="phone_ratio">concat(round(`phone`/`total`*100,2),'%')</field>
-            <field name="site_ratio">concat(round(`site`/`total`*100,2),'%')</field>
-            <field name="imgurl_ratio">concat(round(`imgurl`/`total`*100,2),'%')</field>
-            <field name="introduction_ratio">concat(round(`introduction`/`total`*100,2),'%')</field>
-            <field name="opentime_ratio">concat(round(`opentime`/`total`*100,2),'%')</field>
+            <field name="name_ratio">round(`name`/`total`*100,2)</field>
+            <field name="name_en_ratio">round(`name_en`/`total`*100,2)</field>
+            <field name="map_info_ratio">round(`map_info`/`total`*100,2)</field>
+            <field name="address_ratio">round(`address`/`total`*100,2)</field>
+            <field name="star_ratio">round(`star`/`total`*100,2)</field>
+            <field name="ranking_ratio">round(`ranking`/`total`*100,2)</field>
+            <field name="grade_ratio">round(`grade`/`total`*100,2),'%')</field>
+            <field name="commentcounts_ratio">round(`commentcounts`/`total`*100,2)</field>
+            <field name="tagid_ratio">round(`tagid`/`total`*100,2)</field>
+            <field name="phone_ratio">round(`phone`/`total`*100,2)</field>
+            <field name="site_ratio">round(`site`/`total`*100,2)</field>
+            <field name="imgurl_ratio">round(`imgurl`/`total`*100,2)</field>
+            <field name="introduction_ratio">round(`introduction`/`total`*100,2)</field>
+            <field name="opentime_ratio">round(`opentime`/`total`*100,2)</field>
         </item>
 
         <item name="餐厅字段覆盖率统计" type="2" table="service_platform_rest_data_coverage_report" orderby="tag,source"
@@ -145,19 +145,19 @@
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field name="总量">`total`</field>
-            <field name="name_ratio">concat(round(`name`/`total`*100,2),'%')</field>
-            <field name="name_en_ratio">concat(round(`name_en`/`total`*100,2),'%')</field>
-            <field name="map_info_ratio">concat(round(`map_info`/`total`*100,2),'%')</field>
-            <field name="address_ratio">concat(round(`address`/`total`*100,2),'%')</field>
-            <field name="ranking_ratio">concat(round(`ranking`/`total`*100,2),'%')</field>
-            <field name="grade_ratio">concat(round(`grade`/`total`*100,2),'%')</field>
-            <field name="commentcounts_ratio">concat(round(`commentcounts`/`total`*100,2),'%')</field>
-            <field name="cuisines_ratio">concat(round(`cuisines`/`total`*100,2),'%')</field>
-            <field name="phone_ratio">concat(round(`phone`/`total`*100,2),'%')</field>
-            <field name="site_ratio">concat(round(`site`/`total`*100,2),'%')</field>
-            <field name="imgurl_ratio">concat(round(`imgurl`/`total`*100,2),'%')</field>
-            <field name="introduction_ratio">concat(round(`introduction`/`total`*100,2),'%')</field>
-            <field name="opentime_ratio">concat(round(`opentime`/`total`*100,2),'%')</field>
+            <field name="name_ratio">round(`name`/`total`*100,2)</field>
+            <field name="name_en_ratio">round(`name_en`/`total`*100,2)</field>
+            <field name="map_info_ratio">round(`map_info`/`total`*100,2)</field>
+            <field name="address_ratio">round(`address`/`total`*100,2)</field>
+            <field name="ranking_ratio">round(`ranking`/`total`*100,2)</field>
+            <field name="grade_ratio">round(`grade`/`total`*100,2)</field>
+            <field name="commentcounts_ratio">round(`commentcounts`/`total`*100,2)</field>
+            <field name="cuisines_ratio">round(`cuisines`/`total`*100,2)</field>
+            <field name="phone_ratio">round(`phone`/`total`*100,2)</field>
+            <field name="site_ratio">round(`site`/`total`*100,2)</field>
+            <field name="imgurl_ratio">round(`imgurl`/`total`*100,2)</field>
+            <field name="introduction_ratio">round(`introduction`/`total`*100,2)</field>
+            <field name="opentime_ratio">round(`opentime`/`total`*100,2)</field>
         </item>
 
         <item name="全类型（当前只有 qyer）字段覆盖率统计" type="2" table="service_platform_total_data_coverage_report"
@@ -167,20 +167,20 @@
             <field key="true" extend="false" name="任务批次">`tag`</field>
             <field key="true" extend="false" name="抓取源">`source`</field>
             <field name="总量">`total`</field>
-            <field name="name_ratio">concat(round(`name`/`total`*100,2),'%')</field>
-            <field name="name_en_ratio">concat(round(`name_en`/`total`*100,2),'%')</field>
-            <field name="map_info_ratio">concat(round(`map_info`/`total`*100,2),'%')</field>
-            <field name="address_ratio">concat(round(`address`/`total`*100,2),'%')</field>
-            <field name="star_ratio">concat(round(`star`/`total`*100,2),'%')</field>
-            <field name="ranking_ratio">concat(round(`ranking`/`total`*100,2),'%')</field>
-            <field name="grade_ratio">concat(round(`grade`/`total`*100,2),'%')</field>
-            <field name="commentcounts_ratio">concat(round(`commentcounts`/`total`*100,2),'%')</field>
-            <field name="tagid_ratio">concat(round(`tagid`/`total`*100,2),'%')</field>
-            <field name="phone_ratio">concat(round(`phone`/`total`*100,2),'%')</field>
-            <field name="site_ratio">concat(round(`site`/`total`*100,2),'%')</field>
-            <field name="imgurl_ratio">concat(round(`imgurl`/`total`*100,2),'%')</field>
-            <field name="introduction_ratio">concat(round(`introduction`/`total`*100,2),'%')</field>
-            <field name="opentime_ratio">concat(round(`opentime`/`total`*100,2),'%')</field>
+            <field name="name_ratio">round(`name`/`total`*100,2)</field>
+            <field name="name_en_ratio">round(`name_en`/`total`*100,2)</field>
+            <field name="map_info_ratio">round(`map_info`/`total`*100,2)</field>
+            <field name="address_ratio">round(`address`/`total`*100,2)</field>
+            <field name="star_ratio">round(`star`/`total`*100,2)</field>
+            <field name="ranking_ratio">round(`ranking`/`total`*100,2)</field>
+            <field name="grade_ratio">round(`grade`/`total`*100,2)</field>
+            <field name="commentcounts_ratio">round(`commentcounts`/`total`*100,2)</field>
+            <field name="tagid_ratio">round(`tagid`/`total`*100,2)</field>
+            <field name="phone_ratio">round(`phone`/`total`*100,2)</field>
+            <field name="site_ratio">round(`site`/`total`*100,2)</field>
+            <field name="imgurl_ratio">round(`imgurl`/`total`*100,2)</field>
+            <field name="introduction_ratio">round(`introduction`/`total`*100,2)</field>
+            <field name="opentime_ratio">round(`opentime`/`total`*100,2)</field>
         </item>
     </group>
     <group name="(子任务级别)错误分类统计">
