@@ -31,7 +31,6 @@ def get_logger(logger_name):
     """
     if not os.path.exists(log_path):
         os.makedirs(log_path)
-        os.mkdir(log_path)
 
     # getLogger 为单例模式
     service_platform_logger = logging.getLogger(logger_name)
