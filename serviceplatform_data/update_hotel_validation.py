@@ -13,7 +13,7 @@ from urllib.parse import urlparse, urljoin
 from data_source import MysqlSource
 from logger import get_logger, func_time_logger
 # from service_platform_conn_pool import verify_info_pool, verify_info_new_pool
-from service_platform_conn_pool import verify_info_new_pool, verify_info_pool
+from service_platform_conn_pool import verify_info_pool
 from Common.Utils import retry
 from hotel_image.send_email import send_email
 from collections import defaultdict
@@ -217,7 +217,7 @@ WHERE task_name = '{}';'''.format(task_name))
       ENGINE = InnoDB
       DEFAULT CHARSET = utf8;'''
         truncate_sql = '''TRUNCATE workload_hotel_validation_new;'''
-        conn = verify_info_new_pool.connection()
+        conn = verify_info_pool.connection()
         cursor = conn.cursor()
         cursor.execute(create_sql)
         cursor.execute(truncate_sql)
@@ -233,7 +233,7 @@ WHERE task_name = '{}';'''.format(task_name))
       RENAME workload_hotel_validation;'''
         # _delete_sql = '''DROP TABLE workload_hotel_validation_old;'''
 
-        conn = verify_info_new_pool.connection()
+        conn = verify_info_pool.connection()
         cursor = conn.cursor()
         cursor.execute(_change_sql_old)
         cursor.execute(_change_sql_new)
@@ -247,7 +247,7 @@ WHERE task_name = '{}';'''.format(task_name))
         replace_sql = '''REPLACE INTO workload_hotel_validation_new (workload_key, content, source, extra, status) 
         VALUES (%s, %s, %s, 0, 1);'''
 
-        conn = verify_info_new_pool.connection()
+        conn = verify_info_pool.connection()
         cursor = conn.cursor()
         _replace_count = cursor.executemany(replace_sql, data)
         conn.commit()
@@ -516,8 +516,8 @@ WHERE task_name = '{}';'''.format(task_name))
             self.create_table()
         self.update_per_hotel_validation(env='test')
 
-        if self.table_can_be_used():
-            self.change_table()
+        # if self.table_can_be_used():
+        #     self.change_table()
 
 
 if __name__ == '__main__':
