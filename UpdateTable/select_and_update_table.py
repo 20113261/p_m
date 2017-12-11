@@ -6,7 +6,7 @@
 # @File    : select_and_update_table.py
 # @Software: PyCharm
 from data_source import MysqlSource
-from service_platform_conn_pool import poi_ori_pool
+from service_platform_conn_pool import poi_ori_pool, poi_face_detect_pool, service_platform_pool
 from logger import get_logger
 
 logger = get_logger("select_and_update_table")
@@ -16,16 +16,22 @@ poi_ori_config = {
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
-    'db': 'poi_merge'
+    'db': 'ServicePlatform'
 }
 
 
 def update_sql(data):
-    sql = '''UPDATE chat_attraction
-SET commentcount = '{}', beentocount = '{}', plantocount = '{}' WHERE id=%s;'''
-    conn = poi_ori_pool.connection()
+    sql = '''UPDATE pic_detect_task
+SET status = 0
+WHERE id in ({});'''.format(
+        ','.join(
+            map(lambda x: "'{}'".format(x), data)
+        )
+    )
+    conn = service_platform_pool.connection()
     cursor = conn.cursor()
-    _res = cursor.executemany(sql, data)
+    _res = cursor.execute(sql)
+    conn.commit()
     cursor.close()
     conn.close()
     logger.info("[total: {}][execute: {}]".format(len(data), _res))
@@ -33,20 +39,22 @@ SET commentcount = '{}', beentocount = '{}', plantocount = '{}' WHERE id=%s;'''
 
 def get_task():
     sql = '''SELECT id
-             FROM attr_unid
-             WHERE source = 'online' AND id IN (SELECT id
-                                                FROM attr_unid
-                                                GROUP BY id
-                                                HAVING count(*) = 1);'''
+FROM pic_detect_task
+WHERE poi_id IN
+      ('qyer###103250','qyer###103522','qyer###103682','qyer###104652','qyer###104920','qyer###108040','qyer###110610','qyer###1140487','qyer###1144073','qyer###1145989','qyer###1149064','qyer###116369','qyer###118277','qyer###119882','qyer###1208984','qyer###124029','qyer###103251','qyer###103524','qyer###103701','qyer###104654','qyer###104923','qyer###108044','qyer###110896','qyer###1140503','qyer###1144074','qyer###1145991','qyer###1149073','qyer###116374','qyer###118913','qyer###120174','qyer###1209083','qyer###1447959','qyer###1450142','qyer###1452216','qyer###165082','qyer###200444','qyer###203544','qyer###207020','qyer###580327','qyer###84093','qyer###84557','qyer###86096','qyer###88122','qyer###99924','#1448153','qyer###1450408','qyer###1452217','qyer###163730','qyer###186268','qyer###201701','qyer###203651','qyer###207136','qyer###580355','qyer###84311','qyer###84559','qyer###85618','qyer###86277','qyer###88123','qyer###99925','qyer###86573','qyer###1207882','qyer###201732','qyer###101780','qyer###104866','qyer###108100','qyer###108122','qyer###110891','qyer###1148120','qyer###1150961','qyer###1163338','qyer###117953','qyer###120350','qyer###1208735','qyer###123707','qyer###125772','qyer###1450987','qyer###1453402','qyer###1455133','qyer###101781','qyer###104952','qyer###108103','qyer###108125','qyer###111473','qyer###1148130','qyer###1151661','qyer###1163424','qyer###117955','qyer###1204590','qyer###1208736','qyer###123734','qyer###126133','qyer###1451411','qyer###1454008','qyer###1455184','qyer###1458465','qyer###163815','qyer###200126','qyer###200684','qyer###205178','qyer###582073','qyer###64491','qyer###64508','qyer###81943','qyer###83331','qyer###84236','qyer###84245','qyer###84297','qyer###84369','qyer###86542','qyer###89083','qyer###94441','qyer###1458463','qyer###1458478','qyer###200125','qyer###200603','qyer###205177','qyer###582005','qyer###64488','qyer###64507','qyer###81942','qyer###83330','qyer###84235','qyer###84244','qyer###84271','qyer###84312','qyer###84636','qyer###88990','qyer###94440','qyer###1452472','qyer###100309','qyer###102767','qyer###103318','qyer###104282','qyer###106552','qyer###108467','qyer###110277','qyer###1139681','qyer###114971','qyer###1151283','qyer###116546','qyer###117984','qyer###118577','qyer###1205297','qyer###121749','qyer###124722','qyer###100312','qyer###102769','qyer###103662','qyer###104283','qyer###107484','qyer###108844','qyer###110637','qyer###1143568','qyer###114983','qyer###116621','qyer###117987','qyer###119883','qyer###1205310','qyer###122222','qyer###125055','qyer###1450228','qyer###1448344','qyer###1453378','qyer###164240','qyer###195603','qyer###203549','qyer###205576','qyer###568713','qyer###579096','qyer###579278','qyer###580007','qyer###580026','qyer###63792','qyer###82185','qyer###83345','qyer###84264','qyer###85097','qyer###85705','qyer###1453379','qyer###164241','qyer###200998','qyer###203559','qyer###206560','qyer###568821','qyer###579097','qyer###579280','qyer###580008','qyer###580028','qyer###63793','qyer###82186','qyer###83347','qyer###84265','qyer###85098','qyer###85722','qyer###280032','qyer###101948','qyer###104772','qyer###106223','qyer###106356','qyer###107244','qyer###108853','qyer###1139334','qyer###1139886','qyer###1144045','qyer###1150098','qyer###116267','qyer###117778','qyer###119124','qyer###120008','qyer###124554','qyer###126067','qyer###1448732','qyer###1450691','qyer###1453765','qyer###1455369','qyer###169466','qyer###171423','qyer###188690','qyer###200325','qyer###202409','qyer###207019','qyer###207559','qyer###409679','qyer###424689','qyer###425219','qyer###426418','qyer###530035','qyer###101889','qyer###104413','qyer###106219','qyer###106294','qyer###107167','qyer###108695','qyer###113314','qyer###1139885','qyer###1143978','qyer###1150096','qyer###116132','qyer###117777','qyer###119109','qyer###119945','qyer###121455','qyer###126066','qyer###1448731','qyer###1450104','qyer###1453474','qyer###1454854','qyer###169427','qyer###171421','qyer###186167','qyer###200255','qyer###202408','qyer###206605','qyer###207553','qyer###408455','qyer###424668','qyer###425191','qyer###426404','qyer###530031','qyer###568683','qyer###580085','qyer###582172','qyer###82189','qyer###84769','qyer###89726','qyer###89753','qyer###94417','qyer###547572','qyer###580071','qyer###581179','qyer###82174','qyer###83610','qyer###86730','qyer###89751','qyer###89760','qyer###408355','qyer###426422','qyer###1160878','qyer###424585','qyer###530091','qyer###580409','qyer###580618','qyer###100459','qyer###107064','qyer###108889','qyer###110022','qyer###110175','qyer###110967','qyer###1141385','qyer###1150995','qyer###1204803','qyer###1208643','qyer###1449520','qyer###172446','qyer###200454','qyer###206059','qyer###583143','qyer###100452','qyer###104194','qyer###107062','qyer###108887','qyer###110020','qyer###110172','qyer###110598','qyer###1141384','qyer###1150992','qyer###1160760','qyer###1204583','qyer###1208635','qyer###1448859','qyer###164949','qyer###200453','qyer###205176','qyer###68295','qyer###68351','qyer###68378','qyer###84210','qyer###88164','qyer###89675','qyer###94590','qyer###99843','qyer###582311','qyer###68290','qyer###68346','qyer###68375','qyer###84207','qyer###88163','qyer###89385','qyer###94589','qyer###99735','qyer###99869','qyer###1150988','qyer###200979','qyer###1205623','qyer###202600','qyer###101036','qyer###102217','qyer###102832','qyer###103000','qyer###103722','qyer###104212','qyer###104287','qyer###105081','qyer###106965','qyer###107493','qyer###110240','qyer###112158','qyer###1142502','qyer###1143035','qyer###1148197','qyer###1160508','qyer###116442','qyer###118529','qyer###1205157','qyer###1207885','qyer###125390','qyer###126056','qyer###126083','qyer###126244','qyer###1447514','qyer###1451793','qyer###1456097','qyer###1458652','qyer###201790','qyer###205192','qyer###205724','qyer###206030','qyer###101034','qyer###102216','qyer###102595','qyer###102998','qyer###103719','qyer###104203','qyer###104225','qyer###105080','qyer###106964','qyer###107492','qyer###109964','qyer###112157','qyer###1142496','qyer###1142648','qyer###1147314','qyer###1151704','qyer###206138','qyer###579240','qyer###580613','qyer###587588','qyer###82565','qyer###83493','qyer###89748','qyer###1163755','qyer###117563','qyer###118930','qyer###1207873','qyer###123087','qyer###126055','qyer###126069','qyer###126229','qyer###1447510','qyer###1451563','qyer###1455584','qyer###1456247','qyer###201666','qyer###205190','qyer###205687','qyer###206014','qyer###206099','qyer###568736','qyer###580193','qyer###587083','qyer###82197','qyer###83492','qyer###89745','qyer###1163726','qyer###1142464','qyer###1149463','qyer###1452861','qyer###1458678','qyer###1163503','daodao###3950196','qyer###100516','qyer###100562','qyer###103404','qyer###104218','qyer###105052','qyer###105835','qyer###106277','qyer###107732','qyer###108050','qyer###109623','qyer###111111','qyer###1140858','qyer###1148027','qyer###1161022','qyer###119902','daodao###2407054','daodao###9871778','qyer###100560','qyer###103402','qyer###104110','qyer###105050','qyer###105828','qyer###106273','qyer###107731','qyer###108042','qyer###109607','qyer###111095','qyer###113091','qyer###1147900','qyer###1161015','qyer###119900','qyer###1204752','qyer###1205757','qyer###122282','qyer###123212','qyer###123914','qyer###1448506','qyer###1451927','qyer###1456857','qyer###201347','qyer###201749','qyer###204003','qyer###207369','qyer###579166','qyer###582140','qyer###70821','qyer###1204750','qyer###1205756','qyer###121408','qyer###122956','qyer###123879','qyer###1448340','qyer###1449576','qyer###1451899','qyer###1456715','qyer###201346','qyer###201746','qyer###203610','qyer###207316','qyer###568446','qyer###581814','qyer###70820','qyer###82855','qyer###83514','qyer###84343','qyer###86761','qyer###89894','qyer###94985','qyer###95096','qyer###82862','qyer###83516','qyer###84345','qyer###87075','qyer###94977','qyer###94987','qyer###95097','qyer###100553','qyer###100829','qyer###112196','qyer###1150884','qyer###1449235','qyer###70818','qyer###83513','qyer###100575','qyer###101245','qyer###103094','qyer###104898','qyer###107802','qyer###108777','qyer###111717','qyer###112670','qyer###1144898','qyer###1148343','qyer###1148506','qyer###1149019','qyer###116859','qyer###119487','qyer###1207362','qyer###1207513','qyer###122573','qyer###101248','qyer###103095','qyer###104904','qyer###107874','qyer###110381','qyer###111732','qyer###113249','qyer###1144899','qyer###1148344','qyer###1148678','qyer###1149030','qyer###117307','qyer###119565','qyer###1207366','qyer###1208131','qyer###124301','qyer###126316','qyer###1448095','qyer###1450248','qyer###1450452','qyer###1454521','qyer###1458446','qyer###186184','qyer###201570','qyer###204362','qyer###579832','qyer###81605','qyer###82106','qyer###82538','qyer###82801','qyer###83309','qyer###84399','qyer###1447291','qyer###1448259','qyer###1450249','qyer###1450907','qyer###1454523','qyer###1458486','qyer###186187','qyer###201996','qyer###204412','qyer###581586','qyer###81607','qyer###82107','qyer###82539','qyer###82804','qyer###83366','qyer###84400','qyer###84622','qyer###85222','qyer###85243','qyer###85657','qyer###85685','qyer###85816','qyer###86176','qyer###86295','qyer###86303','qyer###86376','qyer###86387','qyer###86554','qyer###84641','qyer###85228','qyer###85256','qyer###85658','qyer###85686','qyer###85817','qyer###86199','qyer###86296','qyer###86305','qyer###86379','qyer###86389','qyer###87113','qyer###82112','qyer###101186','qyer###1447627','qyer###1456750','qyer###116858','qyer###575857','qyer###1149072','qyer###1450251','qyer###1456734','qyer###101636','qyer###101995','qyer###102109','qyer###103204','qyer###104658','qyer###107882','qyer###108025','qyer###108396','qyer###110652','qyer###114173','qyer###1145638','qyer###1148392','qyer###1148941','qyer###1150977','qyer###1163342','qyer###101630','qyer###101982','qyer###102078','qyer###103203','qyer###104338','qyer###104897','qyer###107880','qyer###108024','qyer###108394','qyer###110616','qyer###114145','qyer###1145636','qyer###1148153','qyer###1148939','qyer###1150970','qyer###116294','qyer###1163391','qyer###116950','qyer###117271','qyer###117902','qyer###118665','qyer###1207274','qyer###1207302','qyer###1208918','qyer###123929','qyer###1448963','qyer###1449694','qyer###1449727','qyer###1452098','qyer###1457453','qyer###171283','qyer###1163371','qyer###1163385','qyer###116883','qyer###117135','qyer###117895','qyer###118428','qyer###1207273','qyer###1207301','qyer###1208730','qyer###121908','qyer###1448354','qyer###1449665','qyer###1449719','qyer###1452090','qyer###1455054','qyer###164223','qyer###171283','qyer###184617','qyer###201583','qyer###204735','qyer###279918','qyer###81612','qyer###82684','qyer###82832','qyer###82953','qyer###84044','qyer###84613','qyer###84701','qyer###84737','qyer###84881','qyer###85757','qyer###85765','qyer###85780','qyer###85836','qyer###85901','qyer###86250','qyer###86265','qyer###87331','qyer###87809','qyer###99179','qyer###184606','qyer###201580','qyer###204734','qyer###206580','qyer###582768','qyer###82665','qyer###82818','qyer###82948','qyer###84043','qyer###84592','qyer###84674','qyer###84736','qyer###84880','qyer###85756','qyer###85764','qyer###85777','qyer###85829','qyer###85900','qyer###86249','qyer###86264','qyer###87330','qyer###87794','qyer###99176','qyer###104247','qyer###1163382','qyer###102005','qyer###1163346','qyer###1148759','qyer###1163362');'''
     data = []
     for line in MysqlSource(poi_ori_config, table_or_query=sql,
                             size=10000, is_table=False,
                             is_dict_cursor=True):
         data.append(line['id'])
-        if len(data) == 2000:
-            update_sql(data)
-            data = []
-    update_sql(data)
+
+    new_data = []
+    for line in data:
+        new_data.append(line)
+        if len(new_data) == 1000:
+            update_sql(new_data)
+            new_data = []
+    update_sql(new_data)
 
 
 if __name__ == '__main__':
