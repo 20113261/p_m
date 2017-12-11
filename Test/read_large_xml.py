@@ -7,7 +7,9 @@
 # @Software: PyCharm
 import xml.etree.ElementTree as ET
 
-
+'''
+mysqldump -h10.10.69.170 -ureader -pmiaoji1109 --xml base_data hotel_unid > hotel_unid_test.xml
+'''
 def get_source():
     tree = ET.iterparse('/search/hourong/1128/hotel_unid_online.xml')
     _count = 0

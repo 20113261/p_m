@@ -6,7 +6,7 @@
 # @File    : update_qyer_city_id.py
 # @Software: PyCharm
 import json
-from service_platform_conn_pool import source_info_pool, spider_data_base_data_pool
+from service_platform_conn_pool import source_info_pool, spider_data_base_data_pool, service_platform_pool
 
 
 def get_tasks():
@@ -28,12 +28,12 @@ FROM ota_location WHERE source='qyer';'''
 
 
 def update_db(data):
-    __conn = spider_data_base_data_pool.connection()
+    __conn = service_platform_pool.connection()
     __cursor = __conn.cursor()
     print('start', line)
-    __res = __cursor.executemany('''UPDATE attr_1206
+    __res = __cursor.executemany('''UPDATE merged_total_qyer_1209a
     SET city_id = %s
-    WHERE attr_1206.source_city_id = %s;''', data)
+    WHERE source_city_id = %s;''', data)
     print('end', line, len(data), __res, _count)
     __conn.commit()
     __conn.close()
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     for line in list(get_tasks()):
         _count += 1
         data.append((line[1], line[0]))
-        if _count % 10 == 0:
+        if _count % 100 == 0:
             print(_count)
             update_db(data)
             data = []
