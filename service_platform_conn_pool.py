@@ -185,3 +185,24 @@ spider_task_tmp_config = dict(
 )
 
 spider_task_tmp_pool = init_pool(**spider_task_tmp_config)
+
+
+verify_info_new_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.19.153.98',
+    # database='verify_info',
+    database='ServicePlatform'
+)
+
+verify_info_new_pool = init_pool(**verify_info_new_config, max_connections=30)
+
+
+def fetchall(conn_pool, sql):
+    conn = conn_pool.connection()
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    for line in cursor.fetchall():
+        yield line
+    cursor.close()
+    conn.close()
