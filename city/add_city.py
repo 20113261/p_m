@@ -20,7 +20,7 @@ SQL_DICT = {
 ALL_NULL = ['NULL', 'Null', 'null', None, '', 'None', ' ']
 
 change_map_info_key = ['map_info', 'border_map_1', 'border_map_2']
-
+need_change_map_info = True
 
 def get_columns():
     __name = set()
@@ -98,15 +98,8 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
     return True, _value
 
+def read_file(xlsx_path):
 
-if __name__ == '__main__':
-    # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
-    # xlsx_path = '/tmp/new_city.xlsx'
-    # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
-    # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
-    xlsx_path = '/Users/hourong/Downloads/1116.xlsx'
-
-    need_change_map_info = True
     global change_map_info_key
     # change_map_info_key = ['border_map_1', 'border_map_2']
     change_map_info_key = ['map_info']
@@ -178,3 +171,12 @@ if __name__ == '__main__':
             all_city_id.append(data['id'])
 
     print(all_city_id)
+
+if __name__ == '__main__':
+    # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
+    # xlsx_path = '/tmp/new_city.xlsx'
+    # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
+    # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
+    xlsx_path = '/Users/hourong/Downloads/1116.xlsx'
+    read_file(xlsx_path)
+
