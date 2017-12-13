@@ -22,6 +22,7 @@ ALL_NULL = ['NULL', 'Null', 'null', None, '', 'None', ' ']
 change_map_info_key = ['map_info', 'border_map_1', 'border_map_2']
 need_change_map_info = True
 
+
 def get_columns():
     __name = set()
     conn = pymysql.connect(**SQL_DICT)
@@ -35,30 +36,27 @@ def get_columns():
     return __name
 
 
-def get_continent_max_id_dict() -> dict:
-    _dict = {}
+def get_max_id() -> int:
     conn = pymysql.connect(**SQL_DICT)
     with conn as cursor:
-        cursor.execute('''SELECT
-  country.continent_id,
-  MAX(id) AS max_id
-FROM `city`
-  JOIN country ON city.country_id = country.mid
-WHERE id NOT LIKE '9%' AND id != 60002
-GROUP BY country.continent_id;''')
-        for continent, max_id in cursor.fetchall():
-            _dict[str(continent)] = int(max_id)
-    return _dict
+        cursor.execute('''SELECT max(id)
+FROM city
+WHERE id NOT LIKE '9%';''')
+        for __max_id in cursor.fetchall():
+            return int(__max_id)
 
 
-continent_max_id_dict = get_continent_max_id_dict()
+max_id = get_max_id()
 
 
 def generate_id(country_id: str) -> str:
-    continent_id = (int(country_id) // 100) * 10
-    continent_id = str(continent_id)
-    continent_max_id_dict[continent_id] += 1
-    return str(continent_max_id_dict[str(continent_id)])
+    global max_id
+    # continent_id = (int(country_id) // 100) * 10
+    # continent_id = str(continent_id)
+    max_id += 1
+    return max_id
+    # continent_max_id_dict[continent_id] += 1
+    # return str(continent_max_id_dict[str(continent_id)])
 
 
 def get_country_id_dict() -> dict:
@@ -98,8 +96,8 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
     return True, _value
 
-def read_file(xlsx_path):
 
+def read_file(xlsx_path):
     global change_map_info_key
     # change_map_info_key = ['border_map_1', 'border_map_2']
     change_map_info_key = ['map_info']
@@ -172,6 +170,7 @@ def read_file(xlsx_path):
 
     print(all_city_id)
 
+
 if __name__ == '__main__':
     # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
     # xlsx_path = '/tmp/new_city.xlsx'
@@ -179,4 +178,3 @@ if __name__ == '__main__':
     # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
     xlsx_path = '/Users/hourong/Downloads/1116.xlsx'
     read_file(xlsx_path)
-
