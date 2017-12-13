@@ -3,6 +3,7 @@
 
 from city.add_city import read_file
 from city.share_airport import update_share_airport,insert_airport
+from city.db_insert import shareAirport_insert
 from city.update_city_pic import update_city_pic
 from city.city_map_ciytName import revise_pictureNmae
 from city.config import city_path
@@ -35,6 +36,7 @@ def start_task():
     if airport_path:
         insert_airport(airport_path)
         update_share_airport()
+        shareAirport_insert()
 
 
 

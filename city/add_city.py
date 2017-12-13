@@ -1,7 +1,8 @@
 import pandas
 import pymysql
+pymysql.install_as_MySQLdb()
 import dataset
-
+import csv
 # SQL_DICT = {
 #     'host': '10.10.230.206',
 #     'user': 'mioji_admin',
@@ -43,7 +44,7 @@ def get_max_id() -> int:
 FROM city
 WHERE id NOT LIKE '9%';''')
         for __max_id in cursor.fetchall():
-            return int(__max_id)
+            return int(__max_id[0])
 
 
 max_id = get_max_id()
@@ -110,7 +111,7 @@ def read_file(xlsx_path):
     cols = get_columns()
     country_id_dict = get_country_id_dict()
     header = 1
-    sheetname = '工作表 1'
+    sheetname = 'city表'
     table = pandas.read_excel(
         xlsx_path,
         header=header,
@@ -167,7 +168,11 @@ def read_file(xlsx_path):
             else:
                 data_table.upsert(data, keys=['id'])
             all_city_id.append(data['id'])
-
+    with open('city_id.csv','w+') as city:
+        writer = csv.writer(city)
+        writer.writerow(("city_id",))
+        for city_id in all_city_id:
+            writer.writerow((city_id,))
     print(all_city_id)
 
 
@@ -176,5 +181,5 @@ if __name__ == '__main__':
     # xlsx_path = '/tmp/new_city.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
-    xlsx_path = '/Users/hourong/Downloads/1116.xlsx'
+    xlsx_path = '/Users/miojilx/Desktop/【基础信息】1206新增城市.xlsx'
     read_file(xlsx_path)

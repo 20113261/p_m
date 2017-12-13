@@ -46,9 +46,9 @@ def revise_pictureNmae(path):
         city_name = real_name.split('_')[0]
         if city_map.get(city_name):
             new_file_name = ''.join([city_map.get(city_name),'_',real_name.split('_')[1],extend_name])
-            old_name = '/'.join(path,file_name)
-            new_name = '/'.join(path,new_file_name)
+            old_name = '/'.join([path,file_name])
+            new_name = '/'.join([path,new_file_name])
             os.rename(old_name,new_name)
 
 if __name__ == "__main__":
-    revise_pictureNmae()
+    revise_pictureNmae('/Users/miojilx/Desktop/1206新增城市图')

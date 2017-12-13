@@ -55,5 +55,6 @@ def update_city_pic(path):
     logger.debug(','.join(cid_set))
 
 if __name__ == '__main__':
-    pass
+    path = '/Users/miojilx/Desktop/1206新增城市图'
+    update_city_pic(path)
 
