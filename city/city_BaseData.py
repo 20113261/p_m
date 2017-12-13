@@ -4,7 +4,7 @@
 from city.add_city import read_file
 from city.share_airport import update_share_airport,insert_airport
 from city.update_city_pic import update_city_pic
-
+from city.city_map_ciytName import revise_pictureNmae
 from city.config import city_path
 from city.config import picture_path
 from city.config import airport_path
@@ -28,13 +28,16 @@ def start_task():
     if city_path:
         read_file(city_path)
 
+    if picture_path:
+        revise_pictureNmae(picture_path)
+        update_city_pic(picture_path)
+
     if airport_path:
         insert_airport(airport_path)
         update_share_airport()
 
-    if picture_path:
-        update_city_pic(picture_path)
+
 
 
 if __name__ == "__main__":
-    database_template()
+    start_task()
