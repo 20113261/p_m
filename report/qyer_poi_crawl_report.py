@@ -13,10 +13,12 @@ from logger import get_logger
 TaskClient = pymongo.MongoClient(host='10.10.231.105')
 RespClient = pymongo.MongoClient(host='10.10.213.148')
 
-TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20171214a'
+# TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20171214a'
+TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20171209a'
 
 TaskCollections = TaskClient['MongoTask'][TaskCollectionName]
-RespCollections = RespClient['data_result']['qyer']
+# RespCollections = RespClient['data_result']['qyer']
+RespCollections = RespClient['data_result']['Qyer20171214a']
 
 
 def task_resp_info():
@@ -43,17 +45,19 @@ def generate_report():
         total_num = total_dict.get(task_token)
         crawled = resp_dict.get(task_token)
 
-        if total_num is None:
-            continue
-        if crawled is None:
-            continue
+        # if total_num is None:
+        #     continue
+        # if crawled is None:
+        #     continue
 
         if list_task_token not in __dict:
             __dict[list_task_token] = [city_url, [], [], set()]
 
         __dict[list_task_token][1].append(task_token)
-        __dict[list_task_token][2].append(total_num)
-        __dict[list_task_token][3].update(crawled)
+        if total_num:
+            __dict[list_task_token][2].append(total_num)
+        if crawled:
+            __dict[list_task_token][3].update(crawled)
 
     return __dict
 
@@ -62,7 +66,16 @@ def generate_table():
     _l_items = []
     report_dict = generate_report()
     for k, v in report_dict.items():
-        _l_items.append((k, v[0], '|'.join(v[1]), '|'.join(map(lambda x: str(x), v[2])), max(v[2]), len(v[3])))
+        _l_items.append(
+            (
+                k,
+                v[0],
+                '|'.join(v[1]),
+                '|'.join(map(lambda x: str(x), v[2])),
+                max(v[2]) if v[2] else None,
+                len(v[3])
+            )
+        )
 
     __table = pandas.DataFrame(
         columns=['list_task_token', 'city_url', 'task_id', 'total_num_key', 'max_total_num', 'total_crawled'],
@@ -74,5 +87,5 @@ def generate_table():
 
 
 if __name__ == '__main__':
-    table = generate_table()
-    table.to_csv('/tmp/qyer_total_crawl_report_{}.csv'.format(TaskCollectionName))
+    report_table = generate_table()
+    report_table.to_csv('/tmp/qyer_total_crawl_report_{}.csv'.format(TaskCollectionName))
