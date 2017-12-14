@@ -256,8 +256,8 @@ def update_share_airport():
                         condition_3 = 1
                         condition_judge_3(open_airport[0], result[0], open_airport[2], cond_trans_degree_3,
                                           cond_inner_order_3, distance / 1000)
-
             print(cond_trans_degree_1,cond_trans_degree_2,cond_trans_degree_3)
+
             if cond_trans_degree_1:
                 if len(cond_trans_degree_1) >= 2:
                     sort_key = min(cond_trans_degree_1.keys())
@@ -273,8 +273,8 @@ def update_share_airport():
                                                                       cond_inner_order_1[sort_key][1]))
                         write_toCsv(result[0], cond_inner_order_1[sort_key][0])
                     else:
-                        degree_key = cond_trans_degree_1.keys()[0]
-                        inner_key = cond_inner_order_1.keys()[0]
+                        degree_key = list(cond_trans_degree_1.keys())[0]
+                        inner_key = list(cond_inner_order_1.keys())[0]
                         if cond_trans_degree_1[degree_key][1] < cond_inner_order_1[inner_key][1]:
                             write_toCsv(result[0], cond_trans_degree_1[degree_key][0])
                         else:
@@ -285,19 +285,19 @@ def update_share_airport():
                 if len(cond_trans_degree_2) >= 2:
                     sort_key = min(cond_trans_degree_2.keys())
                     logger.debug(
-                        "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_1[sort_key][0],
-                                                                  cond_inner_order_1[sort_key][1]))
+                        "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_2[sort_key][0],
+                                                                  cond_inner_order_2[sort_key][1]))
                     write_toCsv(result[0], cond_trans_degree_2[sort_key][0])
                 else:
                     if len(cond_inner_order_2) >= 2:
                         sort_key = min(cond_inner_order_2.keys())
                         logger.debug(
-                            "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_1[sort_key][0],
-                                                                      cond_inner_order_1[sort_key][1]))
+                            "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_2[sort_key][0],
+                                                                      cond_inner_order_2[sort_key][1]))
                         write_toCsv(result[0], cond_inner_order_2[sort_key][0])
                     else:
-                        degree_key = cond_trans_degree_2.keys()[0]
-                        inner_key = cond_inner_order_2.keys()[0]
+                        degree_key = list(cond_trans_degree_2.keys())[0]
+                        inner_key = list(cond_inner_order_2.keys())[0]
                         if cond_trans_degree_2[degree_key][1] < cond_inner_order_2[inner_key][1]:
                             write_toCsv(result[0], cond_trans_degree_2[degree_key][0])
                         else:
@@ -307,19 +307,19 @@ def update_share_airport():
                 if len(cond_trans_degree_3) >= 2:
                     sort_key = min(cond_trans_degree_3.keys())
                     logger.debug(
-                        "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_1[sort_key][0],
+                        "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_3[sort_key][0],
                                                                   cond_inner_order_1[sort_key][1]))
                     write_toCsv(result[0], cond_trans_degree_3[sort_key][0])
                 else:
                     if len(cond_inner_order_3) >= 2:
                         sort_key = min(cond_inner_order_3.keys())
                         logger.debug(
-                            "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_1[sort_key][0],
-                                                                      cond_inner_order_1[sort_key][1]))
+                            "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_3[sort_key][0],
+                                                                      cond_inner_order_3[sort_key][1]))
                         write_toCsv(result[0], cond_inner_order_3[sort_key][0])
                     else:
-                        degree_key = cond_trans_degree_3.keys()[0]
-                        inner_key = cond_inner_order_3.keys()[0]
+                        degree_key = list(cond_trans_degree_3.keys())[0]
+                        inner_key = list(cond_inner_order_3.keys())[0]
                         if cond_trans_degree_3[degree_key][1] < cond_inner_order_3[inner_key][1]:
                             write_toCsv(result[0], cond_trans_degree_3[degree_key][0])
                         else:
@@ -367,7 +367,7 @@ def insert_airport(path=None):
                     city_conn.commit()
                     logger.debug(
                         "更新后的结果：{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},".format(row[0], row[1], row[2], row[3],
-                                                                                 city_id, city_id, map_info, row[7],
+                                                                                 row[4], row[5], map_info, row[7],
                                                                                  row[8], row[9]))
             except Exception as e:
                 print(traceback.format_exc())
