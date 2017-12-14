@@ -5,8 +5,11 @@
 # @Site    : 
 # @File    : select_and_update_table.py
 # @Software: PyCharm
+import re
+import json
 from data_source import MysqlSource
-from service_platform_conn_pool import poi_ori_pool, poi_face_detect_pool, service_platform_pool, base_data_final_pool
+from service_platform_conn_pool import poi_ori_pool, poi_face_detect_pool, service_platform_pool, base_data_final_pool, \
+    fetchall
 from logger import get_logger
 
 logger = get_logger("select_and_update_table")
@@ -16,48 +19,86 @@ poi_ori_config = {
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
-    'db': 'ServicePlatform'
+    'db': 'poi_merge'
 }
 
 
 def update_sql(data):
-    sql = '''UPDATE hotel_images
-SET info = JSON_SET(CASE WHEN info IS NULL
-  THEN '{{}}'
-                    ELSE info END, '$.down_reason', '扫库 md5 不对应，过滤')
-WHERE pic_md5 IN ({});'''.format(
-        ','.join(
-            map(lambda x: "'{}'".format(x), data)
-        )
-    )
-    conn = base_data_final_pool.connection()
+    sql = '''UPDATE chat_attraction
+SET beentocount = %s, plantocount = %s, commentcount = %s
+WHERE id = %s;'''
+    conn = poi_ori_pool.connection()
     cursor = conn.cursor()
     try:
-        _res = cursor.execute(sql)
+        _res = cursor.execute(sql, data)
     except Exception:
         print(sql)
         raise Exception()
     conn.commit()
     cursor.close()
     conn.close()
-    logger.info("[total: {}][execute: {}]".format(len(data), _res))
+    logger.info("[total: {}][execute: {}]".format(1, _res))
+
+
+def generate_qyer_url_id():
+    sql = '''SELECT
+  url,
+  commentcounts,
+  beentocounts,
+  plantocounts
+FROM detail_total_qyer_20171209a;'''
+    _dict = {}
+    for url, bc, cc, pc in fetchall(service_platform_pool, sql):
+        sid = re.findall('place.qyer.com/poi/([\s\S]+)/', url)[-1]
+        _dict[sid] = (bc, cc, pc)
+    return _dict
 
 
 def get_task():
-    sql = '''SELECT file_name
-FROM error_f_md5_file;'''
+    g_dict = generate_qyer_url_id()
+    sql = '''SELECT
+  id,
+  beentocount,
+  plantocount,
+  commentcount,
+  qyer_url
+FROM test_result_2;'''
     data = []
     _count = 0
-    for line in MysqlSource(poi_ori_config, table_or_query=sql,
-                            size=10000, is_table=False,
-                            is_dict_cursor=False):
+    for uid, b_c, p_c, c_c, q_url in MysqlSource(poi_ori_config, table_or_query=sql,
+                                                 size=10000, is_table=False,
+                                                 is_dict_cursor=False):
         _count += 1
-        data.append(line[0])
-        if len(data) == 1000:
-            logger.info("[count: {}]".format(_count))
-            update_sql(data)
-            data = []
-    update_sql(data)
+        if not str(q_url).endswith('/'):
+            q_url += '/'
+        q_url_id = re.findall('http://place.qyer.com/poi/(\S+?)/', q_url)[-1]
+
+        bc_d = json.loads(b_c)
+        del bc_d['qyer']
+        pc_d = json.loads(p_c)
+        del pc_d['qyer']
+        cc_d = json.loads(c_c)
+        del cc_d['qyer']
+
+        res = g_dict.get(q_url_id)
+        if res:
+            bc, cc, pc = res
+            bc_d['qyer'] = int(bc)
+            cc_d['qyer'] = int(cc)
+            pc_d['qyer'] = int(pc)
+            print(uid, json.dumps(bc_d), json.dumps(pc_d), json.dumps(cc_d), q_url_id, q_url)
+        else:
+            print('##' * 10)
+            print(uid, json.dumps(bc_d), json.dumps(pc_d), json.dumps(cc_d), q_url_id, q_url)
+            print('##' * 10)
+
+        logger.info("[count: {}]".format(_count))
+        update_sql((json.dumps(bc_d), json.dumps(pc_d), json.dumps(cc_d), uid))
+        # if len(data) == 1000:
+        #     logger.info("[count: {}]".format(_count))
+        #         update_sql(data)
+        #         data = []
+        # update_sql(data)
 
 
 if __name__ == '__main__':
