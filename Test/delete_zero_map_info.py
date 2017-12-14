@@ -26,7 +26,7 @@ def get_task():
     _sql = '''SELECT
   id,
   map_info
-FROM merged_total_qyer_1209a;'''
+FROM detail_total_qyer_20171209a;'''
     for _sid, map_info in fetchall(service_platform_pool, sql=_sql):
         if is_map_info_legal(map_info=map_info):
             continue

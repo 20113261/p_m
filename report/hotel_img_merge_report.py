@@ -79,7 +79,7 @@ def report(target, task_filter):
     return _table_source, _table_img_percentage
 
 
-table_source, table_img_percentage = report(200000, task_filter='merge_hotel_image_20171108_20')
+table_source, table_img_percentage = report(200000, task_filter='merge_hotel_image_20171208_20')
 
 print(table_source)
 print()

@@ -6,6 +6,7 @@
 # @File    : service_platform_conn_pool.py
 # @Software: PyCharm
 import pymysql
+import pymysql.cursors
 from DBUtils.PooledDB import PooledDB
 
 
@@ -186,7 +187,6 @@ spider_task_tmp_config = dict(
 
 spider_task_tmp_pool = init_pool(**spider_task_tmp_config)
 
-
 verify_info_new_config = dict(
     user='mioji_admin',
     password='mioji1109',
@@ -198,9 +198,12 @@ verify_info_new_config = dict(
 verify_info_new_pool = init_pool(**verify_info_new_config, max_connections=30)
 
 
-def fetchall(conn_pool, sql):
+def fetchall(conn_pool, sql, is_dict=False):
     conn = conn_pool.connection()
-    cursor = conn.cursor()
+    if is_dict:
+        cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
+    else:
+        cursor = conn.cursor()
     cursor.execute(sql)
     for line in cursor.fetchall():
         yield line

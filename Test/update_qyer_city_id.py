@@ -31,7 +31,7 @@ def update_db(data):
     __conn = service_platform_pool.connection()
     __cursor = __conn.cursor()
     print('start', line)
-    __res = __cursor.executemany('''UPDATE merged_total_qyer_1209a
+    __res = __cursor.executemany('''UPDATE new_detail_qyer_1212
     SET city_id = %s
     WHERE source_city_id = %s;''', data)
     print('end', line, len(data), __res, _count)
