@@ -15,7 +15,8 @@ RespClient = pymongo.MongoClient(host='10.10.213.148')
 RespDB = RespClient['data_result']
 
 check_collection = [
-    ('Qyer20171214a', 'Task_Queue_poi_list_TaskName_list_total_qyer_20171209a', 'detail_total_qyer_20171209a')
+    # ('Qyer20171214a', 'Task_Queue_poi_list_TaskName_list_total_qyer_20171209a', 'detail_total_qyer_20171209a'),
+    ('qyer', 'Task_Queue_poi_list_TaskName_list_total_qyer_20171214a', 'detail_total_qyer_20171214a')
 ]
 
 

@@ -9,16 +9,17 @@ import pymongo
 import pandas
 from collections import defaultdict
 from logger import get_logger
+from service_platform_conn_pool import fetchall, source_info_pool
 
 TaskClient = pymongo.MongoClient(host='10.10.231.105')
 RespClient = pymongo.MongoClient(host='10.10.213.148')
 
-# TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20171214a'
-TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20171209a'
+TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20171214a'
+# TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20171209a'
 
 TaskCollections = TaskClient['MongoTask'][TaskCollectionName]
-# RespCollections = RespClient['data_result']['qyer']
-RespCollections = RespClient['data_result']['Qyer20171214a']
+RespCollections = RespClient['data_result']['qyer']
+# RespCollections = RespClient['data_result']['Qyer20171214a']
 
 
 def task_resp_info():
@@ -62,13 +63,37 @@ def generate_report():
     return __dict
 
 
+def generate_c_url_map_dict():
+    __dict = {}
+    sql = '''SELECT
+  city.id,
+  city.name,
+  city.grade,
+  ota_location.suggest
+FROM ota_location, city
+WHERE ota_location.source = 'qyer' AND ota_location.city_id = city.id;'''
+    for line in fetchall(source_info_pool, sql):
+        __dict[line[3]] = (line[0], line[1], line[2])
+    return __dict
+
+
 def generate_table():
     _l_items = []
     report_dict = generate_report()
+    city_info_dict = generate_c_url_map_dict()
     for k, v in report_dict.items():
+        c_info = city_info_dict.get(v[0], ('', '', 100))
+        _id, _name, _grade = c_info
+
+        if int(_grade) == -1:
+            _grade = 100
+
         _l_items.append(
             (
                 k,
+                _grade,
+                _id,
+                _name,
                 v[0],
                 '|'.join(v[1]),
                 '|'.join(map(lambda x: str(x), v[2])),
@@ -78,14 +103,17 @@ def generate_table():
         )
 
     __table = pandas.DataFrame(
-        columns=['list_task_token', 'city_url', 'task_id', 'total_num_key', 'max_total_num', 'total_crawled'],
+        columns=['list_task_token', 'city_grade', 'city_id', 'city_name', 'city_url', 'task_id',
+                 'total_num_key', 'max_total_num', 'total_crawled'],
         data=_l_items
     )
 
     __table['crawled_diff'] = __table['max_total_num'] - __table['total_crawled']
-    return __table
+    return __table.sort_values(by=['city_grade', 'city_id'])
 
 
 if __name__ == '__main__':
+    file_name = '/tmp/qyer_total_crawl_report_{}.csv'.format(TaskCollectionName)
     report_table = generate_table()
-    report_table.to_csv('/tmp/qyer_total_crawl_report_{}.csv'.format(TaskCollectionName))
+    report_table.to_csv(file_name)
+    print(file_name)
