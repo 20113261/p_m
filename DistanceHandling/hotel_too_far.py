@@ -8,7 +8,7 @@
 import os
 import numpy as np
 from data_source import MysqlSource
-from service_platform_conn_pool import base_data_pool, spider_task_tmp_pool
+from service_platform_conn_pool import base_data_pool
 from logger import get_logger
 
 logger = get_logger("hotel_too_far")
@@ -22,7 +22,7 @@ spider_task_data_config = {
     'password': 'mioji1109',
     'charset': 'utf8',
     # 'db': 'tmp'
-    'db': 'hotel_api'
+    'db': 'view_data'
 }
 
 
@@ -175,8 +175,7 @@ WHERE city_id != 'NULL' AND city_id IS NOT NULL;'''.format(table_name)
                 new_data = []
             logger.info(
                 "[error_distance][offset: {}][error: {}][dist: {}][source: {}][source_id: {}][city_id: {}]".format(
-                    offset, error, dist, _source, _source_id,
-                    _city_id))
+                    offset, error, dist, _source, _source_id, _city_id))
     if new_data:
         get_sql(table_name=table_name, res_f=f_res, res_del_f=f_del, data=new_data)
     f_res.close()
@@ -200,4 +199,4 @@ WHERE TABLE_SCHEMA = 'tmp';'''
 
 if __name__ == '__main__':
     # main()
-    detect_table(table_name='hotelinfo_gta_2017_12_01xz')
+    detect_table(table_name='hotel_final_20171214a')

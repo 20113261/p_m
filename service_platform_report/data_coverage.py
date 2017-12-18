@@ -62,6 +62,8 @@ def mk_sql(c_type, table_name):
         'star': ('NULL', '', '0', '-1'),
         'ranking': ('NULL', '', '0', '-1'),
         'grade': ('NULL', '', '0', '-1'),
+        'plantocounts': ('NULL', '', '0', '-1'),
+        'beentocounts': ('NULL', '', '0', '-1'),
         'commentcounts': ('NULL', '', '0', '-1'),
         'tagid': ('NULL', '', '0'),
         'phone': ('NULL', '', '0'),
@@ -121,6 +123,8 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
         cand_list = cand_table.split('_')
         # 跳过不为 4 的表
         if len(cand_list) != 4:
+            continue
+        if 'total' not in cand_table:
             continue
 
         crawl_type, task_type, cand_source, task_tag = cand_list

@@ -17,7 +17,7 @@ logger = get_logger("insert_mongo_task")
 def get_tasks():
     query_sql = '''SELECT *
 FROM ota_location
-WHERE source = 'daodao' AND city_id in ('40050', '40051', '40052', '40053', '51516', '51517', '51518', '51519', '51520', '51521', '51522', '20371');'''
+WHERE source = 'daodao' AND city_id in ('11444','60177','12344','60178','10436','60179','60180','30118','30140','50053','60181','10648','11424','60182','60183','50117','20096');'''
 
     for _l in MysqlSource(db_config=source_info_config,
                           table_or_query=query_sql,
@@ -28,7 +28,7 @@ WHERE source = 'daodao' AND city_id in ('40050', '40051', '40052', '40053', '515
 
 if __name__ == '__main__':
     with InsertTask(worker='proj.total_tasks.poi_list_task', queue='poi_list', routine_key='poi_list',
-                    task_name='city_attr_daodao_20171122a', source='Daodao', _type='PoiList',
+                    task_name='city_attr_daodao_20171214a', source='Daodao', _type='PoiList',
                     priority=3, task_type=TaskType.CITY_TASK) as it:
         for line in get_tasks():
             # args = {

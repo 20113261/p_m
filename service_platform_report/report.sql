@@ -657,6 +657,12 @@ CREATE VIEW service_platform_total_data_coverage_report AS
     sum(CASE WHEN col_name = 'ranking'
       THEN col_count
         ELSE 0 END) AS ranking,
+    sum(CASE WHEN col_name = 'beentocounts'
+      THEN col_count
+        ELSE 0 END) AS beentocounts,
+    sum(CASE WHEN col_name = 'plantocounts'
+      THEN col_count
+        ELSE 0 END) AS plantocounts,
     sum(CASE WHEN col_name = 'commentcounts'
       THEN col_count
         ELSE 0 END) AS commentcounts,

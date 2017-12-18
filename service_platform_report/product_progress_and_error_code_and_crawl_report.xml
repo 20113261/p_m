@@ -174,6 +174,8 @@
             <field name="star_ratio">round(`star`/`total`*100,2)</field>
             <field name="ranking_ratio">round(`ranking`/`total`*100,2)</field>
             <field name="grade_ratio">round(`grade`/`total`*100,2)</field>
+            <field name="plantocounts_ratio">round(`plantocounts`/`total`*100,2)</field>
+            <field name="beentocounts_ratio">round(`beentocounts`/`total`*100,2)</field>
             <field name="commentcounts_ratio">round(`commentcounts`/`total`*100,2)</field>
             <field name="tagid_ratio">round(`tagid`/`total`*100,2)</field>
             <field name="phone_ratio">round(`phone`/`total`*100,2)</field>
