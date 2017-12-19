@@ -124,8 +124,6 @@ WHERE TABLE_SCHEMA = 'ServicePlatform';''')
         # 跳过不为 4 的表
         if len(cand_list) != 4:
             continue
-        if 'total' not in cand_table:
-            continue
 
         crawl_type, task_type, cand_source, task_tag = cand_list
 

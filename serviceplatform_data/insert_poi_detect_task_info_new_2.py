@@ -66,15 +66,25 @@ FROM city;''')
 
 def _get_per_table_task_info():
     global offset
+#     sql = '''SELECT
+#   attr_unid.city_id AS poi_city_id,
+#   attr_unid.source  AS poi_source,
+#   sid               AS poi_sid,
+#   file_name         AS pic_name
+# FROM BaseDataFinal.poi_images, poi_merge.attr_unid
+# WHERE
+#   attr_unid.source = 'qyer' AND BaseDataFinal.poi_images.source = 'qyer' AND BaseDataFinal.poi_images.`use` != '0' AND
+#   attr_unid.source = BaseDataFinal.poi_images.source AND attr_unid.source_id = BaseDataFinal.poi_images.sid
+#   LIMIT {0},999999999;'''.format(offset)
+
     sql = '''SELECT
-  attr_unid.city_id AS poi_city_id,
-  attr_unid.source  AS poi_source,
+  view_data.attr_1206.city_id AS poi_city_id,
+  view_data.attr_1206.source  AS poi_source,
   sid               AS poi_sid,
   file_name         AS pic_name
-FROM BaseDataFinal.poi_images, poi_merge.attr_unid
-WHERE
-  attr_unid.source = 'qyer' AND BaseDataFinal.poi_images.source = 'qyer' AND BaseDataFinal.poi_images.`use` != '0' AND
-  attr_unid.source = BaseDataFinal.poi_images.source AND attr_unid.source_id = BaseDataFinal.poi_images.sid
+FROM BaseDataFinal.poi_images, view_data.attr_1206
+WHERE BaseDataFinal.poi_images.`use` != '0' AND
+  view_data.attr_1206.source = BaseDataFinal.poi_images.source AND view_data.attr_1206.id = BaseDataFinal.poi_images.sid
   LIMIT {0},999999999;'''.format(offset)
     data = []
     _count = 0
