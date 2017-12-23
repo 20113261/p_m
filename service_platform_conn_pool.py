@@ -198,6 +198,17 @@ verify_info_new_config = dict(
 verify_info_new_pool = init_pool(**verify_info_new_config, max_connections=30)
 
 
+new_station_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.228.253',
+    # database='verify_info',
+    database='NewStation'
+)
+
+new_station_pool = init_pool(**new_station_config, max_connections=30)
+
+
 def fetchall(conn_pool, sql, is_dict=False):
     conn = conn_pool.connection()
     if is_dict:

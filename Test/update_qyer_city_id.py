@@ -31,7 +31,7 @@ def update_db(data):
     __conn = service_platform_pool.connection()
     __cursor = __conn.cursor()
     print('start', line)
-    __res = __cursor.executemany('''UPDATE qyer_whole_world
+    __res = __cursor.executemany('''UPDATE view_data.attr_qyer_1216
     SET city_id = %s
     WHERE source_city_id = %s;''', data)
     print('end', line, len(data), __res, _count)
@@ -42,7 +42,7 @@ def update_db(data):
 if __name__ == '__main__':
     _count = 0
     data = []
-    for line in list(get_tasks()):
+    for line in get_tasks():
         _count += 1
         data.append((line[1], line[0]))
         if _count % 100 == 0:

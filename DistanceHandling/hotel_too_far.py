@@ -22,7 +22,7 @@ spider_task_data_config = {
     'password': 'mioji1109',
     'charset': 'utf8',
     # 'db': 'tmp'
-    'db': 'view_data'
+    'db': 'tmp'
 }
 
 
@@ -199,4 +199,4 @@ WHERE TABLE_SCHEMA = 'tmp';'''
 
 if __name__ == '__main__':
     # main()
-    detect_table(table_name='hotel_final_20171214a')
+    detect_table(table_name='hotel_ihg_1221')
