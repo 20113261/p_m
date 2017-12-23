@@ -28,7 +28,7 @@ WHERE source = 'daodao' AND city_id in ('11444','60177','12344','60178','10436',
 
 if __name__ == '__main__':
     with InsertTask(worker='proj.total_tasks.poi_list_task', queue='poi_list', routine_key='poi_list',
-                    task_name='city_attr_daodao_20171214a', source='Daodao', _type='PoiList',
+                    task_name='city_attr_daodao_20171222a', source='Daodao', _type='PoiList',
                     priority=3, task_type=TaskType.CITY_TASK) as it:
         for line in get_tasks():
             # args = {

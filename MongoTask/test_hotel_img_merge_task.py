@@ -34,7 +34,7 @@ ORDER BY uid;'''
 
 if __name__ == '__main__':
     with InsertTask(worker='proj.total_tasks.hotel_img_merge_task', queue='merge_task', routine_key='merge_task',
-                    task_name='merge_hotel_image_20171213_20', source='Any', _type='HotelImgMerge',
+                    task_name='merge_hotel_image_20171220_20', source='Any', _type='HotelImgMerge',
                     priority=11) as it:
         for uid in get_tasks():
             args = {

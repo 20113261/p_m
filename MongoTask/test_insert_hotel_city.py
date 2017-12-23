@@ -15,9 +15,14 @@ logger = get_logger("insert_mongo_task")
 
 
 def get_tasks(source):
+    # query_sql = '''SELECT *
+    # FROM ota_location
+    # WHERE source = '{}' AND city_id in ('11444','60177','12344','60178','10436','60179','60180','30118','30140','50053','60181','10648','11424','60182','60183','50117','20096');'''.format(
+    #     source)
+
     query_sql = '''SELECT *
     FROM ota_location
-    WHERE source = '{}' AND city_id in ('11444','60177','12344','60178','10436','60179','60180','30118','30140','50053','60181','10648','11424','60182','60183','50117','20096');'''.format(
+    WHERE source = '{}';'''.format(
         source)
 
     #     query_sql = '''SELECT *
@@ -34,13 +39,16 @@ def get_tasks(source):
 
 if __name__ == '__main__':
     # source_list = ['booking', 'agoda', 'ctrip', 'hotels', 'expedia', 'elong']
-    source_list = ['expedia']
+    # source_list = ['expedia']
+    # source_list = ['elong']
     # source_list = ['agoda', 'hotels', 'expedia', 'elong']
     # source_list = ['ctrip']
     # source_list = ['expedia']
     # source_list = ['hotels']
+    source_list = ['ihg']
+
     for source in source_list:
-        task_name = 'city_hotel_{}_20171218a'.format(source)
+        task_name = 'city_hotel_{}_20171222a'.format(source)
         with InsertTask(worker='proj.total_tasks.hotel_list_task', queue='hotel_list', routine_key='hotel_list',
                         task_name=task_name, source=source.title(), _type='HotelList',
                         priority=3, task_type=TaskType.CITY_TASK) as it:
