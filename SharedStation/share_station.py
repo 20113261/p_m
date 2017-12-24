@@ -145,7 +145,9 @@ def shared_city_id_insert():
     near_count = 0
     far_count = 0
     no_count = 0
+    no_set = set()
     no_map_info_count = 0
+    no_map_info_set = set()
     for city_id, city_map_info in city_list:
         _count += 1
         if is_legal(city_map_info):
@@ -214,11 +216,13 @@ def shared_city_id_insert():
                 no_count += 1
                 logger.info("[无 station 城市][count: {}][no: {}][city_id: {}]".
                             format(_count, no_count, city_id))
+                no_set.add(city_id)
                 continue
         else:
             logger.info(
                 "[无 map_info 城市][count: {}][no_map_info: {}][city_id: {}]".
                     format(_count, no_map_info_count, city_id))
+            no_map_info_set.add(city_id)
             continue
 
         if len(data):
@@ -228,6 +232,12 @@ def shared_city_id_insert():
         # elif len(data) == 1:
         #     insert_db(data, False)
         data = []
+
+    logger.info(
+        "[near_count: {}][far_count: {}][no_count: {}][no_map_info_count: {}]".format(near_count, far_count, no_count,
+                                                                                      no_map_info_count))
+    logger.info("[no_set: {}]".format(no_set))
+    logger.info("[no_map_info_set: {}]".format(no_map_info_set))
 
 
 def get_info():
