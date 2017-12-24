@@ -125,7 +125,10 @@ def get_city_station_list():
           JOIN base_data.country ON base_data.city.country_id = base_data.country.mid
           JOIN base_data.continent ON base_data.country.continent_id = base_data.continent.id
         WHERE base_data.continent.name = '欧洲' AND base_data.city.id NOT IN (SELECT city_id
-                                                                            FROM {0});'''.format(STATION_RELATION_TABLE)
+FROM {0}
+WHERE info != '旧数据保留';);'''.\
+        format(STATION_RELATION_TABLE)
+
     station_sql = '''SELECT
       station_id,
       map_info,
