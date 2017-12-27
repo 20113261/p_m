@@ -197,7 +197,6 @@ verify_info_new_config = dict(
 
 verify_info_new_pool = init_pool(**verify_info_new_config, max_connections=30)
 
-
 new_station_config = dict(
     user='mioji_admin',
     password='mioji1109',
@@ -208,6 +207,25 @@ new_station_config = dict(
 
 new_station_pool = init_pool(**new_station_config, max_connections=30)
 
+new_service_platform_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.19.153.98',
+    # database='verify_info',
+    database='ServicePlatform'
+)
+
+new_service_platform_pool = init_pool(**new_service_platform_config, max_connections=30)
+
+poi_ori_new_config = dict(
+    user='reader',
+    password='miaoji1109',
+    host='10.10.169.10',
+    database='poi_merge',
+)
+
+poi_ori_new_pool = init_pool(**poi_ori_new_config)
+
 
 def fetchall(conn_pool, sql, is_dict=False):
     conn = conn_pool.connection()
@@ -215,6 +233,7 @@ def fetchall(conn_pool, sql, is_dict=False):
         cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     else:
         cursor = conn.cursor()
+    cursor.execute('''SET SESSION sql_mode = (SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));''')
     cursor.execute(sql)
     for line in cursor.fetchall():
         yield line

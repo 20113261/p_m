@@ -13,7 +13,7 @@ def get_tasks():
     sql = '''SELECT
   others_info,
   city_id
-FROM ota_location WHERE source='qyer';'''
+FROM ota_location_qyer_1226 WHERE source='qyer';'''
     conn = source_info_pool.connection()
     cursor = conn.cursor()
     cursor.execute(sql)
