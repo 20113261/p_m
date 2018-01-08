@@ -79,14 +79,27 @@ def _get_per_table_task_info():
     #   attr_unid.source = BaseDataFinal.poi_images.source AND attr_unid.source_id = BaseDataFinal.poi_images.sid
     #   LIMIT {0},999999999;'''.format(offset)
 
+    # todo attr_unid
+    # sql = '''SELECT
+    #   attr_unid.city_id AS poi_city_id,
+    #   attr_unid.source  AS poi_source,
+    #   sid               AS poi_sid,
+    #   file_name         AS pic_name
+    # FROM BaseDataFinal.poi_images, poi_merge.attr_unid
+    # WHERE BaseDataFinal.poi_images.`use` != '0' AND
+    #   attr_unid.source = BaseDataFinal.poi_images.source AND attr_unid.source_id = BaseDataFinal.poi_images.sid
+    #   LIMIT {0},999999999;'''.format(offset)
+
+
+    # todo shop_unid
     sql = '''SELECT
-      attr_unid.city_id AS poi_city_id,
-      attr_unid.source  AS poi_source,
+      shop_unid.city_id AS poi_city_id,
+      shop_unid.source  AS poi_source,
       sid               AS poi_sid,
       file_name         AS pic_name
-    FROM BaseDataFinal.poi_images, poi_merge.attr_unid
+    FROM BaseDataFinal.poi_images, poi_merge.shop_unid
     WHERE BaseDataFinal.poi_images.`use` != '0' AND
-      attr_unid.source = BaseDataFinal.poi_images.source AND attr_unid.source_id = BaseDataFinal.poi_images.sid
+      shop_unid.source = BaseDataFinal.poi_images.source AND shop_unid.source_id = BaseDataFinal.poi_images.sid
       LIMIT {0},999999999;'''.format(offset)
 
     #     sql = '''SELECT

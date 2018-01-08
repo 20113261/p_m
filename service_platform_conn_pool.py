@@ -17,14 +17,14 @@ def init_pool(host, user, password, database, max_connections=20):
     return mysql_db_pool
 
 
-db_config = dict(
+service_platform_config = dict(
     user='mioji_admin',
     password='mioji1109',
     host='10.10.228.253',
     database='ServicePlatform'
 )
 
-service_platform_pool = init_pool(**db_config)
+service_platform_pool = init_pool(**service_platform_config)
 
 db_config = dict(
     user='mioji_admin',
@@ -44,14 +44,14 @@ db_config = dict(
 
 poi_ori_pool = init_pool(**db_config)
 
-db_config = dict(
+base_data_config = dict(
     user='reader',
     password='miaoji1109',
     host='10.10.69.170',
     database='base_data',
 )
 
-base_data_pool = init_pool(**db_config, max_connections=30)
+base_data_pool = init_pool(**base_data_config, max_connections=30)
 base_data_str = 'mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8'
 
 db_config = dict(
