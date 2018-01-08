@@ -6,6 +6,7 @@
 # @File    : google_address.py
 # @Software: PyCharm
 import pymysql
+import json
 from MongoTask.MongoTaskInsert import InsertTask
 
 
@@ -21,7 +22,8 @@ def get_tasks():
       s_city,
       s_country,
       city_id,
-      country_id
+      country_id,
+      others_info
     FROM ota_location_for_european_trail;'''
         cur.execute(sql)
         yield from cur.fetchall()
@@ -32,10 +34,19 @@ def get_tasks():
 
 
 if __name__ == '__main__':
+    # for g in get_tasks():
+    #     print({
+    #         'city_code': g[0],
+    #         'city_name': g[1],
+    #         'country_code': g[2],
+    #         'city_id': g[3],
+    #         'country_id': g[4],
+    #         'inventory': json.loads(g[5])["Inventory"]
+    #     })
     with InsertTask(worker='proj.total_tasks.european_trail_task',
                     queue='file_downloader',
                     routine_key='file_downloader',
-                    task_name='european_trail_20171222b',
+                    task_name='european_trail_20171226a',
                     source='European',
                     _type='Trail',
                     priority=3) as it:
@@ -45,5 +56,6 @@ if __name__ == '__main__':
                 'city_name': g[1],
                 'country_code': g[2],
                 'city_id': g[3],
-                'country_id': g[4]
+                'country_id': g[4],
+                'inventory': json.loads(g[5])["Inventory"]
             })
