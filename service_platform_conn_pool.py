@@ -175,7 +175,22 @@ spider_data_tmp_pool = init_pool(**spider_data_tmp_config)
 
 spider_data_tmp_str = "mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/tmp?charset=utf8"
 
+spider_base_tmp_wanle_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.230.206',
+    database='tmp_wanle'
+)
+spider_base_tmp_wanle_pool = init_pool(**spider_base_tmp_wanle_config)
 spider_base_tmp_wanle_str = "mysql+pymysql://mioji_admin:mioji1109@10.10.230.206/tmp_wanle?charset=utf8"
+
+spider_base_tmp_wanle_test_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.230.206',
+    database='tmp_wanle_test'
+)
+spider_base_tmp_wanle_test_pool = init_pool(**spider_base_tmp_wanle_config)
 spider_base_tmp_wanle_test_str = "mysql+pymysql://mioji_admin:mioji1109@10.10.230.206/tmp_wanle_test?charset=utf8"
 
 spider_task_tmp_config = dict(
