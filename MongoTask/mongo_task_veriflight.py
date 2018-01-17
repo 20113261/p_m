@@ -8,12 +8,16 @@
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
 from logger import get_logger
 from MongoTask.veriflight_code import veriflight_code
+from string import ascii_lowercase
+from itertools import product
 
 logger = get_logger("insert_mongo_task")
 
 
 def get_tasks():
-    yield from veriflight_code
+    # yield from veriflight_code
+    for chars in product(ascii_lowercase, repeat=3):
+        yield ''.join(chars).upper()
 
 
 if __name__ == '__main__':
