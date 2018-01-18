@@ -14,8 +14,10 @@ import redis
 import json
 from toolbox.Common import is_legal
 from ast import literal_eval
-from service_platform_conn_pool import base_data_final_pool, poi_ori_pool, poi_face_detect_pool, \
-    spider_data_base_data_pool
+from service_platform_conn_pool import base_data_final_pool, \
+    poi_face_detect_pool, \
+    spider_data_base_data_pool, \
+    poi_ori_new_pool
 from logger import get_logger, func_time_logger
 from data_source import MysqlSource
 from StandardException import PoiTypeError
@@ -260,7 +262,7 @@ WHERE is_available=0 AND poi_id IN ({});'''.format(
 
 
 def get_source_sid_set(uid):
-    conn = poi_ori_pool.connection()
+    conn = poi_ori_new_pool.connection()
     cursor = conn.cursor()
     query_sql = '''SELECT
   source,
@@ -277,15 +279,15 @@ WHERE id = '{}';'''.format(unid_name, uid)
 
 @func_time_logger
 def real_update(_data):
-    logger.info("[start update img info][count: {}]".format(len(_data)))
-    conn = poi_ori_pool.connection()
-    cursor = conn.cursor()
-    query_sql = '''UPDATE {} SET first_image=%s,image_list=%s WHERE id=%s;'''.format(table_name)
-    _res = cursor.executemany(query_sql, _data)
-    conn.commit()
-    cursor.close()
-    conn.close()
-    logger.info("[update data process img info][total: {}][update: {}]".format(len(_data), _res))
+    # logger.info("[start update img info][count: {}]".format(len(_data)))
+    # conn = poi_ori_pool.connection()
+    # cursor = conn.cursor()
+    # query_sql = '''UPDATE {} SET first_image=%s,image_list=%s WHERE id=%s;'''.format(table_name)
+    # _res = cursor.executemany(query_sql, _data)
+    # conn.commit()
+    # cursor.close()
+    # conn.close()
+    # logger.info("[update data process img info][total: {}][update: {}]".format(len(_data), _res))
 
     conn = spider_data_base_data_pool.connection()
     cursor = conn.cursor()

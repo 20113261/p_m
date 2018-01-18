@@ -8,15 +8,23 @@
 from data_source import MysqlSource
 from logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask
+from service_platform_conn_pool import fetchall, spider_base_tmp_wanle_pool, spider_base_tmp_wanle_test_pool
 
 logger = get_logger("insert_mongo_task")
 
 
+# def get_tasks():
+#     f = open('/tmp/img_list(7).csv')
+#     for line in f:
+#         sid, _, url = line.strip().split(',')
+#         yield sid, url
 def get_tasks():
-    f = open('/tmp/img_list(7).csv')
-    for line in f:
-        sid, _, url = line.strip().split(',')
-        yield sid, url
+    sql = '''SELECT sid, url FROM img_list;'''
+    for line in fetchall(spider_base_tmp_wanle_pool, sql, is_dict=True):
+        yield line['sid'], line['url']
+    sql = '''SELECT sid, url FROM img_list;'''
+    for line in fetchall(spider_base_tmp_wanle_test_pool, sql, is_dict=True):
+        yield line['sid'], line['url']
 
 
 def insert_task():

@@ -15,13 +15,13 @@ if __name__ == '__main__':
     # dsc_file_name = '/root/data/task/traffic_poi'
     # dsc_file_name = '/root/data/task/google_task_0428'
 
-    file_path = '/search/hourong/task/1128'
-    dsc_file_name = '/search/hourong/task/target_url_1128'
+    file_path = '/search/hourong/task/1227/url/'
+    dsc_file_name = '/search/hourong/task/target_url_1227'
     max_line_count = 500000
 
     # -------------------
     __num_count = 0
-    table_index = 600
+    table_index = 900
     table_name = 'new_crawled_html_%03d' % table_index
     line_count = 0
     dsc_file = open(dsc_file_name, 'w')

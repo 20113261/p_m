@@ -17,14 +17,14 @@ def init_pool(host, user, password, database, max_connections=20):
     return mysql_db_pool
 
 
-db_config = dict(
+service_platform_config = dict(
     user='mioji_admin',
     password='mioji1109',
     host='10.10.228.253',
     database='ServicePlatform'
 )
 
-service_platform_pool = init_pool(**db_config)
+service_platform_pool = init_pool(**service_platform_config)
 
 db_config = dict(
     user='mioji_admin',
@@ -44,14 +44,14 @@ db_config = dict(
 
 poi_ori_pool = init_pool(**db_config)
 
-db_config = dict(
+base_data_config = dict(
     user='reader',
     password='miaoji1109',
     host='10.10.69.170',
     database='base_data',
 )
 
-base_data_pool = init_pool(**db_config, max_connections=30)
+base_data_pool = init_pool(**base_data_config, max_connections=30)
 base_data_str = 'mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8'
 
 db_config = dict(
@@ -175,7 +175,22 @@ spider_data_tmp_pool = init_pool(**spider_data_tmp_config)
 
 spider_data_tmp_str = "mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/tmp?charset=utf8"
 
+spider_base_tmp_wanle_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.230.206',
+    database='tmp_wanle'
+)
+spider_base_tmp_wanle_pool = init_pool(**spider_base_tmp_wanle_config)
 spider_base_tmp_wanle_str = "mysql+pymysql://mioji_admin:mioji1109@10.10.230.206/tmp_wanle?charset=utf8"
+
+spider_base_tmp_wanle_test_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.10.230.206',
+    database='tmp_wanle_test'
+)
+spider_base_tmp_wanle_test_pool = init_pool(**spider_base_tmp_wanle_config)
 spider_base_tmp_wanle_test_str = "mysql+pymysql://mioji_admin:mioji1109@10.10.230.206/tmp_wanle_test?charset=utf8"
 
 spider_task_tmp_config = dict(
@@ -197,7 +212,6 @@ verify_info_new_config = dict(
 
 verify_info_new_pool = init_pool(**verify_info_new_config, max_connections=30)
 
-
 new_station_config = dict(
     user='mioji_admin',
     password='mioji1109',
@@ -208,6 +222,25 @@ new_station_config = dict(
 
 new_station_pool = init_pool(**new_station_config, max_connections=30)
 
+new_service_platform_config = dict(
+    user='mioji_admin',
+    password='mioji1109',
+    host='10.19.153.98',
+    # database='verify_info',
+    database='ServicePlatform'
+)
+
+new_service_platform_pool = init_pool(**new_service_platform_config, max_connections=30)
+
+poi_ori_new_config = dict(
+    user='reader',
+    password='miaoji1109',
+    host='10.10.169.10',
+    database='poi_merge',
+)
+
+poi_ori_new_pool = init_pool(**poi_ori_new_config)
+
 
 def fetchall(conn_pool, sql, is_dict=False):
     conn = conn_pool.connection()
@@ -215,6 +248,7 @@ def fetchall(conn_pool, sql, is_dict=False):
         cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     else:
         cursor = conn.cursor()
+    cursor.execute('''SET SESSION sql_mode = (SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));''')
     cursor.execute(sql)
     for line in cursor.fetchall():
         yield line

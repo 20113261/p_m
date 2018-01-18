@@ -377,3 +377,4 @@ class DaodaoOpenTimeFixTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(testRunner=HtmlTestRunner.HTMLTestRunner(output='/tmp/abc'))
+    # print(fix_daodao_open_time('周一至周四10:00-日落，周五至周日10:00-22:30(附灯光)。'))

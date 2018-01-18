@@ -22,7 +22,7 @@ collections = client['base_data']['station_new']
 
 def insert_db(data):
     # return
-    sql = '''INSERT IGNORE INTO NewStation.station_src_new (station, src_city, src_country, map_info, station_city_map_info, status, belong_city_id, station_code_from_europeRail, src_city_code, src_station_code)
+    sql = '''INSERT IGNORE INTO NewStation.station_src (station, src_city, src_country, map_info, station_city_map_info, status, belong_city_id, station_code_from_europeRail, src_city_code, src_station_code)
 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
     conn = service_platform_pool.connection()
     cursor = conn.cursor()
@@ -35,7 +35,8 @@ VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
 
 _count = 0
 ds = []
-for line in collections.find({}):
+# for line in collections.find({}):
+for line in collections.find({"inventory": ''}):
     _count += 1
     map_info = line['map_info']
     if not map_info:

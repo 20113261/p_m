@@ -20,7 +20,8 @@ service_platform_conf = {
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
-    'db': 'ServicePlatform'
+    # 'db': 'ServicePlatform'
+    'db': 'poi_merge'
 }
 
 offset = 0
@@ -66,31 +67,55 @@ FROM city;''')
 
 def _get_per_table_task_info():
     global offset
-#     sql = '''SELECT
-#   attr_unid.city_id AS poi_city_id,
-#   attr_unid.source  AS poi_source,
-#   sid               AS poi_sid,
-#   file_name         AS pic_name
-# FROM BaseDataFinal.poi_images, poi_merge.attr_unid
-# WHERE
-#   attr_unid.source = 'qyer' AND BaseDataFinal.poi_images.source = 'qyer' AND BaseDataFinal.poi_images.`use` != '0' AND
-#   attr_unid.source = BaseDataFinal.poi_images.source AND attr_unid.source_id = BaseDataFinal.poi_images.sid
-#   LIMIT {0},999999999;'''.format(offset)
+    # qyer 补充
+    #     sql = '''SELECT
+    #   attr_unid.city_id AS poi_city_id,
+    #   attr_unid.source  AS poi_source,
+    #   sid               AS poi_sid,
+    #   file_name         AS pic_name
+    # FROM BaseDataFinal.poi_images, poi_merge.attr_unid
+    # WHERE
+    #   attr_unid.source = 'qyer' AND BaseDataFinal.poi_images.source = 'qyer' AND BaseDataFinal.poi_images.`use` != '0' AND
+    #   attr_unid.source = BaseDataFinal.poi_images.source AND attr_unid.source_id = BaseDataFinal.poi_images.sid
+    #   LIMIT {0},999999999;'''.format(offset)
 
+    # todo attr_unid
+    # sql = '''SELECT
+    #   attr_unid.city_id AS poi_city_id,
+    #   attr_unid.source  AS poi_source,
+    #   sid               AS poi_sid,
+    #   file_name         AS pic_name
+    # FROM BaseDataFinal.poi_images, poi_merge.attr_unid
+    # WHERE BaseDataFinal.poi_images.`use` != '0' AND
+    #   attr_unid.source = BaseDataFinal.poi_images.source AND attr_unid.source_id = BaseDataFinal.poi_images.sid
+    #   LIMIT {0},999999999;'''.format(offset)
+
+
+    # todo shop_unid
     sql = '''SELECT
-  view_data.attr_1206.city_id AS poi_city_id,
-  view_data.attr_1206.source  AS poi_source,
-  sid               AS poi_sid,
-  file_name         AS pic_name
-FROM BaseDataFinal.poi_images, view_data.attr_1206
-WHERE BaseDataFinal.poi_images.`use` != '0' AND
-  view_data.attr_1206.source = BaseDataFinal.poi_images.source AND view_data.attr_1206.id = BaseDataFinal.poi_images.sid
-  LIMIT {0},999999999;'''.format(offset)
+      shop_unid.city_id AS poi_city_id,
+      shop_unid.source  AS poi_source,
+      sid               AS poi_sid,
+      file_name         AS pic_name
+    FROM BaseDataFinal.poi_images, poi_merge.shop_unid
+    WHERE BaseDataFinal.poi_images.`use` != '0' AND
+      shop_unid.source = BaseDataFinal.poi_images.source AND shop_unid.source_id = BaseDataFinal.poi_images.sid
+      LIMIT {0},999999999;'''.format(offset)
+
+    #     sql = '''SELECT
+    #   BaseDataFinal.attr_final_20171222a.city_id AS poi_city_id,
+    #   BaseDataFinal.attr_final_20171222a.source  AS poi_source,
+    #   sid                                  AS poi_sid,
+    #   file_name                            AS pic_name
+    # FROM BaseDataFinal.poi_images, BaseDataFinal.attr_final_20171222a
+    # WHERE BaseDataFinal.poi_images.`use` != '0' AND
+    #       BaseDataFinal.attr_final_20171222a.source = BaseDataFinal.poi_images.source AND
+    #       BaseDataFinal.attr_final_20171222a.id = BaseDataFinal.poi_images.sid LIMIT {0},999999999;'''.format(offset)
     data = []
     _count = 0
     for line in MysqlSource(service_platform_conf, table_or_query=sql, size=10000, is_table=False, is_dict_cursor=True):
         cid = line['poi_city_id']
-        c_grade = cid2grade[cid]
+        c_grade = cid2grade.get(cid, 100)
         source = line['poi_source']
         sid = line['poi_sid']
         pic_name = line['pic_name']
