@@ -17,7 +17,7 @@ def get_tasks():
     query_sql = '''SELECT *
 FROM ota_location
 WHERE source = 'qyer' AND
-      (json_extract(others_info, '$.from') IS NOT NULL OR json_extract(others_info, '$.form') IS NOT NULL);'''
+      (json_extract(others_info, '$.from') IS NOT NULL OR json_extract(others_info, '$.form') IS NOT NULL) limit 10;'''
 
     for _l in MysqlSource(db_config=source_info_config,
                           table_or_query=query_sql,
@@ -28,7 +28,7 @@ WHERE source = 'qyer' AND
 
 if __name__ == '__main__':
     with InsertTask(worker='proj.total_tasks.qyer_list_task', queue='poi_list', routine_key='poi_list',
-                    task_name='city_total_qyer_20171214a', source='Qyer', _type='QyerList',
+                    task_name='city_total_qyer_20180119a', source='Qyer', _type='QyerList',
                     priority=3, task_type=TaskType.CITY_TASK) as it:
         for line in get_tasks():
             args = {
@@ -38,3 +38,4 @@ if __name__ == '__main__':
                 'city_url': line['suggest']
             }
             it.insert_task(args)
+
