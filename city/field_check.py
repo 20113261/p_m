@@ -6,7 +6,7 @@ pymysql.install_as_MySQLdb()
 import csv
 import math
 from functools import reduce
-from city.add_city import read_file
+# from city.add_city import read_file
 from collections import defaultdict
 from toolbox import Common
 from datetime import datetime
@@ -17,17 +17,10 @@ import pypinyin
 import json
 
 MAX_DISTANCE = 20000
-city_path = "测试新增城市.csv"
-airport_path = "测试新增机场.csv"
+city_path = "测试新增城市.xlsx"
+airport_path = "测试新增机场.xlsx"
 
 
-config = {
-    'host': '10.10.228.253',
-    'user': 'mioji_admin',
-    'password': 'mioji1109',
-    'db': 'base_data',
-    'charset': 'utf8'
-}
 check_field = {
     'host': '10.10.69.170',
     'user': 'reader',
@@ -55,12 +48,15 @@ def getDist(lng1, lat1, lng2, lat2):
 
     return int(s)
 
+#检查城市必填字段
 def city_must_write_field(city_path):
     check_not_empty_field = [
         'name','name_en','tri_code','py','map_info','time_zone','summer_zone','summer_start',
          'summer_end','grade','summer_start_next_year','summer_end_next_year','country_id',
          'trans_degree','new_product_city_pic'
          ]
+    # city_data = pandas.read_excel(city_path,)
+    # city_data.to_csv('新增城市.csv', encoding='utf-8', index=False, header=None)
     new_add_city = pandas.read_csv(city_path,encoding='utf-8',)
     citys = new_add_city['name'].values
     city_field_empty = defaultdict(list)
@@ -80,6 +76,8 @@ def city_must_write_field(city_path):
                 writer.writerow((key,value_str))
         return False
     return True
+
+#城市字段检查
 def city_field_check(city_path):
     trans_degree = [-1, 0, 1]
     status = ['Close', 'Open']
@@ -88,10 +86,12 @@ def city_field_check(city_path):
     select_country = "select name from country where mid=%s"
     select_province = "select * from province where id=%s"
     select_region = "select * from region where id=%s"
-    judge_empty_field = city_must_write_field(city_path)
+    city_data = pandas.read_excel(city_path,)
+    city_data.to_csv('新增城市.csv',encoding='utf-8',index=False,header=None)
+    judge_empty_field = city_must_write_field('新增城市.csv')
     if not judge_empty_field:
         return ''
-    with open(city_path) as city:
+    with open('新增城市.csv') as city:
         reader = csv.DictReader(city)
         for row in reader:
             conn = pymysql.connect(**check_field)
@@ -237,11 +237,14 @@ def city_field_check(city_path):
             value_str = json.dumps(value)
             writer.writerow((key,value_str))
 
+#检查机场必填字段
 def airport_must_write_field(airport_path):
     check_not_empty_field = [
         'iata_code','name','name_en','belong_city_id','map_info','inner_order'
     ]
-    new_add_airport = pandas.read_csv(airport_path, encoding='utf-8', )
+    city_data = pandas.read_excel(airport_path, )
+    city_data.to_csv('新增机场.csv', encoding='utf-8', index=False, header=None)
+    new_add_airport = pandas.read_csv('新增机场.csv', encoding='utf-8', )
     airport_field_empty = defaultdict(list)
     for field in check_not_empty_field:
         bool_list = new_add_airport[field].isnull()
@@ -261,15 +264,18 @@ def airport_must_write_field(airport_path):
     return True
 
 
+#机场字段检查
 def airport_field_check(airport_path):
     select_tricode = "select * from airport where iata_code=%s"
     select_city = "select map_info from city where id=%s"
     not_standard_field = defaultdict(list)
     status_list = ['Open','Close']
-    with open(airport_path,'r+') as airport:
+    city_data = pandas.read_excel(airport_path, )
+    city_data.to_csv('新增机场.csv', encoding='utf-8', index=False, header=None)
+    with open('新增机场.csv','r+') as airport:
         reader = csv.DictReader(airport)
         for row in reader:
-            conn = pymysql.connect(**config)
+            conn = pymysql.connect(**check_field)
             cursor = conn.cursor()
 
             # 检查中,英文名
@@ -338,12 +344,12 @@ def airport_field_check(airport_path):
 
     with open('check_airport.csv','w+') as airport:
         writer = csv.writer(airport)
-        writer.writerow(('字段名称','机场名称'))
+        writer.writerow(('字段名称','不合格机场'))
         for key,value in not_standard_field.items():
             value_str = json.dumps(value)
             writer.writerow((key,value_str))
 
-
+#检查城市是否重复
 def check_repeat_city(city_path):
     select_sql = "select * from city where name=%s"
     select_mapInfo = "select map_info from city"
@@ -356,7 +362,9 @@ def check_repeat_city(city_path):
     except Exception as e:
         conn.rollback()
     mapInfo_list = [map_info[0] for map_info in mapInfo_list]
-    with open(city_path,'r+') as city:
+    city_data = pandas.read_excel(city_path, )
+    city_data.to_csv('新增城市.csv', encoding='utf-8', index=False, header=None)
+    with open('新增城市.csv','r+') as city:
         reader = csv.DictReader(city)
         for row in reader:
             long,lat = row['map_info'].split(',')
@@ -376,6 +384,8 @@ def check_repeat_city(city_path):
         for key,value in repeat_city.items():
             value_str = json.dumps(value)
             writer.writerow((key,value_str))
+
+#检查是否机场重复
 def check_repeat_airport(airport_path):
     select_sql = "select * from airport where name=%s"
     select_mapInfo = "select map_info from airport"
@@ -388,7 +398,9 @@ def check_repeat_airport(airport_path):
     except Exception as e:
         conn.rollback()
     mapInfo_list = [map_info[0] for map_info in mapInfo_list]
-    with open(airport_path,'r+') as airport:
+    city_data = pandas.read_excel(airport_path, )
+    city_data.to_csv('新增机场.csv', encoding='utf-8', index=False, header=None)
+    with open('新增机场.csv','r+') as airport:
         reader = csv.DictReader(airport)
         for row in reader:
             long,lat = row['map_info'].split(',')
@@ -408,5 +420,41 @@ def check_repeat_airport(airport_path):
         for key,value in repeat_airport.items():
             value_str = json.dumps(value)
             writer.writerow((key,value_str))
+
+#城市字段不合格率统计
+def not_standard_city_field_count():
+    city_data = pandas.read_csv('新增城市.csv',encoding='utf-8')
+    max_num = city_data.index.values.max() + 1
+    count_result = defaultdict(dict)
+    with open('check_city.csv','r+') as city:
+        reader = csv.DictReader(city)
+        for row in reader:
+            city_list = json.loads(row['不合格城市'])
+            city_num = len(city_list)
+            field_name = row['字段名称']
+            count_result[field_name]['not_city_pass'] = (city_num / max_num) * 100
+            count_result[field_name]['city_pass'] = 100 - count_result[field_name]['not_city_pass']
+            count_result[field_name]['source'] = 'city'
+            count_result[field_name]['content'] = row['不合格城市']
+    return count_result
+
+
+#机场字段不合格率统计
+def not_standard_airport_field_count():
+    airport_data = pandas.read_csv('新增机场.csv', encoding='utf-8')
+    max_num = airport_data.index.values.max() + 1
+    count_result = defaultdict(dict)
+    with open('check_airport.csv', 'r+') as airport:
+        reader = csv.DictReader(airport)
+        for row in reader:
+            airport_list = json.loads(row['不合格机场'])
+            airport_num = len(airport_list)
+            field_name = row['字段名称']
+            count_result[field_name]['not_airport_pass'] = airport_num / max_num
+            count_result[field_name]['airport_pass'] = 1 - count_result[field_name]['not_airport_pass']
+            count_result[field_name]['source'] = 'airport'
+            count_result[field_name]['content'] = row['不合格机场']
+    return count_result
+
 if __name__ == "__main__":
-    check_repeat_airport(airport_path)
+    not_standard_airport_field_count()
