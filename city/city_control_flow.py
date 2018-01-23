@@ -4,7 +4,7 @@
 import sys
 
 from city.add_city import read_file
-from city.city_map_ciytName import revise_pictureNmae
+from city.city_map_ciytName import revise_pictureName
 from city.field_check import city_field_check,check_repeat_city,city_must_write_field,airport_field_check,check_repeat_airport,airport_must_write_field,new_airport_insert
 from city.field_check import check_new_city_id
 from city.share_airport import update_share_airport
@@ -37,7 +37,7 @@ class CityControlFlow():
             is_exist_id = check_new_city_id(config=self.config)
             if not is_exist_id:
                 return False
-            revise_pictureNmae(path=picture_path,config=self.config)
+            revise_pictureName(path=picture_path,config=self.config)
             update_city_pic(path=picture_path,config=self.config)
             update_share_airport()
             shareAirport_insert(config=self.config)

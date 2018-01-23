@@ -31,7 +31,7 @@ def get_cityName(config):
                 result = cursor.fetchone()
                 writer.writerow(result)
         conn.close()
-def revise_pictureNmae(path,config):
+def revise_pictureName(path,config):
     get_cityName(config)
     city_map = {}
     with open(base_path+'map_cityName.csv','r+') as city:
@@ -53,4 +53,4 @@ def revise_pictureNmae(path,config):
             os.rename(old_name,new_name)
 
 if __name__ == "__main__":
-    revise_pictureNmae('/Users/miojilx/Desktop/1206新增城市图')
+    revise_pictureName('/Users/miojilx/Desktop/1206新增城市图')
