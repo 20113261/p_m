@@ -11,8 +11,8 @@ from collections import defaultdict
 from logger import get_logger
 logger = get_logger("city_pic_update")
 
-def update_city_pic(path):
-    db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/base_data?charset=utf8')
+def update_city_pic(path,config):
+    db = dataset.connect('mysql+pymysql://{user}:{password}@{host}/{db}?charset=utf8'.format(**config))
     # db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/base_data?charset=utf8')
     target_table = db['city']
     cid_set = set()

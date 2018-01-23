@@ -8,11 +8,12 @@
 import pandas
 import dataset
 import copy
+from city.config import base_path
 
-def shareAirport_insert():
-    db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253:3306/base_data?charset=utf8')
+def shareAirport_insert(config):
+    db = dataset.connect('mysql+pymysql://{user}:{password}@{host}:3306/{db}?charset=utf8'.format(**config))
     airport_table = db['airport']
-    table = pandas.read_csv('share_airport.csv')
+    table = pandas.read_csv(base_path+'share_airport.csv')
 
     _count = 0
     for i in range(len(table)):

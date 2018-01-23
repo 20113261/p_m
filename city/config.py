@@ -12,3 +12,5 @@ picture_path = "/Users/miojilx/Desktop/1206新增城市图"
 #更新airport表 文件路径
 airport_path = ""
 
+base_path = '/data/city/'
+

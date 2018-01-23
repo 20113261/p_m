@@ -3,6 +3,7 @@ import pymysql
 pymysql.install_as_MySQLdb()
 import dataset
 import csv
+from city.config import base_path
 # SQL_DICT = {
 #     'host': '10.10.230.206',
 #     'user': 'mioji_admin',
@@ -11,8 +12,8 @@ import csv
 #     'db': 'tmp'
 # }
 SQL_DICT = {
-    'host': '10.10.228.253',
-    'user': 'mioji_admin',
+    'host': '10.10.69.170',
+    'user': 'reader',
     'password': 'mioji1109',
     'charset': 'utf8',
     'db': 'base_data'
@@ -98,13 +99,13 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
     return True, _value
 
 
-def read_file(xlsx_path):
+def read_file(xlsx_path,config):
     global change_map_info_key
     # change_map_info_key = ['border_map_1', 'border_map_2']
     change_map_info_key = ['map_info']
 
     debug = False
-    target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**SQL_DICT)
+    target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**config)
     target_table = 'city'
 
     all_city_id = []
@@ -168,12 +169,12 @@ def read_file(xlsx_path):
             else:
                 data_table.upsert(data, keys=['id'])
             all_city_id.append(data['id'])
-    with open('city_id.csv','w+') as city:
+    with open(base_path+'city_id.csv','w+') as city:
         writer = csv.writer(city)
         writer.writerow(("city_id",))
         for city_id in all_city_id:
             writer.writerow((city_id,))
-    print(all_city_id)
+    return all_city_id
 
 
 if __name__ == '__main__':
@@ -181,5 +182,5 @@ if __name__ == '__main__':
     # xlsx_path = '/tmp/new_city.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
-    xlsx_path = '/Users/miojilx/Desktop/【基础信息】1206新增城市.xlsx'
+    xlsx_path = '/data/city/'
     read_file(xlsx_path)
