@@ -14,7 +14,7 @@ from city.config import base_path
 SQL_DICT = {
     'host': '10.10.69.170',
     'user': 'reader',
-    'password': 'mioji1109',
+    'password': 'miaoji1109',
     'charset': 'utf8',
     'db': 'base_data'
 }
