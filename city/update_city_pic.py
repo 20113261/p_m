@@ -68,7 +68,7 @@ def update_city_pic(path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 if __name__ == '__main__':
     path = '/Users/miojilx/Desktop/1206新增城市图'
     update_city_pic(path)

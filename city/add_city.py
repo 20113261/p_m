@@ -104,11 +104,12 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
 
 def read_file(xlsx_path,config):
-    return_result = defaultdict(dict)
-    return_result['data'] = {}
-    return_result['error']['error_id'] = 0
-    return_result['error']['error_str'] = ''
+
     try:
+        return_result = defaultdict(dict)
+        return_result['data'] = {}
+        return_result['error']['error_id'] = 0
+        return_result['error']['error_str'] = ''
         global change_map_info_key
         # change_map_info_key = ['border_map_1', 'border_map_2']
         change_map_info_key = ['map_info']
@@ -190,7 +191,7 @@ def read_file(xlsx_path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 
 if __name__ == '__main__':
     # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'

@@ -91,7 +91,7 @@ def city_must_write_field(city_path):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 #城市字段检查
 def city_field_check(city_path):
     return_result = defaultdict(dict)
@@ -266,7 +266,7 @@ def city_field_check(city_path):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 
 #检查机场必填字段
 def airport_must_write_field(airport_path,config):
@@ -306,7 +306,7 @@ def airport_must_write_field(airport_path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 
 #机场字段检查
 def airport_field_check(airport_path,config):
@@ -406,7 +406,7 @@ def airport_field_check(airport_path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 #检查城市是否重复
 def check_repeat_city(city_path,config):
     return_result = defaultdict(dict)
@@ -457,7 +457,7 @@ def check_repeat_city(city_path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 #检查是否机场重复
 def check_repeat_airport(airport_path,config):
     return_result = defaultdict(dict)
@@ -509,7 +509,7 @@ def check_repeat_airport(airport_path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 #城市字段不合格率统计
 def not_standard_city_field_count():
     city_data = pandas.read_csv('新增城市.csv',encoding='utf-8')
@@ -579,14 +579,14 @@ def new_airport_insert(config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 
 def check_new_city_id(config):
-    return_result = defaultdict(dict)
-    return_result['data'] = {}
-    return_result['error']['error_id'] = 0
-    return_result['error']['error_str'] = ''
     try:
+        return_result = defaultdict(dict)
+        return_result['data'] = {}
+        return_result['error']['error_id'] = 0
+        return_result['error']['error_str'] = ''
         flag = 1
         conn = pymysql.connect(**config)
         cursor = conn.cursor()
@@ -610,7 +610,7 @@ def check_new_city_id(config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][0]".format(return_result))
+        logger.debug("[return][{0}]".format(return_result))
 
 if __name__ == "__main__":
     city_must_write_field(city_path)

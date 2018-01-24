@@ -181,7 +181,7 @@ def write_city_list(result):
 
 
 def update_share_airport():
-    logger = get_logger('share_airport')
+    logger = get_logger('city')
     with open(base_path+'city_list.csv', 'w+') as city:
         writer = csv.writer(city)
         writer.writerow(('city_id', 'city_name'))
