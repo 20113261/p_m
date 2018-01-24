@@ -595,11 +595,12 @@ def check_new_city_id(config):
             reader = csv.DictReader(city)
             for row in reader:
                 city_id = row['city_id']
-                cursor.execute((select_sql,(city_id,)))
+                cursor.execute(select_sql,(city_id,))
                 result = cursor.fetchall()
                 if result:
                     flag = 0
                     break
+            conn.close()
         return_result = json.dumps(return_result)
         logger.debug("[return][{0}]".format(return_result))
         if flag:
