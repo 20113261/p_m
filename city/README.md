@@ -24,5 +24,8 @@
         airport_field_check函数,该函数的目的是机场字段检查,将不合格的机场写入check_airport.csv文件
         check_repeat_airport函数,该函数的目的是检查新增机场在库中是否已经存在,将存在的机场写入check_repeat_airport.csv文件
         check_repeat_city函数,该函数的目的是检查新增城市在库中是否已经存在,将存在的城市写入check_repeat_city.csv
+        check_new_city_id函数,该函数的目的是对新生成的city_id进行检查,检查city_id是否在库中已经存在
+    *update_city_pic.py:
+        update_city_pic函数,该函数的目的是更新city表中的new_product_city_pic字段
     
         

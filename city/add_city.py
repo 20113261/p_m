@@ -4,6 +4,10 @@ pymysql.install_as_MySQLdb()
 import dataset
 import csv
 from city.config import base_path
+from collections import defaultdict
+import json
+import traceback
+from logger import get_logger
 # SQL_DICT = {
 #     'host': '10.10.230.206',
 #     'user': 'mioji_admin',
@@ -18,7 +22,7 @@ SQL_DICT = {
     'charset': 'utf8',
     'db': 'base_data'
 }
-
+logger = get_logger('city')
 ALL_NULL = ['NULL', 'Null', 'null', None, '', 'None', ' ']
 
 change_map_info_key = ['map_info', 'border_map_1', 'border_map_2']
@@ -100,82 +104,93 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
 
 def read_file(xlsx_path,config):
-    global change_map_info_key
-    # change_map_info_key = ['border_map_1', 'border_map_2']
-    change_map_info_key = ['map_info']
+    return_result = defaultdict(dict)
+    return_result['data'] = {}
+    return_result['error']['error_id'] = 0
+    return_result['error']['error_str'] = ''
+    try:
+        global change_map_info_key
+        # change_map_info_key = ['border_map_1', 'border_map_2']
+        change_map_info_key = ['map_info']
 
-    debug = False
-    target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**config)
-    target_table = 'city'
+        debug = False
+        target_db = 'mysql://{user}:{password}@{host}/{db}?charset={charset}'.format(**config)
+        target_table = 'city'
 
-    all_city_id = []
-    cols = get_columns()
-    country_id_dict = get_country_id_dict()
-    header = 1
-    sheetname = 'city表'
-    table = pandas.read_excel(
-        xlsx_path,
-        header=header,
-        sheetname=sheetname,
-    ).fillna('null')
+        all_city_id = []
+        cols = get_columns()
+        country_id_dict = get_country_id_dict()
+        header = 1
+        sheetname = 'city表'
+        table = pandas.read_excel(
+            xlsx_path,
+            header=header,
+            sheetname=sheetname,
+        ).fillna('null')
 
-    data_table = dataset.connect(target_db).get_table(target_table)
+        data_table = dataset.connect(target_db).get_table(target_table)
 
-    converters = {key: str for key in table.keys()}
-    table = pandas.read_excel(
-        xlsx_path,
-        header=header,
-        sheetname=sheetname,
-        converters=converters,
-    ).fillna('null')
+        converters = {key: str for key in table.keys()}
+        table = pandas.read_excel(
+            xlsx_path,
+            header=header,
+            sheetname=sheetname,
+            converters=converters,
+        ).fillna('null')
 
-    conn = pymysql.connect(**SQL_DICT)
-    with conn as cursor:
-        for i in range(len(table)):
-            line = table.iloc[i]
-            data = {}
-            for key in table.keys():
-                # 去除无关项
-                if key not in cols:
+        conn = pymysql.connect(**SQL_DICT)
+        with conn as cursor:
+            for i in range(len(table)):
+                line = table.iloc[i]
+                data = {}
+                for key in table.keys():
+                    # 去除无关项
+                    if key not in cols:
+                        continue
+
+                    # 去除中英文名为空的
+                    # if line['name'] in ALL_NULL and line['name_en'] in ALL_NULL:
+                    #     continue
+                    # 判断字段是否符合规范
+                    res, value = check_and_modify_columns(key, line[key])
+                    if res:
+                        if value not in ('NULL', 'null', ''):
+                            data[key] = value
+                # 去除无用行
+                if not data:
                     continue
 
-                # 去除中英文名为空的
-                # if line['name'] in ALL_NULL and line['name_en'] in ALL_NULL:
-                #     continue
-                # 判断字段是否符合规范
-                res, value = check_and_modify_columns(key, line[key])
-                if res:
-                    if value not in ('NULL', 'null', ''):
-                        data[key] = value
-            # 去除无用行
-            if not data:
-                continue
+                # 补充字段
+                if 'id' not in data.keys():
+                    data['id'] = generate_id(data['country_id'])
+                    if 'country_id' not in data.keys():
+                        data['country_id'] = country_id_dict[data['country']]
 
-            # 补充字段
-            if 'id' not in data.keys():
-                data['id'] = generate_id(data['country_id'])
-                if 'country_id' not in data.keys():
-                    data['country_id'] = country_id_dict[data['country']]
+                if 'visit_num' not in data.keys():
+                    data['visit_num'] = '0'
 
-            if 'visit_num' not in data.keys():
-                data['visit_num'] = '0'
+                # 补全必须字段
+                if 'region_id' not in data.keys():
+                    data['region_id'] = 'NULL'
 
-            # 补全必须字段
-            if 'region_id' not in data.keys():
-                data['region_id'] = 'NULL'
-
-            if debug:
-                print(data)
-            else:
-                data_table.upsert(data, keys=['id'])
-            all_city_id.append(data['id'])
-    with open(base_path+'city_id.csv','w+') as city:
-        writer = csv.writer(city)
-        writer.writerow(("city_id",))
-        for city_id in all_city_id:
-            writer.writerow((city_id,))
-    return all_city_id
-
+                if debug:
+                    print(data)
+                else:
+                    data_table.upsert(data, keys=['id'])
+                all_city_id.append(data['id'])
+        with open(base_path+'city_id.csv','w+') as city:
+            writer = csv.writer(city)
+            writer.writerow(("city_id",))
+            for city_id in all_city_id:
+                writer.writerow((city_id,))
+        return_result = json.dumps(return_result)
+        logger.debug("[return][{0}]".format(return_result))
+        return all_city_id
+    except Exception as e:
+        return_result['error']['error_id'] = 1
+        return_result['error']['error_str'] = traceback.format_exc()
+        return_result = json.dumps(return_result)
+        logger.debug("[return][0]".format(return_result))
 
 if __name__ == '__main__':
     # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'

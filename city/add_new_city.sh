@@ -7,6 +7,5 @@ echo "Hello world";
 unzip -d /data/city/ $1
 
 #执行python脚本,并传入工单参数
-
 #echo "第二个参数：$2";
 python3 city_control_flow.py $2
