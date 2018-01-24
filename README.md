@@ -210,3 +210,35 @@ python3 add_city.py
 python3 poi_img/update_img_stats.py
 ```
 ## 而后重新更新 attr img，first_img 字段
+
+<br>
+<br>
+<br>
+
+# 城市匹配脚本
+
+## 环境 
+
+- python3
+- numpy
+
+##新增匹配规则
+* 注:距离为两地经纬度换算得来
+- 没有经纬度信息按原有规则匹配  (搜索数据库，根据城市中英文名等，省份信息（可选），国家中英文名等匹配）
+- 输入名字参数:先根据输入城市信息参数直接匹配，如未匹配到相关城市按下面的顺序进行再次匹配：先判断输入城市参数中是否有括号，如括号中不是“省”或“郡”去除括号再匹配 (例如：巴黎（及周边地区）可以匹配到巴黎,xx(省)，xx（郡）匹配不到xx)；有市县结尾的输入城市参数，去除市县匹配;没有市县结尾的加上市或县匹配（例如：北京市可以匹配到北京，北京可以匹配到北京市，双向）。  
+- 有经纬度信息的，在原有规则匹配到城市集合中，如果匹配到一个以上城市，优先匹配30KM内名字一样的城市，第二优先级为20KM内距离最近的城市；如果只有一个结果且小于20KM则直接匹配该城市。
+
+
+##输入输出
+获取city_id函数get_mioji_city_id(),输入为国家名,城市名,经纬度
+```python
+#res为匹配到包含城市信息的类的列表,没有匹配到则返回空集合
+#类中包含cid,name,name_en,map_info,dis,country_code,country_name信息
+d = MiojiSimilarCityDict()
+res = d.get_mioji_city_id((country_name,city_name),map_info)
+#获取city_id
+if res:
+  city_id = res[0].cid
+```
+
+<br>
