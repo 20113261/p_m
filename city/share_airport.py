@@ -7,6 +7,9 @@ import numpy as np
 from logger import get_logger
 from service_platform_conn_pool import fetchall, base_data_pool
 from city.config import base_path
+import traceback
+import json
+from collections import defaultdict
 config = {
     'host': '10.10.69.170',
     'user': 'reader',
@@ -193,15 +196,18 @@ def update_share_airport():
     citys, airports = get_need_share_airport_city()
 
     select_city = 'SELECT map_info,country_id FROM city WHERE id = %s'
-
-    for result in citys:
-        cond_trans_degree_1 = {}
-        cond_inner_order_1 = {}
-        cond_trans_degree_2 = {}
-        cond_inner_order_2 = {}
-        cond_trans_degree_3 = {}
-        cond_inner_order_3 = {}
-        try:
+    return_result = defaultdict(dict)
+    return_result['data'] = {}
+    return_result['error']['error_id'] = 0
+    return_result['error']['error_str'] = ''
+    try:
+        for result in citys:
+            cond_trans_degree_1 = {}
+            cond_inner_order_1 = {}
+            cond_trans_degree_2 = {}
+            cond_inner_order_2 = {}
+            cond_trans_degree_3 = {}
+            cond_inner_order_3 = {}
             cursor.execute(select_city, result)
             city_mapInfo = cursor.fetchone()
             if len(city_mapInfo[0].strip(',').split(',')) == 2:
@@ -213,7 +219,6 @@ def update_share_airport():
             condition_1 = 0
             condition_2 = 0
             condition_3 = 0
-            print("need_airport_city:", result)
             for open_airport in airports:
                 if open_airport[3] == city_mapInfo[1]:
                     if len(open_airport[1].strip(',').split(',')) == 2:
@@ -223,7 +228,7 @@ def update_share_airport():
                         continue
 
                     distance = dist_from_coordinates(float(city_lng), float(city_lat), float(airport_lng), float(airport_lat))
-                    logger.debug("城市ID:{0},机场ID:{1},城市与机场之间的距离{2}".format(result[0], open_airport[0], distance / 1000))
+
                     if distance / 1000 <= 100:
                         condition_1 = 1
                         condition_judge_1(open_airport[0], result[0], open_airport[2], cond_trans_degree_1,
@@ -242,16 +247,10 @@ def update_share_airport():
             if cond_trans_degree_1:
                 if len(cond_trans_degree_1) >= 2:
                     sort_key = min(cond_trans_degree_1.keys())
-                    logger.debug(
-                        "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_1[sort_key][0],
-                                                                  cond_inner_order_1[sort_key][1]))
                     write_csv(result[0], cond_inner_order_1[sort_key][0])
                 else:
                     if len(cond_inner_order_1) >= 2:
                         sort_key = min(cond_inner_order_1.keys())
-                        logger.debug(
-                            "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_1[sort_key][0],
-                                                                      cond_inner_order_1[sort_key][1]))
                         write_csv(result[0], cond_inner_order_1[sort_key][0])
                     else:
                         degree_key = list(cond_trans_degree_1.keys())[0]
@@ -264,16 +263,10 @@ def update_share_airport():
             elif cond_trans_degree_2:
                 if len(cond_trans_degree_2) >= 2:
                     sort_key = min(cond_trans_degree_2.keys())
-                    logger.debug(
-                        "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_2[sort_key][0],
-                                                                  cond_inner_order_2[sort_key][1]))
                     write_csv(result[0], cond_trans_degree_2[sort_key][0])
                 else:
                     if len(cond_inner_order_2) >= 2:
                         sort_key = min(cond_inner_order_2.keys())
-                        logger.debug(
-                            "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_2[sort_key][0],
-                                                                      cond_inner_order_2[sort_key][1]))
                         write_csv(result[0], cond_inner_order_2[sort_key][0])
                     else:
                         degree_key = list(cond_trans_degree_2.keys())[0]
@@ -286,16 +279,10 @@ def update_share_airport():
             elif cond_trans_degree_3:
                 if len(cond_trans_degree_3) >= 2:
                     sort_key = min(cond_trans_degree_3.keys())
-                    logger.debug(
-                        "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_3[sort_key][0],
-                                                                  cond_inner_order_1[sort_key][1]))
                     write_csv(result[0], cond_trans_degree_3[sort_key][0])
                 else:
                     if len(cond_inner_order_3) >= 2:
                         sort_key = min(cond_inner_order_3.keys())
-                        logger.debug(
-                            "城市ID：{0},机场ID：{1},城市与机场之间的距离：{2}".format(result[0], cond_inner_order_3[sort_key][0],
-                                                                      cond_inner_order_3[sort_key][1]))
                         write_csv(result[0], cond_inner_order_3[sort_key][0])
                     else:
                         degree_key = list(cond_trans_degree_3.keys())[0]
@@ -308,9 +295,13 @@ def update_share_airport():
             elif not condition_1 or not condition_2 or not condition_3:
                 write_city_list(result)
 
-        except Exception as e:
-            print(e)
-            city_conn.rollback()
+        return_result = json.dumps(return_result)
+        logger.debug("[result][{0}]".format(return_result))
+    except Exception as e:
+        return_result['error']['error_id'] = 1
+        return_result['error']['error_str'] = traceback.format_exc()
+        return_result = json.dumps(return_result)
+        logger.debug("[result][{0}]".format(return_result))
 
 
 

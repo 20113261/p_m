@@ -62,12 +62,12 @@ def revise_pictureName(path,config):
                 new_name = '/'.join([path,new_file_name])
                 os.rename(old_name,new_name)
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 
 if __name__ == "__main__":
     revise_pictureName('/Users/miojilx/Desktop/1206新增城市图')

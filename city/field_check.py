@@ -76,7 +76,7 @@ def city_must_write_field(city_path):
             for city in empty_city:
                 city_field_empty[city].append(field)
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
         if city_field_empty:
             with open(base_path+'check_empty_city.csv','w+') as city:
                 writer = csv.writer(city)
@@ -91,7 +91,7 @@ def city_must_write_field(city_path):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 #城市字段检查
 def city_field_check(city_path):
     return_result = defaultdict(dict)
@@ -251,7 +251,7 @@ def city_field_check(city_path):
                         not_standard_field['new_product_city_pic'].append((row['id'],row['name']))
                 conn.close()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
         if not_standard_field:
             with open(base_path+'check_city.csv','w+') as city:
                 writer = csv.writer(city)
@@ -266,7 +266,7 @@ def city_field_check(city_path):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 
 #检查机场必填字段
 def airport_must_write_field(airport_path,config):
@@ -290,7 +290,7 @@ def airport_must_write_field(airport_path,config):
                 airport_field_empty[airport].append(field)
 
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
         if airport_field_empty:
             with open(base_path+'check_empty_airport.csv', 'w+') as airport:
                 writer = csv.writer(airport)
@@ -306,7 +306,7 @@ def airport_must_write_field(airport_path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 
 #机场字段检查
 def airport_field_check(airport_path,config):
@@ -391,7 +391,7 @@ def airport_field_check(airport_path,config):
                 else:
                     not_standard_field['inner_order'].append((row['id'],row['name']))
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
         if not_standard_field:
             with open(base_path+'check_airport.csv','w+') as airport:
                 writer = csv.writer(airport)
@@ -406,7 +406,7 @@ def airport_field_check(airport_path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 #检查城市是否重复
 def check_repeat_city(city_path,config):
     return_result = defaultdict(dict)
@@ -442,7 +442,7 @@ def check_repeat_city(city_path,config):
                             repeat_city['repeat_city'].append((row['id'],row['name']))
                             break
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
         if repeat_city:
             with open(base_path+'check_repeat_city.csv','w+') as city:
                 writer = csv.writer(city)
@@ -457,7 +457,7 @@ def check_repeat_city(city_path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 #检查是否机场重复
 def check_repeat_airport(airport_path,config):
     return_result = defaultdict(dict)
@@ -493,7 +493,7 @@ def check_repeat_airport(airport_path,config):
                             repeat_airport['repeat_airport'].append((row['id'],row['name']))
                             break
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
         if repeat_airport:
             with open(base_path+'check_repeat_airport.csv','w+') as airport:
                 writer = csv.writer(airport)
@@ -509,7 +509,7 @@ def check_repeat_airport(airport_path,config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 #城市字段不合格率统计
 def not_standard_city_field_count():
     city_data = pandas.read_csv('新增城市.csv',encoding='utf-8')
@@ -573,13 +573,13 @@ def new_airport_insert(config):
                 airport_table.upsert(new_data, keys=['city_id', 'iata_code'])
         db.commit()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 
 def check_new_city_id(config):
     try:
@@ -602,7 +602,7 @@ def check_new_city_id(config):
                     break
             conn.close()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
         if flag:
             return True
         else:
@@ -611,7 +611,9 @@ def check_new_city_id(config):
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        logger.debug("[return][{0}]".format(return_result))
+        logger.debug("[result][{0}]".format(return_result))
 
 if __name__ == "__main__":
-    city_must_write_field(city_path)
+    from city.config import config
+    config['db'] = ''.join(['add_city_','12345'])
+    check_new_city_id(config)
