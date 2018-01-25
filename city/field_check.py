@@ -77,21 +77,20 @@ def city_must_write_field(city_path):
                 city_field_empty[city].append(field)
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-        if city_field_empty:
-            with open(base_path+'check_empty_city.csv','w+') as city:
-                writer = csv.writer(city)
-                writer.writerow(('国家名','空字段'))
-                for key,value in city_field_empty.items():
-                    value_str = ','.join(value)
-                    writer.writerow((key,value_str))
-            return False
-        return True
+        print("[result][{0}]".format(return_result))
+        with open(base_path+'check_empty_city.csv','w+') as city:
+            writer = csv.writer(city)
+            writer.writerow(('国家名','空字段'))
+            for key,value in city_field_empty.items():
+                value_str = ','.join(value)
+                writer.writerow((key,value_str))
 
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
+        print("[result][{0}]".format(return_result))
 #城市字段检查
 def city_field_check(city_path):
     return_result = defaultdict(dict)
@@ -252,22 +251,20 @@ def city_field_check(city_path):
                 conn.close()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-        if not_standard_field:
-            with open(base_path+'check_city.csv','w+') as city:
-                writer = csv.writer(city)
-                writer.writerow(('字段名称','不合格城市'))
-                for key,value in not_standard_field.items():
-                    value_str = json.dumps(value)
-                    writer.writerow((key,value_str))
-            return False
-        return True
+        print("[result][{0}]".format(return_result))
+        with open(base_path+'check_city.csv','w+') as city:
+            writer = csv.writer(city)
+            writer.writerow(('字段名称','不合格城市'))
+            for key,value in not_standard_field.items():
+                value_str = json.dumps(value)
+                writer.writerow((key,value_str))
 
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-
+        print("[result][{0}]".format(return_result))
 #检查机场必填字段
 def airport_must_write_field(airport_path,config):
     return_result = defaultdict(dict)
@@ -291,23 +288,20 @@ def airport_must_write_field(airport_path,config):
 
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-        if airport_field_empty:
-            with open(base_path+'check_empty_airport.csv', 'w+') as airport:
-                writer = csv.writer(airport)
-                writer.writerow(('机场名', '空字段'))
-                for key, value in airport_field_empty.items():
-                    value_str = ','.join(value)
-                    writer.writerow((key, value_str))
-            return False
-        return True
-
+        print("[result][{0}]".format(return_result))
+        with open(base_path+'check_empty_airport.csv', 'w+') as airport:
+            writer = csv.writer(airport)
+            writer.writerow(('机场名', '空字段'))
+            for key, value in airport_field_empty.items():
+                value_str = ','.join(value)
+                writer.writerow((key, value_str))
 
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-
+        print("[result][{0}]".format(return_result))
 #机场字段检查
 def airport_field_check(airport_path,config):
     return_result = defaultdict(dict)
@@ -392,21 +386,20 @@ def airport_field_check(airport_path,config):
                     not_standard_field['inner_order'].append((row['id'],row['name']))
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-        if not_standard_field:
-            with open(base_path+'check_airport.csv','w+') as airport:
-                writer = csv.writer(airport)
-                writer.writerow(('字段名称','不合格机场'))
-                for key,value in not_standard_field.items():
-                    value_str = json.dumps(value)
-                    writer.writerow((key,value_str))
-            return False
-        return True
+        print("[result][{0}]".format(return_result))
+        with open(base_path+'check_airport.csv','w+') as airport:
+            writer = csv.writer(airport)
+            writer.writerow(('字段名称','不合格机场'))
+            for key,value in not_standard_field.items():
+                value_str = json.dumps(value)
+                writer.writerow((key,value_str))
 
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
+        print("[result][{0}]".format(return_result))
 #检查城市是否重复
 def check_repeat_city(city_path,config):
     return_result = defaultdict(dict)
@@ -443,21 +436,20 @@ def check_repeat_city(city_path,config):
                             break
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-        if repeat_city:
-            with open(base_path+'check_repeat_city.csv','w+') as city:
-                writer = csv.writer(city)
-                writer.writerow(('','重复城市'))
-                for key,value in repeat_city.items():
-                    value_str = json.dumps(value)
-                    writer.writerow((key,value_str))
-            return False
-        return True
+        print("[result][{0}]".format(return_result))
+        with open(base_path+'check_repeat_city.csv','w+') as city:
+            writer = csv.writer(city)
+            writer.writerow(('','重复城市'))
+            for key,value in repeat_city.items():
+                value_str = json.dumps(value)
+                writer.writerow((key,value_str))
 
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
+        print("[result][{0}]".format(return_result))
 #检查是否机场重复
 def check_repeat_airport(airport_path,config):
     return_result = defaultdict(dict)
@@ -494,22 +486,20 @@ def check_repeat_airport(airport_path,config):
                             break
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-        if repeat_airport:
-            with open(base_path+'check_repeat_airport.csv','w+') as airport:
-                writer = csv.writer(airport)
-                writer.writerow(('','重复机场'))
-                for key,value in repeat_airport.items():
-                    value_str = json.dumps(value)
-                    writer.writerow((key,value_str))
-            return False
-        return True
-
+        print("[result][{0}]".format(return_result))
+        with open(base_path+'check_repeat_airport.csv','w+') as airport:
+            writer = csv.writer(airport)
+            writer.writerow(('','重复机场'))
+            for key,value in repeat_airport.items():
+                value_str = json.dumps(value)
+                writer.writerow((key,value_str))
 
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
+        print("[result][{0}]".format(return_result))
 #城市字段不合格率统计
 def not_standard_city_field_count():
     city_data = pandas.read_csv('新增城市.csv',encoding='utf-8')
@@ -574,13 +564,13 @@ def new_airport_insert(config):
         db.commit()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-
+        print("[result][{0}]".format(return_result))
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-
+        print("[result][{0}]".format(return_result))
 def check_new_city_id(config):
     try:
         return_result = defaultdict(dict)

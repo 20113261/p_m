@@ -297,12 +297,13 @@ def update_share_airport():
 
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
+        print("[result][{0}]".format(return_result))
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
-
+        print("[result][{0}]".format(return_result))
 
 
 

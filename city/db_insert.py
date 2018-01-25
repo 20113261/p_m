@@ -32,21 +32,18 @@ def shareAirport_insert(config):
                 data_line = airport_table.find_one(id=int(line['airport_id']))
                 new_data = copy.deepcopy(data_line)
                 new_data['city_id'] = int(line['city_id'])
-
                 new_data.pop('id')
                 new_data.pop('time2city_center')
-                print('#' * 100)
-                print(_count)
-                print(new_data)
-
                 airport_table.upsert(new_data, keys=['city_id', 'iata_code'])
         db.commit()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
+        print("[result][{0}]".format(return_result))
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         logger.debug("[result][{0}]".format(return_result))
+        print("[result][{0}]".format(return_result))
 if __name__ == '__main__':
     shareAirport_insert()
