@@ -8,16 +8,18 @@
 from MongoTask.MongoTaskInsert import InsertTask
 
 # f = open('/Users/hourong/Downloads/google_drive_url.txt')
-f = open('/search/hourong/task/target_url_1227')
-with InsertTask(worker='proj.total_tasks.crawl_json', queue='file_downloader', routine_key='file_downloader',
-                task_name='google_drive_task_20171227', source='Google', _type='GoogleDriveTask',
+f = open('/data/hourong/task/target_url_1227')
+_count = 0
+with InsertTask(worker='proj.total_tasks.google_drive_task', queue='file_downloader', routine_key='file_downloader',
+                task_name='google_drive_task_20170125', source='Google', _type='GoogleDriveTask',
                 priority=11) as it:
     for line in f:
-        g_url, flag, table_name = line.strip().split('###')
+        _count += 1
+        if _count == 10000:
+            break
+        g_url = line.strip()
         it.insert_task({
-            'url': g_url,
-            'flag': flag,
-            'table_name': table_name
+            'url': g_url + '&type=innerCity'
         })
 
 # from MongoTask.MongoTaskInsert import InsertTask
