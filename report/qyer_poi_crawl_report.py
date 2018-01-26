@@ -14,11 +14,11 @@ from service_platform_conn_pool import fetchall, source_info_pool
 TaskClient = pymongo.MongoClient(host='10.10.231.105')
 RespClient = pymongo.MongoClient(host='10.10.213.148')
 
-TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20171214a'
+TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20180122b'
 # TaskCollectionName = 'Task_Queue_poi_list_TaskName_list_total_qyer_20171209a'
 
 TaskCollections = TaskClient['MongoTask'][TaskCollectionName]
-RespCollections = RespClient['data_result']['qyer']
+RespCollections = RespClient['data_result']['qyer_list']
 # RespCollections = RespClient['data_result']['Qyer20171214a']
 
 
@@ -27,11 +27,11 @@ def task_resp_info():
     __resp_dict = defaultdict(set)
     for line in RespCollections.find({'collections': TaskCollectionName}).sort(
             [('used_times', 1)]):
-        __total_dict[line['task_id']] = line['total_num']['attr']
+        __total_dict[line['task_id']] = line['total_num']['attr']+line['total_num']['rest']+line['total_num']['shop']+line['total_num']['acti']
 
         # result loop
         for each in line['result']:
-            __resp_dict[line['task_id']].add(each[0])
+            __resp_dict[line['task_id']].add(each[1]+each[3])
     return __total_dict, __resp_dict
 
 
@@ -76,6 +76,10 @@ WHERE ota_location.source = 'qyer' AND ota_location.city_id = city.id;'''
         __dict[line[3]] = (line[0], line[1], line[2])
     return __dict
 
+def test_v(data,k):
+    #print(k)
+    #print(data)
+    return len(data)
 
 def generate_table():
     _l_items = []
@@ -98,7 +102,7 @@ def generate_table():
                 '|'.join(v[1]),
                 '|'.join(map(lambda x: str(x), v[2])),
                 max(v[2]) if v[2] else None,
-                len(v[3])
+                test_v(v[3],v[0])
             )
         )
 
