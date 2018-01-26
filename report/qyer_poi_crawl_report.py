@@ -45,7 +45,6 @@ def generate_report():
 
         total_num = total_dict.get(task_token)
         crawled = resp_dict.get(task_token)
-
         # if total_num is None:
         #     continue
         # if crawled is None:
