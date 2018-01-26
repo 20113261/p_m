@@ -39,7 +39,7 @@ def reset_task(uid_list):
 
 
 def get_task():
-    sql = '''SELECT uid FROM hotel_unid WHERE source='hotelsproApi';'''
+    sql = '''SELECT uid FROM hotel_unid WHERE source='accor';'''
     u_l = []
     _count = 0
     for line in MysqlSource(base_data_config, table_or_query=sql,

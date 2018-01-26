@@ -1,14 +1,31 @@
-##整合上线新城市基础数据部分
-    1.添加信息城市：
-        注意：保证city表是最新的
-        首先配置city/config.py中的city_path指向新添城市文件所在路径，这里只支持execl文件格式.注意：要看代码中sheetname
-        和你文件中的是否一致。
-    2.airport表的修改以及共享机场：
-        1)在修改之前要保证
-        airport表是最新的。
-        2)配置airport_path指向更新机场文件所在的路径,需要注意文件的模板格式，这里只支持csv文件格式
-    3.城市图片的更新
-        配置picture_path指向更新图片文件所在的路径
-    只要是对数据表操作的都存入了10.10.228.253 base_data库。
-    配置完之后运行 city/city_BaseData.py文件中的start_task函数
+###整合上线新城市基础数据部分
+####项目在city文件夹下
+
+    * add_city.py:
+        执行read_file函数,参数为新增城市文件路径及数据库配置。该函数的目的是将新增城市入库，并将新增城市ID写入到city_id.csv
+        文件中
+    *city_map_cityName.py:
+        执行revise_pictureName函数,参数为图片文件路径。该函数的目的是修改图片的名称。
+       
+    *config.py
+        存放配置
+    
+    *db_insert.py:
+        执行shareAirport_insert函数。该函数的目的是读取share_airport.csv文件，将新生成的共享机场入库。
+       
+    *share_airport.py:
+        执行update_share_airport函数。该函数的目的是为新增的城市添加共享机场，并将新增的共享机场写入share_airport.csv以及
+        没有被共享机场的城市列表 city_list.csv
+    
+    *field_check.py:
+        city_field_check函数，该函数目的是城市字段检查,将不合格的城市写入check_city.csv文件
+        city_must_write_field函数,该函数的目的是城市必填字段检查,将不合格的城市写入check_empty_city.csv文件
+        airport_must_write_field函数,该函数的目的是机场必填字段检查，将不合格的机场写入check_empty_airport.csv文件
+        airport_field_check函数,该函数的目的是机场字段检查,将不合格的机场写入check_airport.csv文件
+        check_repeat_airport函数,该函数的目的是检查新增机场在库中是否已经存在,将存在的机场写入check_repeat_airport.csv文件
+        check_repeat_city函数,该函数的目的是检查新增城市在库中是否已经存在,将存在的城市写入check_repeat_city.csv
+        check_new_city_id函数,该函数的目的是对新生成的city_id进行检查,检查city_id是否在库中已经存在
+    *update_city_pic.py:
+        update_city_pic函数,该函数的目的是更新city表中的new_product_city_pic字段
+    
         
