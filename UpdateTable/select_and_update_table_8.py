@@ -22,9 +22,9 @@ base_data_config = {
 
 
 def update_sql(data):
-    sql = '''UPDATE hotel_0110_new
-SET first_img = %s, img_list = %s
-WHERE uid = %s;'''
+    sql = '''UPDATE hotel_unid_0110
+SET content = %s
+WHERE SOURCE = %s AND sid = %s;'''
     conn = spider_data_base_data_pool.connection()
     cursor = conn.cursor()
     try:
@@ -40,17 +40,17 @@ WHERE uid = %s;'''
 
 def get_task():
     sql = '''SELECT
-  uid,
-  first_img,
-  img_list
-FROM hotel;'''
+  source,
+  sid,
+  content
+FROM hotel_unid;'''
     data = []
     _count = 0
     for line in MysqlSource(base_data_config, table_or_query=sql,
-                            size=2000, is_table=False,
+                            size=10000, is_table=False,
                             is_dict_cursor=False):
         _count += 1
-        data.append((line[1], line[2], line[0]))
+        data.append((line[2], line[0], line[1]))
         if len(data) == 2000:
             logger.info("[count: {}]".format(_count))
             update_sql(data)

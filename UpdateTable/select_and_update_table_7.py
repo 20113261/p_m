@@ -6,24 +6,26 @@
 # @File    : select_and_update_table.py
 # @Software: PyCharm
 from data_source import MysqlSource
-from service_platform_conn_pool import poi_ori_pool, poi_face_detect_pool, service_platform_pool, base_data_final_pool, source_info_pool
+from service_platform_conn_pool import spider_data_base_data_pool
 from logger import get_logger
 from toolbox.Hash import encode
 
 logger = get_logger("select_and_update_table")
 
-poi_ori_config = {
-    'host': '10.10.230.206',
+base_data_config = {
+    'host': '10.10.228.253',
     'user': 'mioji_admin',
     'password': 'mioji1109',
     'charset': 'utf8',
-    'db': 'source_info'
+    'db': 'base_data'
 }
 
 
 def update_sql(data):
-    sql = '''INSERT INTO ota_location (source, sid_md5, sid, suggest_type, suggest, city_id, country_id, s_city, s_region, s_country, s_extra, label_batch, others_info) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
-    conn = source_info_pool.connection()
+    sql = '''UPDATE hotel_0110_new
+SET first_img = %s, img_list = %s
+WHERE uid = %s;'''
+    conn = spider_data_base_data_pool.connection()
     cursor = conn.cursor()
     try:
         _res = cursor.executemany(sql, data)
@@ -38,29 +40,18 @@ def update_sql(data):
 
 def get_task():
     sql = '''SELECT
-  source,
-  sid,
-  suggest_type,
-  suggest,
-  city_id,
-  country_id,
-  s_city,
-  s_region,
-  s_country,
-  s_extra,
-  label_batch,
-  others_info
-FROM ota_location_bak_1215;'''
+  uid,
+  first_img,
+  img_list
+FROM hotel;'''
     data = []
     _count = 0
-    for line in MysqlSource(poi_ori_config, table_or_query=sql,
+    for line in MysqlSource(base_data_config, table_or_query=sql,
                             size=2000, is_table=False,
                             is_dict_cursor=False):
         _count += 1
-        new_line = list(line)
-        new_line.insert(1, encode(line[1]))
-        data.append(new_line)
-        if len(data) == 1000:
+        data.append((line[1], line[2], line[0]))
+        if len(data) == 2000:
             logger.info("[count: {}]".format(_count))
             update_sql(data)
             data = []

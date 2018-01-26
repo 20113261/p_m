@@ -167,7 +167,7 @@ HAVING total > 1200 AND right_percent < 95;'''.format(datetime.datetime.now().st
 </html>
 """)
     html = template.render(data=data)
-    send_email("正确率小于 95% 的错误任务统计", html, ["hourong@mioji.com", "luwanning@mioji.com", "cuixiyi@mioji.com"],
+    send_email("正确率小于 95% 的错误任务统计", html, ["zhangxiaopeng@mioji.com", "luwanning@mioji.com", "cuixiyi@mioji.com"],
                want_send_html=True)
     cursor.close()
     conn.close()

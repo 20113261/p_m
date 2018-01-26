@@ -38,7 +38,7 @@ from logger import get_logger
 from service_platform_report.merge_report import poi_merged_report
 from service_platform_report.task_progress_report_mongo_split_task import task_progress_report_split_task_main
 
-SEND_TO = ['hourong@mioji.com', "luwanning@mioji.com"]
+SEND_TO = ['zhangxiaopeng@mioji.com', "luwanning@mioji.com"]
 
 logger = get_logger('cron_task_monitor')
 

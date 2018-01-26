@@ -10,17 +10,21 @@ from MongoTask.MongoTaskInsert import InsertTask
 # f = open('/Users/hourong/Downloads/google_drive_url.txt')
 f = open('/data/hourong/task/target_url_1227')
 _count = 0
+c = 0
 with InsertTask(worker='proj.total_tasks.google_drive_task', queue='file_downloader', routine_key='file_downloader',
                 task_name='google_drive_task_20170125', source='Google', _type='GoogleDriveTask',
                 priority=11) as it:
     for line in f:
         _count += 1
-        if _count == 10000:
+        if _count == 3000000:
             break
-        g_url = line.strip()
-        it.insert_task({
-            'url': g_url + '&type=innerCity'
-        })
+        g_url = line.strip().split('###')[0]
+        if 'mode=driving' in g_url:
+            it.insert_task({
+                'url': g_url + '&type=innerCity'
+            })
+            c += 1
+print(c)
 
 # from MongoTask.MongoTaskInsert import InsertTask
 # from service_platform_conn_pool import fetchall, base_data_pool

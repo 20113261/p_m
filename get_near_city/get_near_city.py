@@ -133,3 +133,5 @@ def poi_is_too_far(poi_city_id, poi_map_info):
         result.dist = _dist
         result.can_be_used = False
         return result
+
+
