@@ -57,6 +57,7 @@ max_id = get_max_id()
 
 def generate_id(country_id: str) -> str:
     global max_id
+    print(max_id)
     # continent_id = (int(country_id) // 100) * 10
     # continent_id = str(continent_id)
     max_id += 1
@@ -103,7 +104,9 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
     return True, _value
 
 
+
 def read_file(xlsx_path,config,param):
+
     path = ''.join([base_path, str(param), '/'])
     global change_map_info_key
     # change_map_info_key = ['border_map_1', 'border_map_2']
@@ -117,23 +120,19 @@ def read_file(xlsx_path,config,param):
     cols = get_columns()
     country_id_dict = get_country_id_dict()
     header = 1
-    sheetname = 'city表'
+    sheetname = 'city'
     table = pandas.read_excel(
         xlsx_path,
-        header=header,
         sheetname=sheetname,
     ).fillna('null')
-
     data_table = dataset.connect(target_db).get_table(target_table)
 
     converters = {key: str for key in table.keys()}
     table = pandas.read_excel(
         xlsx_path,
-        header=header,
         sheetname=sheetname,
         converters=converters,
     ).fillna('null')
-
     conn = pymysql.connect(**SQL_DICT)
     with conn as cursor:
         for i in range(len(table)):
@@ -157,10 +156,9 @@ def read_file(xlsx_path,config,param):
                 continue
 
             # 补充字段
-            if 'id' not in data.keys():
-                data['id'] = generate_id(data['country_id'])
-                if 'country_id' not in data.keys():
-                    data['country_id'] = country_id_dict[data['country']]
+            data['id'] = generate_id(data['country_id'])
+            if 'country_id' not in data.keys():
+                data['country_id'] = country_id_dict[data['country']]
 
             if 'visit_num' not in data.keys():
                 data['visit_num'] = '0'

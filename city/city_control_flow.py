@@ -23,20 +23,17 @@ class CityControlFlow():
     def _execute(self,city_path=None,airport_path=None,picture_path=None):
 
         if city_path:
-            is_must = city_must_write_field(city_path=city_path)
-            if not is_must:
-                return False
-
-            is_repeat = check_repeat_city(city_path=city_path,config=self.config)
-            if not is_repeat:
-                return False
-            is_field = city_field_check(city_path=city_path)
-            if not is_field:
-                return False
+            # is_must = city_must_write_field(city_path=city_path)
+            # if not is_must:
+            #     return False
+            #
+            # is_repeat = check_repeat_city(city_path=city_path,config=self.config)
+            # if not is_repeat:
+            #     return False
+            # is_field = city_field_check(city_path=city_path)
+            # if not is_field:
+            #     return False
             read_file(xlsx_path=city_path,config=self.config)
-            is_exist_id = check_new_city_id(config=self.config)
-            if not is_exist_id:
-                return False
             if picture_path:
                 revise_pictureName(path=picture_path,config=self.config)
                 update_city_pic(path=picture_path,config=self.config)
@@ -85,3 +82,4 @@ if __name__ == "__main__":
     print(config)
     city = CityControlFlow(config)
     city.task_start()
+

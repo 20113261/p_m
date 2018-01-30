@@ -10,20 +10,19 @@ from data_source import MysqlSource
 from logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
 from service_platform_conn_pool import source_info_config
-
+from datetime import datetime
 logger = get_logger("insert_mongo_task")
 
 
-def get_tasks(source):
-    # query_sql = '''SELECT *
-    # FROM ota_location
-    # WHERE source = '{}' AND city_id in ('11444','60177','12344','60178','10436','60179','60180','30118','30140','50053','60181','10648','11424','60182','60183','50117','20096');'''.format(
-    #     source)
-
+def get_tasks(source,city_id=None):
     query_sql = '''SELECT *
     FROM ota_location
-    WHERE source = '{}';'''.format(
-        source)
+    WHERE source = '{0}' AND city_id in {1};'''.format(source,tuple(city_id))
+
+    # query_sql = '''SELECT *
+    # FROM ota_location
+    # WHERE source = '{}';'''.format(
+    #     source)
 
     #     query_sql = '''SELECT *
     # FROM ota_location
@@ -36,23 +35,16 @@ def get_tasks(source):
                           is_dict_cursor=True):
         yield _l
 
-
-if __name__ == '__main__':
-    # source_list = ['booking', 'agoda', 'ctrip', 'hotels', 'expedia', 'elong']
-    # source_list = ['expedia']
-    # source_list = ['elong']
-    # source_list = ['agoda', 'hotels', 'expedia', 'elong']
-    # source_list = ['ctrip']
-    # source_list = ['expedia']
-    # source_list = ['hotels']
-    source_list = ['ihg']
-
+def hotel_city(city_id,param,sources):
+    source_list = sources
+    collections_name = []
     for source in source_list:
-        task_name = 'city_hotel_{}_20171222a'.format(source)
+        time_lag = str(datetime.now())[:10].replace('-', '')
+        task_name = 'inter_city_hotel_{0}_{1}_{2}a'.format(source,param,time_lag)
         with InsertTask(worker='proj.total_tasks.hotel_list_task', queue='hotel_list', routine_key='hotel_list',
                         task_name=task_name, source=source.title(), _type='HotelList',
                         priority=3, task_type=TaskType.CITY_TASK) as it:
-            for line in get_tasks(source=source):
+            for line in get_tasks(source=source,city_id=city_id):
                 suggest = line['suggest']
                 line['suggest_type'] = str(line['suggest_type'])
                 if line['suggest_type'] == '2':
@@ -73,6 +65,18 @@ if __name__ == '__main__':
                     'is_new_type': 1,
                     'suggest_type': line['suggest_type'],
                     'suggest': suggest,
+                    'task_id': 'inner_{0}'.format(param)
                 }
 
                 it.insert_task(args)
+            collections_name.append(it.generate_collection_name())
+    return collections_name
+if __name__ == '__main__':
+    # source_list = ['booking', 'agoda', 'ctrip', 'hotels', 'expedia', 'elong']
+    # source_list = ['expedia']
+    # source_list = ['elong']
+    # source_list = ['agoda', 'hotels', 'expedia', 'elong']
+    # source_list = ['ctrip']
+    # source_list = ['expedia']
+    # source_list = ['hotels']
+    pass

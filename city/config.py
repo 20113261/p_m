@@ -16,7 +16,7 @@ airport_path = ""
 base_path = '/search/service/nginx/html/MioaPyApi/store/opcity/'
 
 #数据库配置
-config = {
+OpCity_config = {
         'host': '10.10.144.181',
         'user': 'writer',
         'password': 'miaoji1109',
@@ -24,7 +24,21 @@ config = {
         'db': 'OpCity',
         'charset': 'utf8'
     }
+config = {
+        'host': '10.10.230.206',
+        'user': 'mioji_admin',
+        'password': 'mioji1109',
+        'db': '',
+        'charset': 'utf8'
+}
 
+ota_config = {
+        'host': '10.10.230.206',
+        'user': 'mioji_admin',
+        'password': 'mioji1109',
+        'db': 'source_info',
+        'charset': 'utf8'
+}
 #zip 文件所在路径
 
 zip_path = '/Users/miojilx/Desktop/new_city.zip'

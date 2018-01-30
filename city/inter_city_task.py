@@ -5,20 +5,26 @@
 # @Site    : 
 # @File    : inter_city_task.py
 # @Software: PyCharm
+from datetime import datetime
 from MongoTask.MongoTaskInsert import InsertTask
-from service_platform_conn_pool import fetchall, base_data_pool
+from service_platform_conn_pool import fetchall, base_data_pool,init_pool
 from logger import get_logger
-
+from copy import deepcopy
 logger = get_logger("generate_google_task")
 
 
-def generate_dict():
+def generate_dict(config):
     __country_dic = {}
     __city_dic = {}
     __map_dict = {}
     sql = '''SELECT *
 FROM city;'''
-    for line in fetchall(base_data_pool, sql, is_dict=True):
+    temp_config = deepcopy(config)
+    temp_config['database'] = temp_config['db']
+    del temp_config['db']
+    del temp_config['charset']
+    data_pool = init_pool(**temp_config)
+    for line in fetchall(data_pool, sql, is_dict=True):
         __country_dic.setdefault(line['country_id'], [])
         __country_dic[line['country_id']].append(line)
         __city_dic['{0}'.format(line['id'])] = line
@@ -39,8 +45,8 @@ def is_map_info_legal(map_info):
         return False
 
 
-def city_pair(city_ids):
-    country_dict, city_dict, map_dict = generate_dict()
+def city_pair(city_ids,config):
+    country_dict, city_dict, map_dict = generate_dict(config)
     pair = set([])
     pair_filter = []
     for c_id in city_ids:
@@ -79,16 +85,36 @@ def city_pair(city_ids):
                 ))
     return pair
 
-
-if __name__ == '__main__':
-    cids = ['40050', '40051', '40052', '40053', '51516', '51517', '51518', '51519', '51520', '51521', '51522']
-
-    res = city_pair(cids)
+def google_driver(city_id,param,config,):
+    res = city_pair(city_id,config)
     # todo 需要修改 task_name (最好按照工单 id 生成)，添加特殊标记，例如 inter city，别和城市内重复
+    time_tag = str(datetime.now())[:10].replace('-','')
+    task_name = 'inter_city_google_driver_task_{1}_{2}'.format(param,time_tag)
     with InsertTask(worker='proj.total_tasks.google_drive_task', queue='file_downloader', routine_key='file_downloader',
-                    task_name='google_drive_task_20180126', source='Google', _type='GoogleDriveTask',
+                    task_name=task_name, source='Google', _type='GoogleDriveTask',
                     priority=11) as it:
         for s_cid, d_cid, google_url in res:
             it.insert_task({
                 'url': google_url,
+                'task_id':'inner_{0}'.format(param)
             })
+            pass
+        return it.generate_collection_name()
+
+def city_inter_google_driver(urls,param):
+    time_tag = str(datetime.now())[:10].replace('-', '')
+    task_name = 'google_driver_task_{1}_{2}'.format(param, time_tag)
+    with InsertTask(worker='proj.total_tasks.google_drive_task', queue='file_downloader', routine_key='file_downloader',
+                    task_name=task_name, source='Google', _type='GoogleDriveTask',
+                    priority=11) as it:
+        for google_url in urls:
+            it.insert_task({
+                'url': google_url,
+                'task_id': 'inner_{0}'.format(param)
+            })
+        return it.generate_collection_name()
+
+if __name__ == '__main__':
+    cids = ['40050', '40051', '40052', '40053', '51516', '51517', '51518', '51519', '51520', '51521', '51522']
+    print(str(datetime.now())[:10])
+

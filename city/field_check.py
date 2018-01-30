@@ -8,11 +8,9 @@ import math
 import traceback
 import copy
 from functools import reduce
-# from city.add_city import read_file
 from collections import defaultdict
 from toolbox import Common
 from datetime import datetime
-from Common import MiojiSimilarCityDict_new
 import dataset
 import pandas
 import re
@@ -20,10 +18,9 @@ import pypinyin
 import json
 from city.config import base_path
 from logger import get_logger
+from datetime import datetime
+import hashlib
 MAX_DISTANCE = 20000
-city_path = "测试新增城市.xlsx"
-airport_path = "测试新增机场.xlsx"
-
 
 check_field = {
     'host': '10.10.69.170',
@@ -57,12 +54,12 @@ def city_must_write_field(city_path,param):
     path = ''.join([base_path, str(param), '/'])
 
     check_not_empty_field = [
-        'name','name_en','tri_code','py','map_info','time_zone','summer_zone','summer_start',
+        'name','name_en','py','map_info','time_zone','summer_zone','summer_start',
          'summer_end','grade','summer_start_next_year','summer_end_next_year','country_id',
          'trans_degree','new_product_city_pic'
          ]
     city_data = pandas.read_excel(city_path,)
-    city_data.to_csv(path+'新增城市.csv', encoding='utf-8', index=False, header=None)
+    city_data.to_csv(path+'新增城市.csv', encoding='utf-8', index=False)
     new_add_city = pandas.read_csv(path+'新增城市.csv',encoding='utf-8',)
     citys = new_add_city['name'].values
     city_field_empty = defaultdict(list)
@@ -78,8 +75,10 @@ def city_must_write_field(city_path,param):
         for key,value in city_field_empty.items():
             value_str = ','.join(value)
             writer.writerow((key,value_str))
-
-    return 'check_empty_city.csv'
+    if city_field_empty:
+        return '/'.join([param,'check_empty_city.csv'])
+    else:
+        return None
 
 #城市字段检查
 def city_field_check(city_path,param):
@@ -93,7 +92,7 @@ def city_field_check(city_path,param):
     select_province = "select * from province where id=%s"
     select_region = "select * from region where id=%s"
     city_data = pandas.read_excel(city_path,)
-    city_data.to_csv(path+'新增城市.csv',encoding='utf-8',index=False,header=None)
+    city_data.to_csv(path+'新增城市.csv',encoding='utf-8',index=False)
 
     with open(path+'新增城市.csv') as city:
         reader = csv.DictReader(city)
@@ -240,7 +239,10 @@ def city_field_check(city_path,param):
         for key,value in not_standard_field.items():
             value_str = json.dumps(value)
             writer.writerow((key,value_str))
-    return 'check_city.csv'
+    if not_standard_field:
+        return '/'.join([param,'check_city.csv'])
+    else:
+        return False
 
 #检查机场必填字段
 def airport_must_write_field(airport_path,param):
@@ -249,7 +251,7 @@ def airport_must_write_field(airport_path,param):
         'iata_code','name','name_en','belong_city_id','map_info','inner_order'
     ]
     city_data = pandas.read_excel(airport_path, )
-    city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False, header=None)
+    city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False)
     new_add_airport = pandas.read_csv(path+'新增机场.csv', encoding='utf-8', )
     airport_field_empty = defaultdict(list)
     for field in check_not_empty_field:
@@ -265,7 +267,10 @@ def airport_must_write_field(airport_path,param):
         for key, value in airport_field_empty.items():
             value_str = ','.join(value)
             writer.writerow((key, value_str))
-    return 'check_empty_airport.csv'
+    if airport_field_empty:
+        return '/'.join([param,'check_empty_airport.csv'])
+    else:
+        return False
 #机场字段检查
 def airport_field_check(airport_path,param):
     path = ''.join([base_path, str(param), '/'])
@@ -274,11 +279,11 @@ def airport_field_check(airport_path,param):
     not_standard_field = defaultdict(list)
     status_list = ['Open','Close']
     city_data = pandas.read_excel(airport_path, )
-    city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False, header=None)
+    city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False)
     with open(path+'新增机场.csv','r+') as airport:
         reader = csv.DictReader(airport)
         for row in reader:
-            conn = pymysql.connect(**config)
+            conn = pymysql.connect(**check_field)
             cursor = conn.cursor()
 
             # 检查中,英文名
@@ -310,7 +315,7 @@ def airport_field_check(airport_path,param):
                 not_standard_field['belong_city_id'].append((row['id'],row['name']))
             elif map_info[0] != 'NULL':
                 city_long,city_lat = map_info[0].split(',')
-                airport_long,airport_lat = row['map_info'].split(',')
+                airport_long,airport_lat = row['map_info'].replace('，',',').split(',')
                 distince = getDist(float(city_long),float(city_lat),float(airport_long),float(airport_lat))
                 if distince > 200000:
                     not_standard_field['map_info'].append((row['id'],row['name']))
@@ -350,7 +355,10 @@ def airport_field_check(airport_path,param):
         for key,value in not_standard_field.items():
             value_str = json.dumps(value)
             writer.writerow((key,value_str))
-    return 'check_airport.csv'
+    if not_standard_field:
+        return '/'.join([param,'check_airport.csv'])
+    else:
+        return False
 
 #检查城市是否重复
 def check_repeat_city(city_path,param):
@@ -358,7 +366,7 @@ def check_repeat_city(city_path,param):
     path = ''.join([base_path, str(param), '/'])
     select_sql = "select * from city where name=%s"
     select_mapInfo = "select map_info from city"
-    conn = pymysql.connect(**config)
+    conn = pymysql.connect(**check_field)
     cursor = conn.cursor()
     repeat_city = defaultdict(list)
     try:
@@ -368,36 +376,40 @@ def check_repeat_city(city_path,param):
         conn.rollback()
     mapInfo_list = [map_info[0] for map_info in mapInfo_list]
     city_data = pandas.read_excel(city_path, )
-    city_data.to_csv(path+'新增城市.csv', encoding='utf-8', index=False, header=None)
+    city_data.to_csv(path+'新增城市.csv', encoding='utf-8', index=False,)
     with open(path+'新增城市.csv','r+') as city:
         reader = csv.DictReader(city)
         for row in reader:
-            long,lat = row['map_info'].split(',')
+            long,lat = row['map_info'].replace('，',',').split(',')
             name = row['name']
             cursor.execute(select_sql,(name,))
             judge_city = cursor.fetchall()
             if judge_city:
                 for map_info in mapInfo_list:
-                    city_long,city_lat = map_info.split(',')
+                    if not map_info:
+                        continue
+                    city_long,city_lat = map_info.replace('，',',').split(',')
                     distance = getDist(float(long),float(lat),float(city_long),float(city_lat))
                     if distance <= MAX_DISTANCE:
                         repeat_city['repeat_city'].append((row['id'],row['name']))
                         break
     with open(path+'check_repeat_city.csv','w+') as city:
         writer = csv.writer(city)
-        writer.writerow(('','重复城市'))
+        writer.writerow(('repeat_city','重复城市列表'))
         for key,value in repeat_city.items():
             value_str = json.dumps(value)
             writer.writerow((key,value_str))
-
-        return 'check_repeat_city.csv'
+    if repeat_city:
+        return '/'.join([param,'check_repeat_city.csv'])
+    else:
+        return False
 
 #检查是否机场重复
-def check_repeat_airport(airport_path,path):
-
+def check_repeat_airport(airport_path,param):
+    path = ''.join([base_path, str(param), '/'])
     select_sql = "select * from airport where name=%s"
     select_mapInfo = "select map_info from airport"
-    conn = pymysql.connect(**config)
+    conn = pymysql.connect(**check_field)
     cursor = conn.cursor()
     repeat_airport = defaultdict(list)
     try:
@@ -407,17 +419,20 @@ def check_repeat_airport(airport_path,path):
         conn.rollback()
     mapInfo_list = [map_info[0] for map_info in mapInfo_list]
     city_data = pandas.read_excel(airport_path, )
-    city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False, header=None)
+    city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False)
     with open(path+'新增机场.csv','r+') as airport:
         reader = csv.DictReader(airport)
         for row in reader:
-            long,lat = row['map_info'].split(',')
+            long,lat = row['map_info'].replace('，',',').split(',')
             name = row['name']
             cursor.execute(select_sql,(name,))
             judge_airport = cursor.fetchall()
             if judge_airport:
                 for map_info in mapInfo_list:
-                    airport_long,airport_lat = map_info.split(',')
+                    
+                    if not map_info or map_info=='NULL':
+                        continue
+                    airport_long,airport_lat = map_info.replace('，',',').split(',')
                     distance = getDist(float(long),float(lat),float(airport_long),float(airport_lat))
                     if distance <= MAX_DISTANCE:
                         repeat_airport['repeat_airport'].append((row['id'],row['name']))
@@ -425,11 +440,14 @@ def check_repeat_airport(airport_path,path):
 
         with open(path+'check_repeat_airport.csv','w+') as airport:
             writer = csv.writer(airport)
-            writer.writerow(('','重复机场'))
+            writer.writerow(('repeat_airport','重复机场列表'))
             for key,value in repeat_airport.items():
                 value_str = json.dumps(value)
                 writer.writerow((key,value_str))
-        return 'check_repeat_airport.csv'
+        if repeat_airport:
+            return '/'.join([param,'check_repeat_airport.csv'])
+        else:
+            return False
 #城市字段不合格率统计
 def not_standard_city_field_count():
     city_data = pandas.read_csv('新增城市.csv',encoding='utf-8')
@@ -469,7 +487,7 @@ def new_airport_insert(config,param):
     path = ''.join([base_path, str(param), '/'])
     db = dataset.connect('mysql+pymysql://{user}:{password}@{host}:3306/{db}?charset=utf8'.format(**config))
     airport_table = db['airport']
-    table = pandas.read_csv(base_path+'新增机场.csv')
+    table = pandas.read_csv(path+'新增机场.csv')
 
     _count = 0
     for i in range(len(table)):
@@ -482,15 +500,148 @@ def new_airport_insert(config,param):
 
             new_data.pop('id')
             new_data.pop('time2city_center')
-            print('#' * 100)
-            print(_count)
-            print(new_data)
 
             airport_table.upsert(new_data, keys=['city_id', 'iata_code'])
     db.commit()
     return True
 
+def get_sid(source,suggest):
+    if source == 'daodao':
+        suggest = suggest
+        _l_sid = re.findall('-(g\d+)', suggest)
+        if _l_sid:
+            sid = _l_sid[0]
+        else:
+            logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+    elif source == 'qyer':
+        suggest = suggest
+        _l_sid = re.findall('http://place.qyer.com/(\S+?)/', suggest)
+        if _l_sid:
+            sid = _l_sid[0]
+        else:
+            logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
 
+    elif source == 'agoda':
+        suggest = suggest
+        _l_sid = re.findall('city=(\d+)', suggest)
+        if _l_sid:
+            sid = _l_sid[0]
+        else:
+            pass
+    elif source == 'elong':
+        suggest = suggest
+        if 'poi_' in suggest:
+            poi_id = re.findall('poi_(\d+)', suggest)[0]
+        else:
+            poi_id = None
+
+        _l_sid = re.findall('region_(\d+)', suggest)
+        if _l_sid:
+            sid = _l_sid[0]
+            if poi_id:
+                sid = '{}&{}'.format(sid, poi_id)
+        else:
+            logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+
+    elif source == 'ctrip':
+        suggest = suggest
+        _l_sid = re.findall('http://hotels.ctrip.com/international/([\s\S]+)', suggest)
+        if _l_sid:
+            sid = _l_sid[0]
+        else:
+            logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+
+    elif source == 'booking':
+        suggest = suggest
+        _l_sid = re.findall('dest_id=([-\d]+)&', suggest)
+        if _l_sid:
+            sid = _l_sid[0]
+        else:
+            logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+
+    elif source == 'expedia':
+        suggest = suggest
+        _l_sid = re.findall('regionId=([\d]+)', suggest)
+        if _l_sid:
+            sid = _l_sid[0]
+        else:
+            sid = suggest
+            logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+
+    elif source == 'hotels':
+        suggest = suggest
+        _l_sid = re.findall('regionId=([\d]+)', suggest)
+        if _l_sid:
+            sid = _l_sid[0]
+        else:
+            _l_sid = re.findall('destination-id=([\d]+)', suggest)
+            if _l_sid:
+                dest_id = _l_sid[0]
+                sid = dest_id
+            else:
+                logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+    return sid
+
+def add_others_source_city(city_path,hotels_path,attr_path,ota_config,param):
+    select_country = "select name from country where mid=%s"
+    insert_sql = "insert ignore into ota_location(source,sid_md5,sid,suggest_type,suggest,city_id,country_id,s_city,s_region,s_country,s_extra,label_batch,others_info)"
+    conn = pymysql.connect(**check_field)
+    cursor = conn.cursor()
+    path = ''.join([base_path, str(param), '/'])
+    city_info = {}
+    source_city_info = defaultdict(dict)
+    sources = ['agoda','ctrip','elong','hotels','expedia','booking']
+    save_result = []
+    with open(path+'map_cityName.csv','r+') as map:
+        reader = csv.DictReader(map)
+        for row in reader:
+
+            city_info[row['name']] = row['city_id']
+    with open(hotels_path,'r+') as city:
+        reader = csv.DictReader(city)
+        for row in reader:
+            for source in sources:
+                source_city_info[source][row['name']] = row[source]
+    sources = ['qyer','daodao']
+    with open(attr_path,'r+') as attr:
+        reader = csv.DictReader(attr)
+        for row in reader:
+            print(row)
+            for source in sources:
+                source_city_info[source][row['name']] = row[source]
+
+    with open(path+'新增城市.csv','r+') as city:
+        reader = csv.DictReader(city)
+        for row in reader:
+            for source in source_city_info.keys():
+                others_info = {}
+                city_id = city_info[row['name']]
+                country_id = row['country_id']
+                cursor.execute(select_country,(country_id,))
+                country_name = cursor.fetchone()[0]
+                city_name = row['name']
+                suggest = source_city_info[source][row['name']]
+                if not suggest:
+                    continue
+                label_batch = str(datetime.now())[:10].replace('-','')
+                label_batch = ''.join([label_batch,'a'])
+                sid = get_sid(source,suggest)
+                md5 = hashlib.md5()
+                md5.update(sid.encode('utf-8'))
+                sid_md5 = md5.hexdigest()
+                map_info = row['map_info']
+                others_info['map_info'] = map_info
+                others_info = json.dumps(others_info)
+                save_result.append(
+                    (source,sid_md5,sid,1,suggest,city_id,country_id,city_name,'NULL',country_name,'NULL',label_batch,others_info)
+                )
+    conn.close()
+    conn = pymysql.connect(**ota_config)
+    cursor = conn.cursor()
+    print(save_result)
+    #cursor.executemany(insert_sql,save_result)
+    #conn.commit()
+    conn.close()
 if __name__ == "__main__":
     from city.config import config
     config['db'] = ''.join(['add_city_','12345'])

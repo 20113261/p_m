@@ -35,6 +35,7 @@ def get_cityName(config,param):
             for row in reader:
                 cursor.execute(select_sql,row)
                 result = cursor.fetchone()
+                print(result)
                 writer.writerow(result)
         conn.close()
 def revise_pictureName(picute_path,config,param):

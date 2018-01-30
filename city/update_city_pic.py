@@ -49,7 +49,7 @@ def update_city_pic(picture_path,config,param):
         city_img[cid].add(f_name)
 
     # 更新图片信息
-    with open(path+'update_city_pic.csv') as city:
+    with open(path+'update_city_pic.csv','w+') as city:
         writer = csv.writer(city)
         writer.writerow(('city_id','picture'))
         for cid, pic_set in city_img.items():
