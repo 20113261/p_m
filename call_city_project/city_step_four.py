@@ -1,44 +1,81 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python3
 # -*- coding:utf-8 -*-
-
-
-from city.add_city import read_file
-from city.config import config,base_path
-import os
-import sys
-import zipfile
-
 import pymysql
 pymysql.install_as_MySQLdb()
-def get_zip_path(param):
-    conn = pymysql.connect(**config)
+from city.config import base_path,config,OpCity_config
+import os
+import sys
+import csv
+from city.inter_city_task import google_driver
+from collections import defaultdict
+import json
+import traceback
+import pymongo
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
+backgroudscheduler = BackgroundScheduler()
+def update_step_report(csv_path,param,step):
+    conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
-    select_sql = "select path1 from city_order  where id=%s"
-    path = ''
+    update_sql = "update city_order set report4=%s,step4=%s where id=%s"
     try:
-        cursor.execute(select_sql,(param,))
-        path = cursor.fetchone()[0]
+       cursor.execute(update_sql,(csv_path,step,param))
+       conn.commit()
     except Exception as e:
         conn.rollback()
-    return path
-def task_start():
-    param = sys.argv[1]
-    zip_path = get_zip_path(param)
-    zip = zipfile.ZipFile(zip_path)
-    file_name = zip.filename.split('.')[0].split('/')[-1]
-    path = ''.join([base_path, str(param), '/'])
-    if path.endswith('/'):
-        file_path = ''.join([path, file_name])
+    finally:
+        conn.close()
+
+@backgroudscheduler.scheduled_job('cron', minute='*/2',hour='*',id='step4')
+def monitor_google_driver(collection_name):
+    client = pymongo.MongoClient(host='10.10.231.105')
+    collection = client['MongoTask'][collection_name]
+    total_count = collection.find({})
+    conn = pymysql.connect(**OpCity_config)
+    cursor = conn.cursor()
+    select_sql = "select step4 from city_order where id=%s"
+    while True:
+        cursor.execute(select_sql)
+        status_id = cursor.fetchone()[0]
+        if int(status_id) == 2:
+            results = collection.find({'$or': [{'finished': 0},{'$and':{'finished':0,'used_times':{'$lt':7}}}]})
+            not_finish_num = results.count()
+            if not not_finish_num:
+                break
+    if not_finish_num / total_count <= 0:
+        return True
     else:
-        file_path = '/'.join([path, file_name])
-    file_list = os.listdir(file_path)
-    for child_file in file_list:
-        path = '/'.join([file_path, child_file])
-        if '新增城市.xlsx' in child_file:
-            city_path = path
-            break
-    config['db'] = ''.join(['add_city_',str(param)])
-    read_file(city_path,config)
+        return False
+
+def task_start():
+    try:
+        return_result = defaultdict(dict)
+        return_result['data'] = {}
+        return_result['error']['error_id'] = 0
+        return_result['error']['error_str'] = ''
+        param = sys.argv[1]
+        save_cityId = []
+        data_name = ''.join(['add_city_',str(param)])
+        config['db'] = data_name
+        path = ''.join([base_path,param,'/','city_id.csv'])
+        with open(path,'r+') as city:
+            reader = csv.DictReader(city)
+            for row in reader:
+                save_cityId.append(row['city_id'])
+
+        collection_name = google_driver(save_cityId,param,config)
+        judge = monitor_google_driver(collection_name)
+
+        return_result = json.dumps(return_result)
+        print('[result][{0}]'.format(return_result))
+        update_step_report('', param, 1)
+        return judge
+    except Exception as e:
+        return_result['error']['error_id'] = 1
+        return_result['error']['error_str'] = traceback.format_exc()
+        return_result = json.dumps(return_result)
+        print('[result][{0}]'.format(return_result))
+        update_step_report('', param, -1)
 
 if __name__ == "__main__":
     task_start()

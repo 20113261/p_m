@@ -1,65 +1,37 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from city.field_check import check_repeat_city
-from city.config import config,base_path
+from city.config import config,base_path,OpCity_config
 import os
 import sys
 import zipfile
 import pymysql
 pymysql.install_as_MySQLdb()
-def get_zip_path(param):
-    conn = pymysql.connect(**config)
-    cursor = conn.cursor()
-    select_sql = "select path1 from city_order  where id=%s"
-    path = ''
+import json
+import traceback
+from collections import defaultdict
+def task_start_one(param):
     try:
+        return_result = defaultdict(dict)
+        return_result['data'] = {}
+        return_result['error']['error_id'] = 0
+        return_result['error']['error_str'] = ''
+        select_sql = "select path1 from city_order where id=%s"
+        #param = sys.argv[1]
+        conn = pymysql.connect(**OpCity_config)
+        cursor = conn.cursor()
         cursor.execute(select_sql,(param,))
         path = cursor.fetchone()[0]
+        file_name = path.split('/')[-1]
+        zip_path = ''.join([base_path,'/',file_name])
+        params = ''.join(['add_city_',str(param)])
+        os.system("/search/cuixiyi/PoiCommonScript/call_city_project/add_new_city.sh {0} {1} {2}".format(zip_path,params,param))
+        return_result = json.dumps(return_result)
+        print('[result][{0}]'.format(return_result))
     except Exception as e:
-        conn.rollback()
-    finally:
-        conn.close()
-    return path
-
-def update_step_report(csv_path,param):
-    conn = pymysql.connect(**config)
-    cursor = conn.cursor()
-    update_sql = "update city_order set report2=%s where id=%s"
-    select_sql = "select report2 from city_order where id=%s"
-    try:
-        cursor.execute(select_sql,(param,))
-        report2 = cursor.fetchone()
-        if not report2:
-            cursor.execute(update_sql,(csv_path,param))
-            conn.commit()
-        else:
-            report2 = ';'.join([report2,csv_path])
-            cursor.execute(update_sql,(report2,param))
-            conn.commit()
-    except Exception as e:
-        conn.rollback()
-    finally:
-        conn.close()
-
-def task_start():
-    param = sys.argv[1]
-    zip_path = get_zip_path(param)
-    zip = zipfile.ZipFile(zip_path)
-    file_name = zip.filename.split('.')[0].split('/')[-1]
-    path = ''.join([base_path,str(param),'/'])
-    if path.endswith('/'):
-        file_path = ''.join([path, file_name])
-    else:
-        file_path = '/'.join([path, file_name])
-    file_list = os.listdir(file_path)
-    for child_file in file_list:
-        path = '/'.join([file_path, child_file])
-        if '新增城市.xlsx' in child_file:
-            city_path = path
-            break
-
-    csv_path = check_repeat_city(city_path,param)
-    update_step_report(csv_path,param)
+        return_result['error']['error_id'] = 1
+        return_result['error']['error_str'] = traceback.format_exc()
+        return_result = json.dumps(return_result)
+        print('[result][{0}]'.format(return_result))
 if __name__ == "__main__":
-    task_start()
+    task_start_one(param)

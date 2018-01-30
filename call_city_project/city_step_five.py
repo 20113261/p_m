@@ -1,43 +1,110 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python3
 # -*- coding:utf-8 -*-
 
-
-from city.city_map_ciytName import revise_pictureName
-from city.config import config,base_path
-import os
+from city.config import base_path,OpCity_config,config
+from collections import defaultdict
+import json
+import traceback
 import sys
-import zipfile
-
 import pymysql
 pymysql.install_as_MySQLdb()
-def get_zip_path(param):
-    conn = pymysql.connect(**config)
+import csv
+import pymongo
+from city.insert_daodao_city import daodao_city
+from city.insert_hotel_city import hotel_city
+from city.insert_qyer_city import qyer_city
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
+backgroudscheduler = BackgroundScheduler()
+def update_step_report(csv_path,param,step):
+    conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
-    select_sql = "select path1 from city_order  where id=%s"
-    path = ''
+    update_sql = "update city_order set report5=%s,step5=%s where id=%s"
     try:
-        cursor.execute(select_sql,(param,))
-        path = cursor.fetchone()[0]
+       cursor.execute(update_sql,(csv_path,step,param))
+       conn.commit()
     except Exception as e:
         conn.rollback()
-    return path
-def task_start():
-    param = sys.argv[1]
-    zip_path = get_zip_path(param)
-    zip = zipfile.ZipFile(zip_path)
-    file_name = zip.filename.split('.')[0].split('/')[-1]
-    path = ''.join([base_path, str(param), '/'])
-    if path.endswith('/'):
-        file_path = ''.join([path, file_name])
+    finally:
+        conn.close()
+
+def monitor_daodao(collection):
+    result = collection.find({'$or':[{'finished':0},{'$and':[{'finished':0},{'used_times':{'$gte':7}}]}]})
+    not_finish_num = result.count()
+    total_num = collection.find({})
+    return not_finish_num / total_num
+def monitor_qyer(collection):
+    result = collection.find({'$or': [{'finished': 0}, {'$and': [{'finished': 0}, {'used_times': {'$gte': 7}}]}]})
+    not_finish_num = result.count()
+    total_num = collection.find({})
+    return not_finish_num / total_num
+def monitor_hotel(collections):
+    save_result = []
+    for collection in collections:
+        result = collection.find({'$or': [{'finished': 0}, {'$and': [{'finished': 0}, {'used_times': {'$gte': 7}}]}]})
+        not_finish_num = result.count()
+        total_num = collection.find({})
+        save_result.append(not_finish_num / total_num)
+    return max(save_result)
+
+@backgroudscheduler.scheduled_job('cron',id='step5',minute='*/2',hour='*')
+def monitor_daodao_qyer_hotel(daodao_collection_name,qyer_collection_name,hotel_collections_name):
+    client = pymongo.MongoClient(host='10.10.231.105')
+    daodao_collection = client['MongoTask'][daodao_collection_name]
+    qyer_collection = client['MongoTask'][qyer_collection_name]
+    hotel_collections = []
+    for collection in hotel_collections_name:
+        hotel_collections.append(client['MongoTask'][collection])
+
+    conn = pymysql.connect(**OpCity_config)
+    cursor = conn.cursor()
+    select_sql = "select step5 from city_order where id=%s"
+    while True:
+        cursor.execute(select_sql)
+        status_id = cursor.fetchone()[0]
+        if int(status_id) == 2:
+
+            daodao_not_finish = monitor_daodao(daodao_collection)
+            qyer_not_finish = monitor_qyer(qyer_collection)
+            hotel_not_finish = monitor_hotel(hotel_collections)
+            if not daodao_not_finish and not qyer_not_finish and not hotel_not_finish:
+                break
+    if not daodao_not_finish and not qyer_not_finish and not hotel_not_finish:
+        return True
     else:
-        file_path = '/'.join([path, file_name])
-    file_list = os.listdir(file_path)
-    for child_file in file_list:
-        path = '/'.join([file_path, child_file])
-        if os.path.isdir(path):
-            picture_path = path
-            break
-    revise_pictureName(picture_path,config)
+        return False
+
+def task_start():
+    try:
+        sources = ['agoda', 'ctrip', 'elong', 'hotels', 'expedia', 'booking']
+        param = sys.argv[1]
+        return_result = defaultdict(dict)
+        return_result['data'] = {}
+        return_result['error']['error_id'] = 0
+        return_result['error']['error_str'] = ''
+        save_cityId = []
+        path = ''.join([base_path, param, '/', 'city_id.csv'])
+        with open(path, 'r+') as city:
+            reader = csv.DictReader(city)
+            for row in reader:
+                save_cityId.append(row['city_id'])
+        daodao_collection_name = daodao_city(save_cityId,param)
+        qyer_collection_name = qyer_city(save_cityId,param)
+        hotel_collections_name = hotel_city(save_cityId,param,sources)
+        judge = monitor_daodao_qyer_hotel(daodao_collection_name,qyer_collection_name,hotel_collections_name)
+        return_result = json.dumps(return_result)
+        print('[result][{0}]'.format(return_result))
+        update_step_report('', param, 1)
+        return judge
+    except Exception as e:
+
+        return_result['error']['error_id'] = 1
+        return_result['error']['error_str'] = traceback.format_exc()
+        return_result = json.dumps(return_result)
+        print('[result][{0}]'.format(return_result))
+        update_step_report('', param, -1)
+
+
 
 if __name__ == "__main__":
     task_start()
