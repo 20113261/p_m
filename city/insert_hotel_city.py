@@ -40,7 +40,7 @@ def hotel_city(city_id,param,sources):
     collections_name = []
     for source in source_list:
         time_lag = str(datetime.now())[:10].replace('-', '')
-        task_name = 'inter_city_hotel_{0}_{1}_{2}a'.format(source,param,time_lag)
+        task_name = 'hotel_{0}_{1}_{2}a'.format(source,param,time_lag)
         with InsertTask(worker='proj.total_tasks.hotel_list_task', queue='hotel_list', routine_key='hotel_list',
                         task_name=task_name, source=source.title(), _type='HotelList',
                         priority=3, task_type=TaskType.CITY_TASK) as it:
