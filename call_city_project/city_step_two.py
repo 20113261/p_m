@@ -24,12 +24,14 @@ def get_zip_path(param):
         conn.rollback()
     return path
 
-def update_step_report(csv_path,param,step):
+def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
-    update_sql = "update city_order set report2=%s,step2=%s where id=%s"
+    update_sql_front = "update city_order set report2=%s,step2=%s where id=%s"
+    update_sql_after = "update city_order set step3=%s where id=%s"
     try:
-       cursor.execute(update_sql,(csv_path,step,param))
+       cursor.execute(update_sql_front,(csv_path,step_front,param))
+       cursor.execute(update_sql_after,(step_after,param))
        conn.commit()
     except Exception as e:
         conn.rollback()
@@ -107,13 +109,13 @@ def task_start():
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
-        update_step_report(csv_path,param,1)
+        update_step_report(csv_path,param,1,0)
     except Exception as e:
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
-        update_step_report(csv_path,param,-1)
+        update_step_report(csv_path,param,-1,0)
 if __name__ == "__main__":
     task_start()

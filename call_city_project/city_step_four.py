@@ -14,38 +14,39 @@ import pymongo
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 backgroudscheduler = BackgroundScheduler()
-def update_step_report(csv_path,param,step):
+
+def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
-    update_sql = "update city_order set report4=%s,step4=%s where id=%s"
+    update_sql_front = "update city_order set report4=%s,step4=%s where id=%s"
+    update_sql_after = "update city_order set step5=%s where id=%s"
     try:
-       cursor.execute(update_sql,(csv_path,step,param))
+       cursor.execute(update_sql_front,(csv_path,step_front,param))
+       cursor.execute(update_sql_after,(step_after,param))
        conn.commit()
     except Exception as e:
         conn.rollback()
     finally:
         conn.close()
 
-@backgroudscheduler.scheduled_job('cron', minute='*/2',hour='*',id='step4')
-def monitor_google_driver(collection_name):
+def monitor_google_driver(collection_name,param):
     client = pymongo.MongoClient(host='10.10.231.105')
     collection = client['MongoTask'][collection_name]
-    total_count = collection.find({})
+    total_count = collection.find({}).count()
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
     select_sql = "select step4 from city_order where id=%s"
-    while True:
-        cursor.execute(select_sql)
-        status_id = cursor.fetchone()[0]
-        if int(status_id) == 2:
-            results = collection.find({'$or': [{'finished': 0},{'$and':{'finished':0,'used_times':{'$lt':7}}}]})
-            not_finish_num = results.count()
-            if not not_finish_num:
-                break
+
+    cursor.execute(select_sql)
+    status_id = cursor.fetchone()[0]
+    if int(status_id) == 2:
+        results = collection.find({'finished': 0})
+        not_finish_num = results.count()
+
     if not_finish_num / total_count <= 0:
-        return True
-    else:
-        return False
+        job = backgroudscheduler.get_job('step4')
+        job.remove()
+        update_step_report('', param, 1, 0)
 
 def task_start():
     try:
@@ -62,20 +63,22 @@ def task_start():
             reader = csv.DictReader(city)
             for row in reader:
                 save_cityId.append(row['city_id'])
-
+        save_cityId = ['10001','10003','10005']
         collection_name = google_driver(save_cityId,param,config)
-        judge = monitor_google_driver(collection_name)
+
+        job = backgroudscheduler.add_job(monitor_google_driver,trigger='cron',minute='*/2',hour='*',id='step4',kwargs={'collection_name':collection_name,'param':param})
+        backgroudscheduler.start()
 
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
-        update_step_report('', param, 1)
-        return judge
+
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
-        update_step_report('', param, -1)
+        update_step_report('', param, -1,0)
 
 if __name__ == "__main__":
     task_start()
+

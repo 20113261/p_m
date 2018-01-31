@@ -16,6 +16,8 @@ import json
 import traceback
 import pymysql
 pymysql.install_as_MySQLdb()
+import configparser
+import pymongo
 def get_zip_path(param):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
@@ -28,12 +30,14 @@ def get_zip_path(param):
         conn.rollback()
     return path
 
-def update_step_report(csv_path,param,step):
+def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
-    update_sql = "update city_order set report3=%s,step3=%s where id=%s"
+    update_sql_front = "update city_order set report3=%s,step3=%s where id=%s"
+    update_sql_after = "update city_order set step4=%s where id=%s"
     try:
-       cursor.execute(update_sql,(csv_path,step,param))
+       cursor.execute(update_sql_front,(csv_path,step_front,param))
+       cursor.execute(update_sql_after,(step_after,param))
        conn.commit()
     except Exception as e:
         conn.rollback()
@@ -70,11 +74,18 @@ def task_start():
             hotels_path = path
         elif '景点配置' in child_file:
             attr_path = path
+
+    conf = configparser.ConfigParser()
+    conf.read('/search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf', encoding='utf-8')
+    conf.set('city','srcPrefix',picture_path)
+    conf.write(open('/search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf','w'))
+
     try:
         return_result = defaultdict(dict)
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
         return_result['error']['error_str'] = ''
+
         city_insert_path = read_file(city_path,temp_config,param)
 
         city_map_path = revise_pictureName(picture_path,temp_config,param)
@@ -109,15 +120,21 @@ def task_start():
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
-        update_step_report(csv_path, param, 1)
+        update_step_report(csv_path, param, 1,0)
+        os.system('java -jar ks3up-tool-2.0.6-20170801/ks3up-2.0.6.jar -c city.conf start')
     except Exception as e:
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
-        update_step_report(csv_path, param, -1)
+        update_step_report(csv_path, param, -1,0)
 
 
 if __name__ == "__main__":
-    task_start()
+    # task_start()
+    client = pymongo.MongoClient(host='10.10.231.105')
+    collection = client['MongoTask']['Task_Queue_file_downloader_TaskName_google_driver_52_20180131']
+    total_count = collection.find({})
+    total_count.count()
+

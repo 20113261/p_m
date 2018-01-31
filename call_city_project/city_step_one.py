@@ -34,4 +34,4 @@ def task_start_one(param):
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
 if __name__ == "__main__":
-    task_start_one(param)
+    pass
