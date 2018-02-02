@@ -72,7 +72,7 @@ def task_start():
         save_cityId = ['10001','10003','10005']
         logger.info('[step4][%s] 启动发任务' % [param])
         collection_name, task_name = google_driver(save_cityId,param,config)
-        logger.info('[step4][%s] 任务已发完 [%s] [%s]' % [param, collection_name, task_name])
+        logger.info('[step4][%s] 任务已发完[%s][%s]' % (param, collection_name, task_name,))
 
         with open('tasks.json', 'r+') as f:
             tasks = json.load(f)
