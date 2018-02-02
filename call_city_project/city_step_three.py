@@ -113,15 +113,15 @@ def task_start():
             os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
             save_path.extend(share_airport_path)
          
-        #shareAirport_insert(temp_config,param)
-        #new_airport_insert(temp_config,param)
+        shareAirport_insert(temp_config,param)
+        new_airport_insert(temp_config,param)
         if hotels_path:
             add_others_source_city(city_path,hotels_path,attr_path,ota_config,param)
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
         update_step_report(csv_path, param, 1,0)
-        os.system('java -jar ks3up-tool-2.0.6-20170801/ks3up-2.0.6.jar -c city.conf start')
+        os.system('java -jar /search/cuixiyi/ks3up-tool-2.0.6-20170801/ks3up-2.0.6.jar -c /search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf start')
     except Exception as e:
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1
@@ -132,9 +132,9 @@ def task_start():
 
 
 if __name__ == "__main__":
-    # task_start()
-    client = pymongo.MongoClient(host='10.10.231.105')
-    collection = client['MongoTask']['Task_Queue_file_downloader_TaskName_google_driver_52_20180131']
-    total_count = collection.find({})
-    total_count.count()
+    task_start()
+    #client = pymongo.MongoClient(host='10.10.231.105')
+    #collection = client['MongoTask']['Task_Queue_file_downloader_TaskName_google_driver_52_20180131']
+    #total_count = collection.find({})
+    #total_count.count()
 

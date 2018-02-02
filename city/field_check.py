@@ -498,16 +498,16 @@ def new_airport_insert(config,param):
         del line['utime']
         airport_table.insert(line)
 
-        if line['airport_id'] != 'error':
-            _count += 1
-            data_line = airport_table.find_one(id=int(line['airport_id']))
-            new_data = copy.deepcopy(data_line)
-            new_data['city_id'] = int(line['city_id'])
+        #if line['airport_id'] != 'error':
+        #    _count += 1
+        #    data_line = airport_table.find_one(id=int(line['airport_id']))
+        #    new_data = copy.deepcopy(data_line)
+        #    new_data['city_id'] = int(line['city_id'])
 
-            new_data.pop('id')
-            new_data.pop('time2city_center')
+        #    new_data.pop('id')
+        #    new_data.pop('time2city_center')
 
-            airport_table.upsert(new_data, keys=['city_id', 'iata_code'])
+        #    airport_table.upsert(new_data, keys=['city_id', 'iata_code'])
 
     db.commit()
     return True

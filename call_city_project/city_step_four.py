@@ -29,7 +29,7 @@ def update_step_report(csv_path,param,step_front,step_after):
     finally:
         conn.close()
 
-def monitor_google_driver(collection_name,param):
+def monitor_google_driver(collection_name,param, task_name):
     client = pymongo.MongoClient(host='10.10.231.105')
     collection = client['MongoTask'][collection_name]
     total_count = collection.find({}).count()
@@ -40,7 +40,7 @@ def monitor_google_driver(collection_name,param):
     cursor.execute(select_sql)
     status_id = cursor.fetchone()[0]
     if int(status_id) == 2:
-        results = collection.find({'$and':[{'finished':0},{'useds_times':{'$lt':7}},{'task_name':''}]})
+        results = collection.find({'$and':[{'finished':0},{'useds_times':{'$lt':7}},{'task_name':task_name}]})
         not_finish_num = results.count()
 
     if int(not_finish_num) / int(total_count) <= 0:
@@ -65,9 +65,9 @@ def task_start():
             for row in reader:
                 save_cityId.append(row['city_id'])
         save_cityId = ['10001','10003','10005']
-        collection_name = google_driver(save_cityId,param,config)
+        collection_name, task_name = google_driver(save_cityId,param,config)
 
-        job = backgroudscheduler.add_job(monitor_google_driver,trigger='cron',minute='*/2',hour='*',id='step4',kwargs={'collection_name':collection_name,'param':param})
+        job = backgroudscheduler.add_job(monitor_google_driver,trigger='cron',minute='*/2',hour='*',id='step4',kwargs={'collection_name':collection_name,'param':param, 'task_name': task_name})
         backgroudscheduler.start()
 
         return_result = json.dumps(return_result)
