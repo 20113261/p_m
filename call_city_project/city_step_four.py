@@ -72,14 +72,14 @@ def task_start():
         save_cityId = ['10001','10003','10005']
         logger.info('[step4][%s] 启动发任务' % [param])
         collection_name, task_name = google_driver(save_cityId,param,config)
-        logger.info('[step4][%s] 任务已发完[%s][%s]' % (param, collection_name, task_name,))
+        logger.info('[step4][%s] 任务已发完[%s][%s]' % [param, collection_name, task_name,])
 
         with open('tasks.json', 'r+') as f:
             tasks = json.load(f)
             tasks[param] = [collection_name, task_name]
             f.seek(0)
             json.dump(tasks, f)
-        logger.info('[step4][%s] tasks: %s' % [param, tasks])
+        logger.info('[step4][%s] tasks: %s' % [param, str(tasks)])
 
         # job = backgroudscheduler.add_job(monitor_google_driver,trigger='cron',minute='*/2',hour='*',id='step4',kwargs={'collection_name':collection_name,'param':param, 'task_name': task_name})
         # backgroudscheduler.start()
