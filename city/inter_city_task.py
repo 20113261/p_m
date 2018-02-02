@@ -10,6 +10,7 @@ from MongoTask.MongoTaskInsert import InsertTask
 from service_platform_conn_pool import fetchall, base_data_pool,init_pool
 from my_logger import get_logger
 from copy import deepcopy
+from toolbox.Common import is_legal
 logger = get_logger("generate_google_task")
 
 
@@ -63,7 +64,7 @@ def city_pair(city_ids,config):
 
                 src_map_info = map_dict.get(src_cid)
                 dst_map_info = map_dict.get(dst_cid)
-
+                if not is_legal(dst_map_info):continue
                 logger.info('%s: %s  - %s: %s' % (src_cid, src_map_info, dst_cid, dst_map_info))
                 src_map_info_list = src_map_info.split(',')
                 src_map_info = ','.join([src_map_info_list[1],src_map_info_list[0]])
