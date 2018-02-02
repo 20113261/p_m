@@ -9,7 +9,7 @@ import json
 import os.path
 import gzip
 from data_source import MysqlSource
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("mk_google_drive_data")
 

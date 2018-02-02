@@ -10,7 +10,7 @@ from warnings import filterwarnings
 import pymysql
 from service_platform_conn_pool import base_data_pool, fetchall, new_service_platform_pool
 from itertools import permutations
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("train_content")
 filterwarnings('ignore', category=pymysql.err.Warning)

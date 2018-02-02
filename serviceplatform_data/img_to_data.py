@@ -3,7 +3,7 @@
 import pymysql
 import re
 import json
-from logger import get_logger
+from my_logger import get_logger
 from data_source import MysqlSource
 from toolbox.Common import is_legal
 from service_platform_conn_pool import base_data_final_pool

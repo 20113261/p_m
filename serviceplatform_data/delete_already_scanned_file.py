@@ -7,7 +7,7 @@
 # @Software: PyCharm
 import os
 import logging
-from logger import get_logger
+from my_logger import get_logger
 from data_source import MysqlSource
 
 devdb_config = {

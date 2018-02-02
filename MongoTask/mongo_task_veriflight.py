@@ -6,7 +6,7 @@
 # @File    : mongo_task_qyer_city_sugg.py
 # @Software: PyCharm
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
-from logger import get_logger
+from my_logger import get_logger
 from MongoTask.veriflight_code import veriflight_code
 from string import ascii_lowercase
 from itertools import product

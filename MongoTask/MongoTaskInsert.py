@@ -16,7 +16,7 @@ import functools
 import toolbox.Date
 import patched_mongo_insert
 from toolbox.Hash import get_token
-from logger import get_logger
+from my_logger import get_logger
 from toolbox.Date import date_takes
 
 # 配置 toolbox 日期格式

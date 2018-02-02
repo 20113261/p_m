@@ -11,7 +11,7 @@ import datetime
 from warnings import filterwarnings
 from urllib.parse import urlparse, urljoin
 from data_source import MysqlSource
-from logger import get_logger, func_time_logger
+from my_logger import get_logger, func_time_logger
 # from service_platform_conn_pool import verify_info_pool, verify_info_new_pool
 from service_platform_conn_pool import verify_info_pool
 from Common.Utils import retry

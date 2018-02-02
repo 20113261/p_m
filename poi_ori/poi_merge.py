@@ -14,7 +14,7 @@ from collections import defaultdict
 from toolbox.Common import is_legal
 from data_source import MysqlSource
 from service_platform_conn_pool import base_data_pool, poi_ori_pool
-from logger import get_logger, func_time_logger
+from my_logger import get_logger, func_time_logger
 from poi_ori.already_merged_city import update_already_merge_city
 
 poi_type = None

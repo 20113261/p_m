@@ -7,7 +7,7 @@
 # @Software: PyCharm
 import urllib.parse
 from data_source import MysqlSource
-from logger import get_logger
+from my_logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
 from service_platform_conn_pool import source_info_config
 

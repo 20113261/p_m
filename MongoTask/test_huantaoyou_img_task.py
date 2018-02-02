@@ -6,7 +6,7 @@
 # @File    : mongo_task.py
 # @Software: PyCharm
 from data_source import MysqlSource
-from logger import get_logger
+from my_logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask
 from service_platform_conn_pool import fetchall, spider_base_tmp_wanle_pool, spider_base_tmp_wanle_test_pool
 

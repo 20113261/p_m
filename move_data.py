@@ -7,7 +7,7 @@
 # @Software: PyCharm
 from data_source import MysqlSource
 from service_platform_conn_pool import base_data_final_pool
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("move_data")
 

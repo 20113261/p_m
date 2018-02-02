@@ -11,7 +11,7 @@ import time
 import pymysql.err
 from warnings import filterwarnings
 from service_platform_conn_pool import base_data_final_pool
-from logger import get_logger
+from my_logger import get_logger
 
 # ignore pymysql warnings
 filterwarnings('ignore', category=pymysql.err.Warning)

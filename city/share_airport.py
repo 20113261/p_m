@@ -4,7 +4,7 @@ import csv
 import pymysql
 import traceback
 import numpy as np
-from logger import get_logger
+from my_logger import get_logger
 from service_platform_conn_pool import fetchall, base_data_pool,init_pool
 from city.config import base_path
 import traceback

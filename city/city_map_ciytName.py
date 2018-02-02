@@ -7,7 +7,7 @@ pymysql.install_as_MySQLdb()
 import sys
 import os
 from city.config import base_path
-from logger import get_logger
+from my_logger import get_logger
 from collections import defaultdict
 import json
 import traceback

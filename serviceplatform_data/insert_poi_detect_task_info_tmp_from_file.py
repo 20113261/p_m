@@ -9,7 +9,7 @@ import pymysql
 import logging
 from warnings import filterwarnings
 from service_platform_conn_pool import service_platform_pool, base_data_pool
-from logger import get_logger
+from my_logger import get_logger
 
 filterwarnings('ignore', category=pymysql.err.Warning)
 

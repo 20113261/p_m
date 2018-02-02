@@ -2,7 +2,7 @@
 # encoding: utf-8
 import pymysql
 from pymysql.cursors import SSDictCursor, SSCursor
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("data_source")
 

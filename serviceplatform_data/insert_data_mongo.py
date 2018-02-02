@@ -9,7 +9,7 @@ import pymongo
 from pymysql.cursors import DictCursor
 from pymongo.errors import BulkWriteError
 from data_source import MysqlSource
-from logger import get_logger
+from my_logger import get_logger
 from service_platform_conn_pool import service_platform_pool, base_data_pool
 
 logger = get_logger("insert_mongo_data")

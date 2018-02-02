@@ -7,7 +7,7 @@
 # @Software: PyCharm
 import pymongo
 from service_platform_conn_pool import fetchall, spider_data_base_data_pool
-from logger import get_logger
+from my_logger import get_logger
 from data_source import MysqlSource
 
 logger = get_logger("reset_img_merge_task")

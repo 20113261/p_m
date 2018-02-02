@@ -9,7 +9,7 @@ import re
 import json
 from pymysql.cursors import DictCursor
 from service_platform_conn_pool import poi_ori_pool
-from logger import get_logger
+from my_logger import get_logger
 from toolbox.Hash import get_token
 from collections import defaultdict
 

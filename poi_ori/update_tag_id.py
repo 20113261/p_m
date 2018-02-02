@@ -7,7 +7,7 @@
 # @Software: PyCharm
 from toolbox.Common import is_legal
 from service_platform_conn_pool import poi_ori_pool, base_data_pool
-from logger import get_logger
+from my_logger import get_logger
 from collections import defaultdict
 
 logger = get_logger("update_tag_id")

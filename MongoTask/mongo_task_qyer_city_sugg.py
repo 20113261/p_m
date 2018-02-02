@@ -6,7 +6,7 @@
 # @File    : mongo_task_qyer_city_sugg.py
 # @Software: PyCharm
 from data_source import MysqlSource
-from logger import get_logger
+from my_logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
 from service_platform_conn_pool import base_data_pool, source_info_pool, fetchall, verify_info_new_pool
 import itertools

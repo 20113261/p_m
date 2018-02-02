@@ -6,7 +6,7 @@
 # @File    : create_view.py
 # @Software: PyCharm
 import pymysql
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("create_view")
 

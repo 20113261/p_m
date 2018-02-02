@@ -9,7 +9,7 @@ import jinja2
 import datetime
 from pymysql.cursors import DictCursor
 from service_platform_conn_pool import report_pool
-from logger import get_logger
+from my_logger import get_logger
 from hotel_image.send_email import send_email
 
 logger = get_logger("send_error_info_email")

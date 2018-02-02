@@ -9,7 +9,7 @@
 
 import MySQLdb
 from MySQLdb.cursors import DictCursor
-from logger import logger
+from my_logger import logger
 
 # MySQL 连接信息
 MYSQL_HOST = 'localhost'

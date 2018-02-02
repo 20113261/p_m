@@ -5,7 +5,7 @@
 # @Site    : 
 # @File    : insert_move_img_task.py
 # @Software: PyCharm
-from logger import get_logger
+from my_logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
 from UpdateTable.ImgErrorMd5Search import used_file_name
 

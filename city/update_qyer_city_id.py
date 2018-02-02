@@ -10,7 +10,7 @@ import logging
 from pymysql.cursors import DictCursor
 from service_platform_conn_pool import source_info_pool
 from Common.MiojiSimilarCityDict import MiojiSimilarCityDict
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("update_qyer_city_id")
 logger.setLevel(logging.INFO)

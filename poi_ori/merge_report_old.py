@@ -3,7 +3,7 @@ import pandas
 import datetime
 from pymysql.cursors import DictCursor
 from service_platform_conn_pool import base_data_pool, poi_ori_pool
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("merge_report_old")
 table_name = None
