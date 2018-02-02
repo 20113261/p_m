@@ -12,8 +12,8 @@ import json
 import traceback
 import pymongo
 from datetime import datetime
-from apscheduler.schedulers.background import BackgroundScheduler
-backgroudscheduler = BackgroundScheduler()
+# from apscheduler.schedulers.background import BackgroundScheduler
+# backgroudscheduler = BackgroundScheduler()
 
 def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
@@ -45,8 +45,8 @@ def monitor_google_driver(collection_name,param, task_name):
 
     if int(not_finish_num) / int(total_count) <= 0:
         update_step_report('', param, 1, 0)
-        job = backgroudscheduler.get_job('step4')
-        job.remove()
+        # job = backgroudscheduler.get_job('step4')
+        # job.remove()
 
 
 def task_start():
@@ -67,8 +67,14 @@ def task_start():
         save_cityId = ['10001','10003','10005']
         collection_name, task_name = google_driver(save_cityId,param,config)
 
-        job = backgroudscheduler.add_job(monitor_google_driver,trigger='cron',minute='*/2',hour='*',id='step4',kwargs={'collection_name':collection_name,'param':param, 'task_name': task_name})
-        backgroudscheduler.start()
+        with open('task.json', 'w+') as f:
+            tasks = json.loads(f.read())
+            tasks[param] = [collection_name, task_name]
+            f.seek(0)
+            json.dump(tasks, f)
+
+        # job = backgroudscheduler.add_job(monitor_google_driver,trigger='cron',minute='*/2',hour='*',id='step4',kwargs={'collection_name':collection_name,'param':param, 'task_name': task_name})
+        # backgroudscheduler.start()
 
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
