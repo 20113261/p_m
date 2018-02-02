@@ -28,8 +28,10 @@ def monitor_google_driver():
     with open('tasks.json') as f:
         tasks = json.load(f)
 
-    collection_name = list(tasks.items())[0][0]
-
+    tasks_list = list(tasks.items())
+    if len(tasks_list)==0:
+        return
+    collection_name = tasks_list[0][0]
     client = pymongo.MongoClient(host='10.10.231.105')
     collection = client['MongoTask'][collection_name]
     total_count = collection.find({}).count()
