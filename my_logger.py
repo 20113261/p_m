@@ -25,12 +25,16 @@ class NamedRotatingFileHandler(RotatingFileHandler):
         )
 
 
-def get_logger(logger_name):
+def get_logger(logger_name,path=None):
     """
     初始化 logger get 可以获取到，为单例模式
     """
-    if not os.path.exists(log_path):
-        os.makedirs(log_path)
+    if not path:
+        if not os.path.exists(log_path):
+            os.makedirs(log_path)
+    else:
+        if not os.path.exists(path):
+            os.makedirs(path)
 
     # getLogger 为单例模式
     service_platform_logger = logging.getLogger(logger_name)

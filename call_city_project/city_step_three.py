@@ -18,6 +18,8 @@ import pymysql
 pymysql.install_as_MySQLdb()
 import configparser
 import pymongo
+from my_logger import get_logger
+
 import csv
 
 def get_zip_path(param):
@@ -54,6 +56,7 @@ def task_start():
     zip = zipfile.ZipFile(zip_path)
     file_name = zip.filename.split('.')[0].split('/')[-1]
     path = ''.join([base_path, str(param), '/'])
+    logger = get_logger('step3',path)
     save_path = []
     database_name = ''.join(['add_city_',param])
     temp_config = config
@@ -90,6 +93,7 @@ def task_start():
         return_result['error']['error_str'] = ''
         conn = pymysql.connect(**test_config)
         cursor = conn.cursor()
+        logger.debug("新增城市入库执行开始")
         city_insert_path = read_file(city_path,temp_config,param)
         if city_insert_path:
             select_sql = "select * from city where id=%s"
@@ -101,17 +105,24 @@ def task_start():
                     if cursor.fetchall():
                         judge_city_id = 0
                         break
+        logger.debug("[新增城市入库执行完毕]")
+        logger.debug("[新增城市图片名称更新开始]")
         if judge_city_id:
             city_map_path = revise_pictureName(picture_path,temp_config,param)
-
-  
+            logger.debug("[新增城市的图片名称更新完毕]")
+        logger.debug("城市更新后的图片名称更新到city表响应的new_product_pic字段-开始")
         city_pic_path = update_city_pic(picture_path,temp_config,param)
         if city_pic_path and judge_city_id:
             city_pic_path = '/'.join([param,city_pic_path])
             save_path.append(city_pic_path)
             temp_path = ''.join([base_path,city_pic_path])
             os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-              
+        logger.debug("城市更新后的图片名称更新到city表响应的new_product_pic字段-结束")
+        logger.debug("新增机场入库开始执行")
+        if judge_city_id:
+            new_airport_insert(temp_config, param)
+        logger.debug("新增机场入库执行完毕")
+        logger.debug("为城市提供共享机场开始执行")
         share_airport_path = update_share_airport(temp_config,param)
         if share_airport_path and judge_city_id:
             share_airport_path = list(share_airport_path)
@@ -122,17 +133,23 @@ def task_start():
             temp_path = ''.join([base_path,share_airport_path[1]])
             os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
             save_path.extend(share_airport_path)
+        logger.debug("城市共享机场执行完毕")
+        logger.debug("城市共享机场入库开始")
         if judge_city_id:
             shareAirport_insert(temp_config,param)
-            new_airport_insert(temp_config,param)
+        logger.debug("城市共享机场入库结束")
+        logger.debug("将新增城市更新到ota_location的各个源-开始")
         if hotels_path and judge_city_id:
             add_others_source_city(city_path,hotels_path,attr_path,ota_config,param)
+        logger.debug("将新增城市更新到ota_location的各个源-结束")
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
         update_step_report(csv_path, param, 1,0)
+        logger.debug("上传图片开始")
         if judge_city_id:
             os.system('java -jar /search/cuixiyi/ks3up-tool-2.0.6-20170801/ks3up-2.0.6.jar -c /search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf start')
+        logger.debug("上传图片结束")
     except Exception as e:
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1
