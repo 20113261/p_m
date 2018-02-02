@@ -92,7 +92,7 @@ def task_start():
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
-        logger.info('[step4][%s]======== failed =======' % [param])
+        logger.info('[step4][%s]======== failed ======= \n %s' % (param, traceback.format_exc(),))
         update_step_report('', param, -1,0)
 
 if __name__ == "__main__":
