@@ -511,17 +511,6 @@ def new_airport_insert(config,param):
         del line['utime']
         airport_table.insert(line)
 
-        #if line['airport_id'] != 'error':
-        #    _count += 1
-        #    data_line = airport_table.find_one(id=int(line['airport_id']))
-        #    new_data = copy.deepcopy(data_line)
-        #    new_data['city_id'] = int(line['city_id'])
-
-        #    new_data.pop('id')
-        #    new_data.pop('time2city_center')
-
-        #    airport_table.upsert(new_data, keys=['city_id', 'iata_code'])
-
     db.commit()
     return True
 
@@ -603,35 +592,6 @@ def get_sid(source,suggest):
     return sid
 
 
-def add_others_source_city(city_path,hotels_path,attr_path,ota_config,param):
-    select_country = "select name from country where mid=%s"
-    insert_sql = "insert ignore into ota_location(source,sid_md5,sid,suggest_type,suggest,city_id,country_id,s_city,s_region,s_country,s_extra,label_batch,others_info)"
-    conn = pymysql.connect(**check_field)
-    cursor = conn.cursor()
-    path = ''.join([base_path, str(param), '/'])
-    city_info = {}
-    source_city_info = defaultdict(dict)
-    sources = ['agoda','ctrip','elong','hotels','expedia','booking']
-    save_result = []
-    with open(path+'map_cityName.csv','r+') as map:
-        reader = csv.DictReader(map)
-        for row in reader:
-
-            city_info[row['name']] = row['city_id']
-    with open(hotels_path,'r+') as city:
-        reader = csv.DictReader(city)
-        for row in reader:
-            for source in sources:
-                source_city_info[source][row['name']] = row[source]
-    sources = ['qyer','daodao']
-    with open(attr_path,'r+') as attr:
-        reader = csv.DictReader(attr)
-        for row in reader:
-            print(row)
-            for source in sources:
-                source_city_info[source][row['name']] = row[source]
-
-
 
 def add_others_source_city(city_path,hotels_path,attr_path,ota_config,param):
     select_country = "select name from country where mid=%s"
@@ -643,23 +603,23 @@ def add_others_source_city(city_path,hotels_path,attr_path,ota_config,param):
     source_city_info = defaultdict(dict)
     sources = ['agoda','ctrip','elong','hotels','expedia','booking']
     save_result = []
-    with open(path+'map_cityName.csv','r+') as map:
+    with open(path+'city_id.csv','r+') as map:
         reader = csv.DictReader(map)
         for row in reader:
 
-            city_info[row['name']] = row['city_id']
+            city_info[row['city_id_number']] = row['city_id']
     with open(hotels_path,'r+') as city:
         reader = csv.DictReader(city)
         for row in reader:
             for source in sources:
-                source_city_info[source][row['name']] = row[source]
+                source_city_info[source][row['id']] = row[source]
     sources = ['qyer','daodao']
     with open(attr_path,'r+') as attr:
         reader = csv.DictReader(attr)
         for row in reader:
             print(row)
             for source in sources:
-                source_city_info[source][row['name']] = row[source]
+                source_city_info[source][row['id']] = row[source]
 
 
     with open(path+'新增城市.csv','r+') as city:
@@ -667,12 +627,12 @@ def add_others_source_city(city_path,hotels_path,attr_path,ota_config,param):
         for row in reader:
             for source in source_city_info.keys():
                 others_info = {}
-                city_id = city_info[row['name']]
+                city_id = city_info[row['id']]
                 country_id = row['country_id']
                 cursor.execute(select_country,(country_id,))
                 country_name = cursor.fetchone()[0]
                 city_name = row['name']
-                suggest = source_city_info[source][row['name']]
+                suggest = source_city_info[source][row['id']]
                 if not suggest:
                     continue
                 label_batch = str(datetime.now())[:10].replace('-','')
