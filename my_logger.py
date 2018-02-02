@@ -17,9 +17,13 @@ log_path = "/data/log/service_platform"
 
 
 class NamedRotatingFileHandler(RotatingFileHandler):
-    def __init__(self, filename):
+    def __init__(self, filename,path=None):
+        if path:
+            log_file = path
+        else:
+            log_file = log_path
         super(NamedRotatingFileHandler, self).__init__(
-            filename=os.path.join(log_path, "{0}.log".format(filename)),
+            filename=os.path.join(log_file, "{0}.log".format(filename)),
             maxBytes=100 * 1024 * 1024,
             backupCount=2
         )
@@ -46,7 +50,8 @@ def get_logger(logger_name,path=None):
     # handler 存在的判定
     if not service_platform_logger.handlers:
         # rotating file logger
-        file_handle = NamedRotatingFileHandler(logger_name)
+        file_handle = NamedRotatingFileHandler(logger_name,path)
+
         file_handle.setFormatter(formtter)
         service_platform_logger.addHandler(file_handle)
         steam_handler = logging.StreamHandler()
