@@ -67,7 +67,7 @@ def task_start():
         save_cityId = ['10001','10003','10005']
         collection_name, task_name = google_driver(save_cityId,param,config)
 
-        with open('tasks.json', 'w+') as f:
+        with open('tasks.json', 'r+') as f:
             tasks = json.load(f)
             tasks[param] = [collection_name, task_name]
             f.seek(0)

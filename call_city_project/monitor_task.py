@@ -39,18 +39,18 @@ def monitor_google_driver():
     cursor = conn.cursor()
     for param, (_, task_name) in tasks.items():
         select_sql = "select step4 from city_order where id=%s"
-
+        print(select_sql, param)
         cursor.execute(select_sql, (param))
         status_id = cursor.fetchone()[0]
-
+        print(status_id)
 
         if int(status_id) == 2:
             results = collection.find({'$and':[{'finished':0},{'useds_times':{'$lt':7}},{'task_name':task_name}]})
             not_finish_num = results.count()
             print(not_finish_num)
 
-        if int(not_finish_num) / int(total_count) <= 0:
-            update_step_report('', param, 1, 0)
+            if int(not_finish_num) / int(total_count) <= 0:
+                update_step_report('', param, 1, 0)
 
     print('running===============1')
 
