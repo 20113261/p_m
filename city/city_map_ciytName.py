@@ -20,34 +20,13 @@ config = {
     'charset': 'utf8'
 }
 
-
-def get_cityName(config,param):
-    path = ''.join([base_path, str(param), '/'])
-    conn = pymysql.connect(**config)
-    cursor = conn.cursor()
-    select_sql = "select id,name,name_en from city where id=%s"
-    with open(path+'city_id.csv','r+') as city:
-        reader = csv.reader(city)
-        next(reader)
-        with open(path+'map_cityName.csv','w+') as name:
-            writer = csv.writer(name)
-            writer.writerow(('city_id','name','name_en'))
-            for row in reader:
-                cursor.execute(select_sql,row)
-                result = cursor.fetchone()
-                print(result)
-                writer.writerow(result)
-        conn.close()
 def revise_pictureName(picute_path,config,param):
     path = ''.join([base_path, str(param), '/'])
-    get_cityName(config,param)
     city_map = {}
-    with open(path+'map_cityName.csv','r+') as city:
-        reader = csv.reader(city)
-        next(reader)
+    with open(path+'city_id.csv','r+') as city:
+        reader = csv.DictReader(city)
         for row in reader:
-            city_map[row[1]] = row[0]
-            city_map[row[2]] = row[0]
+            city_map[row['city_id_number']] = row['city_id']
     file_names = os.listdir(picute_path)
     if '.DS_Store' in file_names:
         file_names.remove('.DS_Store')
@@ -59,7 +38,7 @@ def revise_pictureName(picute_path,config,param):
             old_name = '/'.join([picute_path,file_name])
             new_name = '/'.join([picute_path,new_file_name])
             os.rename(old_name,new_name)
-    return 'map_cityName.csv'
+    return True
 
 if __name__ == "__main__":
     revise_pictureName('/Users/miojilx/Desktop/1206新增城市图')

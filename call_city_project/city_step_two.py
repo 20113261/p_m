@@ -59,6 +59,8 @@ def task_start():
             city_path = path
         elif '新增机场' in child_file:
             airport_path = path
+        elif os.path.isdir(path):
+            picture_path = path
     try:
         return_result = defaultdict(dict)
         return_result['data'] = {}
@@ -94,7 +96,7 @@ def task_start():
                 save_path.append(airport_must_path)
                 flag = 0
         if flag:
-            city_field_path = city_field_check(city_path, param)
+            city_field_path = city_field_check(city_path, param,picture_path)
             if city_field_path and flag:
                 temp_path = ''.join([base_path,city_field_path])
                 os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))

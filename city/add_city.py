@@ -154,7 +154,7 @@ def read_file(xlsx_path,config,param):
             # 去除无用行
             if not data:
                 continue
-
+            city_id_number = data['id']
             # 补充字段
             data['id'] = generate_id(data['country_id'])
             if 'country_id' not in data.keys():
@@ -171,12 +171,12 @@ def read_file(xlsx_path,config,param):
                 print(data)
             else:
                 data_table.upsert(data, keys=['id'])
-            all_city_id.append(data['id'])
+            all_city_id.append((city_id_number,data['id']))
     with open(path+'city_id.csv','w+') as city:
         writer = csv.writer(city)
-        writer.writerow(("city_id",))
+        writer.writerow(("city_id_number","city_id",))
         for city_id in all_city_id:
-            writer.writerow((city_id,))
+            writer.writerow(city_id)
 
     return 'city_id.csv'
 if __name__ == '__main__':

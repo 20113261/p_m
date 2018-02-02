@@ -7,7 +7,7 @@ from city.share_airport import update_share_airport
 from city.city_map_ciytName import revise_pictureName
 from city.update_city_pic import update_city_pic
 from city.db_insert import shareAirport_insert
-from city.config import config,base_path,OpCity_config,ota_config
+from city.config import config,base_path,OpCity_config,ota_config,test_config
 import os
 import sys
 import zipfile
@@ -18,6 +18,8 @@ import pymysql
 pymysql.install_as_MySQLdb()
 import configparser
 import pymongo
+import csv
+
 def get_zip_path(param):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
@@ -79,31 +81,39 @@ def task_start():
     conf.read('/search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf', encoding='utf-8')
     conf.set('city','srcPrefix',picture_path)
     conf.write(open('/search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf','w'))
-
+    judge_city_id = 1
     try:
+        path = ''.join([base_path, str(param), '/'])
         return_result = defaultdict(dict)
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
         return_result['error']['error_str'] = ''
-
+        conn = pymysql.connect(**test_config)
+        cursor = conn.cursor()
         city_insert_path = read_file(city_path,temp_config,param)
+        if city_insert_path:
+            select_sql = "select * from city where id=%s"
+            with open(path+'city_id.csv',r'+') as city:
+                reader = csv.DictReader(city)
+                for row in reader:
+                    city_id = row['city_id']
+                    cursor.execute(select_sql,(city_id,))
+                    if cursor.fetchall():
+                        judge_city_id = 0
+                        break
+        if judge_city_id:
+            city_map_path = revise_pictureName(picture_path,temp_config,param)
 
-        city_map_path = revise_pictureName(picture_path,temp_config,param)
-        if city_map_path:
-            city_map_path = '/'.join([param,city_map_path])
-            temp_path = ''.join([base_path,city_map_path])
-            os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-            save_path.append(city_map_path)
   
         city_pic_path = update_city_pic(picture_path,temp_config,param)
-        if city_pic_path:
+        if city_pic_path and judge_city_id:
             city_pic_path = '/'.join([param,city_pic_path])
             save_path.append(city_pic_path)
             temp_path = ''.join([base_path,city_pic_path])
             os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
               
         share_airport_path = update_share_airport(temp_config,param)
-        if share_airport_path:
+        if share_airport_path and judge_city_id:
             share_airport_path = list(share_airport_path)
             share_airport_path[0] = '/'.join([param,share_airport_path[0]])
             share_airport_path[1] = '/'.join([param,share_airport_path[1]]) 
@@ -112,16 +122,17 @@ def task_start():
             temp_path = ''.join([base_path,share_airport_path[1]])
             os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
             save_path.extend(share_airport_path)
-         
-        shareAirport_insert(temp_config,param)
-        new_airport_insert(temp_config,param)
-        if hotels_path:
+        if judge_city_id:
+            shareAirport_insert(temp_config,param)
+            new_airport_insert(temp_config,param)
+        if hotels_path and judge_city_id:
             add_others_source_city(city_path,hotels_path,attr_path,ota_config,param)
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
         update_step_report(csv_path, param, 1,0)
-        os.system('java -jar /search/cuixiyi/ks3up-tool-2.0.6-20170801/ks3up-2.0.6.jar -c /search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf start')
+        if judge_city_id:
+            os.system('java -jar /search/cuixiyi/ks3up-tool-2.0.6-20170801/ks3up-2.0.6.jar -c /search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf start')
     except Exception as e:
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1

@@ -20,6 +20,7 @@ from city.config import base_path
 from logger import get_logger
 from datetime import datetime
 import hashlib
+import os
 MAX_DISTANCE = 20000
 
 check_field = {
@@ -56,7 +57,7 @@ def city_must_write_field(city_path,param):
     check_not_empty_field = [
         'name','name_en','py','map_info','time_zone','summer_zone','summer_start',
          'summer_end','grade','summer_start_next_year','summer_end_next_year','country_id',
-         'trans_degree','new_product_city_pic'
+         'trans_degree',
          ]
     city_data = pandas.read_excel(city_path,)
     city_data.to_csv(path+'新增城市.csv', encoding='utf-8', index=False)
@@ -81,7 +82,7 @@ def city_must_write_field(city_path,param):
         return None
 
 #城市字段检查
-def city_field_check(city_path,param):
+def city_field_check(city_path,param,picture_path):
     path = ''.join([base_path, str(param), '/'])
 
     trans_degree = [-1, 0, 1]
@@ -214,7 +215,7 @@ def city_field_check(city_path,param):
                 if value and int(value) not in [0,1]:
                     not_standard_field[key].append((row['id'],row['name']))
 
-            #检查 new_product_city_pic
+
             save_value = []
             new_product_city_pic= row['new_product_city_pic']
             if 'default.jpg' in new_product_city_pic:
@@ -233,6 +234,18 @@ def city_field_check(city_path,param):
                 if total != total_value:
                     not_standard_field['new_product_city_pic'].append((row['id'],row['name']))
             conn.close()
+    # 检查图片名
+    file_list = os.listdir(picture_path)
+    if '.DS_Store' in file_list:
+        file_list.remove('.DS_Store')
+    for child in file_list:
+        try:
+            pic_pattern = re.search(r'([0-9]+)_([0-9]+)', child)
+            city_id = pic_pattern.group(1)
+            city_id_number = pic_pattern.group(2)
+        except:
+            not_standard_field['product'].append((child,))
+
     with open(path+'check_city.csv','w+') as city:
         writer = csv.writer(city)
         writer.writerow(('字段名称','不合格城市'))
