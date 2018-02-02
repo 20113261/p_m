@@ -38,7 +38,7 @@ def shareAirport_insert(config,param):
                 conn.commit()
                 save_result = []
         else:
-            cursor.execute(update_sql, save_result)
+            cursor.executemany(update_sql, save_result)
             conn.commit()
             save_result = []
     # db = dataset.connect('mysql+pymysql://{user}:{password}@{host}:3306/{db}?charset=utf8'.format(**config))
