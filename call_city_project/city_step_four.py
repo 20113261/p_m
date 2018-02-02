@@ -40,13 +40,14 @@ def monitor_google_driver(collection_name,param):
     cursor.execute(select_sql)
     status_id = cursor.fetchone()[0]
     if int(status_id) == 2:
-        results = collection.find({'finished': 0})
+        results = collection.find({'$and':[{'finished':0},{'useds_times':{'$lt':7}},{'task_name':''}]})
         not_finish_num = results.count()
 
-    if not_finish_num / total_count <= 0:
+    if int(not_finish_num) / int(total_count) <= 0:
+        update_step_report('', param, 1, 0)
         job = backgroudscheduler.get_job('step4')
         job.remove()
-        update_step_report('', param, 1, 0)
+
 
 def task_start():
     try:

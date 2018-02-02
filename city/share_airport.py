@@ -208,11 +208,15 @@ def write_city_list(result,param,config):
 
 
 def update_share_airport(config,param):
+
+    path = ''.join([base_path, str(param), '/'])
+
+
     logger = get_logger('city')
-    with open(base_path+'city_list.csv', 'w+') as city:
+    with open(path+'city_list.csv', 'w+') as city:
         writer = csv.writer(city)
         writer.writerow(('city_id', 'city_name'))
-    with open(base_path+'share_airport.csv', 'w+') as city:
+    with open(path+'share_airport.csv', 'w+') as city:
         writer = csv.writer(city)
         writer.writerow(('city_id', 'country_id', 'status_online', 'city_mapInfo', 'airport_id', 'airport_mapInfo',
                          'name', 'name_en', 'belong_city_id'))

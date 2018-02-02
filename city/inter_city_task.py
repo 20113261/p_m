@@ -75,11 +75,13 @@ def city_pair(city_ids,config):
 
                 google_url = 'http://maps.google.cn/maps/api/directions/json?origin={}&destination={}&mode=driving&\
                 region=es&mode=driving&type=interCitya1={}&a2={}'.format(
+
                     src_map_info,
                     dst_map_info,
                     src_cid,
                     dst_cid
                 )
+
 
                 logger.info("[new task][url: {}]".format(google_url))
                 pair.add((
@@ -93,21 +95,30 @@ def google_driver(city_id,param,config,):
     res = city_pair(city_id,config)
     # todo 需要修改 task_name (最好按照工单 id 生成)，添加特殊标记，例如 inter city，别和城市内重复
     time_tag = str(datetime.now())[:10].replace('-','')
-    task_name = 'inter_google_driver_{0}_{1}'.format(param,time_tag)
+
+    task_name = 'google_driver_{0}_{1}'.format(param,time_tag)
+
+
     with InsertTask(worker='proj.total_tasks.google_driver_task', queue='file_downloader', routine_key='file_downloader',
                     task_name=task_name, source='Google', _type='GoogleDriveTask',
                     priority=11) as it:
         for s_cid, d_cid, google_url in res:
             it.insert_task({
                 'url': google_url,
-                'task_id':'inner_{0}'.format(param)
+
+                'task_id': 'inner_{0}'.format(param),
+                's_cid': s_cid,
+                'd_cid': d_cid
+
             })
             pass
-        return it.generate_collection_name()
+        return it.generate_collection_name(),task_name
+
 
 def city_inter_google_driver(urls,param):
     time_tag = str(datetime.now())[:10].replace('-', '')
     task_name = 'google_driver_task_{0}_{1}'.format(param, time_tag)
+
     with InsertTask(worker='proj.total_tasks.google_driver_task', queue='file_downloader', routine_key='file_downloader',
                     task_name=task_name, source='Google', _type='GoogleDriveTask',
                     priority=11) as it:

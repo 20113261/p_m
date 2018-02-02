@@ -39,6 +39,14 @@ ota_config = {
         'db': 'source_info',
         'charset': 'utf8'
 }
+test_config = {
+        'host': '10.10.69.170',
+        'user': 'reader',
+        'password': 'miaoji1109',
+        'db': 'base_data',
+        'charset': 'utf8'
+}
+
 #zip 文件所在路径
 
 zip_path = '/Users/miojilx/Desktop/new_city.zip'

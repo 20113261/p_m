@@ -5,7 +5,11 @@
 # @Site    : 
 # @File    : insert_qyer_city.py
 # @Software: PyCharm
+
+import urllib
+
 import urllib.parse
+
 from data_source import MysqlSource
 from logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
@@ -48,7 +52,9 @@ def daodao_city(city_id,param):
                 'task_id': 'inner_{0}'.format(param)
             }
 
-            #it.insert_task(args)
+
+            it.insert_task(args)
+
         return it.generate_collection_name()
 
 if __name__ == '__main__':
