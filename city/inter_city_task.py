@@ -63,7 +63,10 @@ def city_pair(city_ids,config):
 
                 src_map_info = map_dict.get(src_cid)
                 dst_map_info = map_dict.get(dst_cid)
-
+                src_map_info_list = src_map_info.split(',')
+                src_map_info = ','.join([src_map_info_list[1],src_map_info_list[0]])
+                dst_map_info_list = dst_map_info.split(',')
+                dst_map_info = ','.join([dst_map_info_list[1],dst_map_info_list[0]])
                 if not is_map_info_legal(src_map_info) or not is_map_info_legal(dst_map_info):
                     logger.warning("[error map info][src_cid: {}][dst_cid: {}][src_m_info: {}][dst_m_info: {}]".format(
                         src_cid,
