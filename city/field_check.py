@@ -216,23 +216,23 @@ def city_field_check(city_path,param,picture_path):
                     not_standard_field[key].append((row['id'],row['name']))
 
 
-            save_value = []
-            new_product_city_pic= row['new_product_city_pic']
-            if 'default.jpg' in new_product_city_pic:
-                not_standard_field['new_product_city_pic'].append((row['id'],row['name']))
-            else:
-                pic_list = new_product_city_pic.split('|')
-                for pic in pic_list:
-                    try:
-                        pic_pattern = re.search(r'([0-9]+)_([0-9]+)',pic)
-                        save_value.append(int(pic_pattern.group(2)))
-                    except:
-                        not_standard_field['new_product_city_pic'].append((row['id'],row['name']))
-                        break
-                total_value = reduce(lambda x,y:x+y,range(min(save_value),max(save_value)+1))
-                total = reduce(lambda x,y:x+y,save_value)
-                if total != total_value:
-                    not_standard_field['new_product_city_pic'].append((row['id'],row['name']))
+            # save_value = []
+            # new_product_city_pic= row['new_product_city_pic']
+            # if 'default.jpg' in new_product_city_pic:
+            #     not_standard_field['new_product_city_pic'].append((row['id'],row['name']))
+            # else:
+            #     pic_list = new_product_city_pic.split('|')
+            #     for pic in pic_list:
+            #         try:
+            #             pic_pattern = re.search(r'([0-9]+)_([0-9]+)',pic)
+            #             save_value.append(int(pic_pattern.group(2)))
+            #         except:
+            #             not_standard_field['new_product_city_pic'].append((row['id'],row['name']))
+            #             break
+            #     total_value = reduce(lambda x,y:x+y,range(min(save_value),max(save_value)+1))
+            #     total = reduce(lambda x,y:x+y,save_value)
+            #     if total != total_value:
+            #         not_standard_field['new_product_city_pic'].append((row['id'],row['name']))
             conn.close()
     # 检查图片名
     file_list = os.listdir(picture_path)
