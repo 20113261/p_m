@@ -74,7 +74,7 @@ def task_start():
         collection_name, task_name = google_driver(save_cityId,param,config)
         logger.info('[step4][%s] 任务已发完[%s][%s]' % (param, collection_name, task_name,))
 
-        with open('tasks.json', 'r+') as f:
+        with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
             tasks = json.load(f)
             tasks[param] = [collection_name, task_name]
             f.seek(0)
