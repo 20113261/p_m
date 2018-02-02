@@ -31,7 +31,8 @@ def shareAirport_insert(config,param):
             cursor.execute(select_sql,(row['airport_id']))
             result = cursor.fetchone()
             result = list(result).append(row['city_id'])
-            save_result.append(super(result))
+            print("result:",result)
+            save_result.append(tuple(result))
             if len(save_result) >= 200:
                 cursor.execute(update_sql,save_result)
                 conn.commit()
