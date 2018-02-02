@@ -73,8 +73,7 @@ def city_pair(city_ids,config):
                     ))
                     continue
 
-                google_url = 'http://maps.google.cn/maps/api/directions/json?origin={}&destination={}&mode=driving&\
-                region=es&mode=driving&type=interCitya1={}&a2={}'.format(
+                google_url = 'http://maps.google.cn/maps/api/directions/json?origin={}&destination={}&mode=driving&region=es&mode=driving&type=interCitya1={}&a2={}'.format(
 
                     src_map_info,
                     dst_map_info,
