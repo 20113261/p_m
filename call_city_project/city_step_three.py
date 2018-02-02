@@ -157,6 +157,7 @@ def task_start():
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         update_step_report(csv_path, param, -1,0)
+        logger.debug('[result][{0}]'.format(return_result))
 
 
 if __name__ == "__main__":
