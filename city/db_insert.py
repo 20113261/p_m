@@ -29,8 +29,8 @@ def shareAirport_insert(config,param):
         reader = csv.DictReader(airport)
         for row in reader:
             cursor.execute(select_sql,(row['airport_id']))
-            result = cursor.fetchone()
-            result = list(result).append(row['city_id'])
+            result = list(cursor.fetchone())
+            result.append(row['city_id'])
             print("result:",result)
             save_result.append(result)
             if len(save_result) >= 200:
