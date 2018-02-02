@@ -7,7 +7,7 @@
 # @Software: PyCharm
 import pymongo
 from pymysql.cursors import DictCursor
-from logger import get_logger
+from my_logger import get_logger
 from service_platform_conn_pool import private_data_test_pool, source_info_pool
 
 logger = get_logger("nearby_city_report")

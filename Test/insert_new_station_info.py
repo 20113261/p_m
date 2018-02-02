@@ -10,7 +10,7 @@ from warnings import filterwarnings
 import pymongo
 import pymysql
 from service_platform_conn_pool import service_platform_pool
-from logger import get_logger
+from my_logger import get_logger
 
 filterwarnings('ignore', category=pymysql.err.Warning)
 logger = get_logger("insert_new_station_info")

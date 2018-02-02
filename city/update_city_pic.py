@@ -8,7 +8,7 @@
 import os
 import dataset
 from collections import defaultdict
-from logger import get_logger
+from my_logger import get_logger
 import traceback
 import json
 import csv

@@ -11,7 +11,7 @@ from sqlalchemy.engine import create_engine
 from service_platform_conn_pool import fetchall, service_platform_pool, poi_ori_pool
 from toolbox.Common import is_legal
 from collections import defaultdict
-from logger import get_logger
+from my_logger import get_logger
 from data_source import MysqlSource
 
 logger = get_logger("crawl_diff_check")

@@ -7,7 +7,7 @@
 # @Software: PyCharm
 from data_source import MysqlSource
 from service_platform_conn_pool import poi_ori_pool
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("select_and_delete_table")
 

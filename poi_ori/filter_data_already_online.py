@@ -6,7 +6,7 @@
 # @File    : filter_data_already_online.py
 # @Software: PyCharm
 from service_platform_conn_pool import poi_ori_pool, base_data_pool
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("filter_data_already_online")
 

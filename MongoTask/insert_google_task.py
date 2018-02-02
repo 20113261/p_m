@@ -22,7 +22,7 @@
 
 from MongoTask.MongoTaskInsert import InsertTask
 from service_platform_conn_pool import fetchall, base_data_pool
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("generate_google_task")
 

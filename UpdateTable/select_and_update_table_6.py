@@ -7,7 +7,7 @@
 # @Software: PyCharm
 from data_source import MysqlSource
 from service_platform_conn_pool import poi_ori_pool, poi_face_detect_pool, service_platform_pool, base_data_final_pool, source_info_pool
-from logger import get_logger
+from my_logger import get_logger
 from toolbox.Hash import encode
 
 logger = get_logger("select_and_update_table")

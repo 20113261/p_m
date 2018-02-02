@@ -9,7 +9,7 @@ import re
 import pandas
 import dataset
 from service_platform_conn_pool import base_data_pool, source_info_str
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("city_mapping")
 

@@ -7,7 +7,7 @@ from city.config import base_path
 from collections import defaultdict
 import json
 import traceback
-from logger import get_logger
+from my_logger import get_logger
 # SQL_DICT = {
 #     'host': '10.10.230.206',
 #     'user': 'mioji_admin',

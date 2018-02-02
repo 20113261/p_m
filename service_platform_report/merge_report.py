@@ -10,7 +10,7 @@ import json
 import dataset
 from service_platform_conn_pool import base_data_pool
 from data_source import MysqlSource
-from logger import get_logger
+from my_logger import get_logger
 from collections import defaultdict
 from toolbox.Common import is_legal, has_any
 

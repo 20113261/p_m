@@ -16,7 +16,7 @@ from collections import defaultdict
 from data_source import MysqlSource
 from service_platform_conn_pool import service_platform_pool, base_data_final_pool, base_data_pool, hotel_api_pool, \
     hotel_api_config
-from logger import get_logger
+from my_logger import get_logger
 from itertools import groupby
 
 logger = get_logger("crawl_data_check")

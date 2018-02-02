@@ -6,7 +6,7 @@
 # @File    : detail_list_crawl_diff.py
 # @Software: PyCharm
 import pymongo
-from logger import get_logger
+from my_logger import get_logger
 from service_platform_conn_pool import service_platform_pool, fetchall
 
 logger = get_logger('check_list_crawl_diff')

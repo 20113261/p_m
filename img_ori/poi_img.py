@@ -18,7 +18,7 @@ from service_platform_conn_pool import base_data_final_pool, \
     poi_face_detect_pool, \
     spider_data_base_data_pool, \
     poi_ori_new_pool
-from logger import get_logger, func_time_logger
+from my_logger import get_logger, func_time_logger
 from data_source import MysqlSource
 from StandardException import PoiTypeError
 from collections import defaultdict

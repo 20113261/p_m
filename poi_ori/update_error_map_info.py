@@ -8,7 +8,7 @@
 from pymysql.cursors import DictCursor
 from service_platform_conn_pool import poi_ori_pool, spider_data_base_data_pool
 from Common.Utils import retry
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("update error map info")
 

@@ -8,7 +8,7 @@
 import pymongo
 import pandas
 from collections import defaultdict
-from logger import get_logger
+from my_logger import get_logger
 from service_platform_conn_pool import fetchall, source_info_pool
 
 TaskClient = pymongo.MongoClient(host='10.10.231.105')

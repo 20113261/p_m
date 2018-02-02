@@ -17,7 +17,7 @@ import re
 import pypinyin
 import json
 from city.config import base_path
-from logger import get_logger
+from my_logger import get_logger
 from datetime import datetime
 import hashlib
 import os

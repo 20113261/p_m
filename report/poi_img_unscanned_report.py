@@ -12,7 +12,7 @@ set 2: PoiPicInformation poi_id no img
 """
 from data_source import MysqlSource
 from service_platform_conn_pool import poi_face_detect_pool
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("poi_img_not_scanned_report")
 

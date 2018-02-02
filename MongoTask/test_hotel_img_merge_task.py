@@ -6,7 +6,7 @@
 # @File    : mongo_task.py
 # @Software: PyCharm
 from data_source import MysqlSource
-from logger import get_logger
+from my_logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask
 
 logger = get_logger("insert_mongo_task")

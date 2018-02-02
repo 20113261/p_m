@@ -11,7 +11,7 @@ import csv
 import math
 import pymysql
 import traceback
-from logger import get_logger
+from my_logger import get_logger
 
 config = {
     'host': '10.10.228.253',

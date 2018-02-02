@@ -7,7 +7,7 @@
 # @Software: PyCharm
 from service_platform_conn_pool import poi_ori_pool
 from toolbox.Hash import encode
-from logger import func_time_logger, get_logger
+from my_logger import func_time_logger, get_logger
 
 logger = get_logger("insert unknown keywords")
 

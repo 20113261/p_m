@@ -11,7 +11,7 @@ import numpy as np
 import pymysql
 from service_platform_conn_pool import fetchall, new_station_pool
 from toolbox.Common import is_legal
-from logger import get_logger
+from my_logger import get_logger
 
 filterwarnings('ignore', category=pymysql.err.Warning)
 logger = get_logger("shared_station")

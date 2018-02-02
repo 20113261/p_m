@@ -7,7 +7,7 @@
 # @Software: PyCharm
 from data_source import MysqlSource
 from service_platform_conn_pool import base_data_config, service_platform_config
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("hotel_sid_coverage_report")
 

@@ -7,7 +7,7 @@
 # @Software: PyCharm
 import time
 import os
-from logger import get_logger
+from my_logger import get_logger
 from service_platform_conn_pool import base_data_pool
 from poi_ori.already_merged_city import init_already_merged_city
 

@@ -34,7 +34,7 @@ from serviceplatform_data.get_nearby_hotel_city import get_nearby_city
 from serviceplatform_data.update_hotel_validation import UpdateHotelValidation
 from serviceplatform_data.insert_poi_detect_task_info import get_task_info
 from serviceplatform_data.delete_already_scanned_file import delete_already_scanned_file
-from logger import get_logger
+from my_logger import get_logger
 from service_platform_report.merge_report import poi_merged_report
 from service_platform_report.task_progress_report_mongo_split_task import task_progress_report_split_task_main
 

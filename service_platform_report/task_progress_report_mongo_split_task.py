@@ -12,7 +12,7 @@ import dataset
 import json
 import re
 from collections import defaultdict
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("task_progress_mongo_split_task")
 

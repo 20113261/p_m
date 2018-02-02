@@ -12,7 +12,7 @@ import hashlib
 import toolbox.Date
 from data_source import MysqlSource
 from patched_mongo import mongo_patched_insert
-from logger import get_logger
+from my_logger import get_logger
 
 toolbox.Date.DATE_FORMAT = "%Y%m%d"
 

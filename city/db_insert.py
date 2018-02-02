@@ -10,7 +10,7 @@ import dataset
 import copy
 from city.config import base_path
 import json
-from logger import get_logger
+from my_logger import get_logger
 logger = get_logger('city')
 import traceback
 from collections import defaultdict

@@ -9,7 +9,7 @@ import json
 import re
 from data_source import MysqlSource
 from collections import defaultdict
-from logger import get_logger
+from my_logger import get_logger
 
 logger = get_logger("url_id_merge_report_logger")
 
