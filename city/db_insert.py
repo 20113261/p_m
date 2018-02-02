@@ -20,7 +20,7 @@ from collections import defaultdict
 def shareAirport_insert(config,param):
     path = ''.join([base_path, str(param), '/'])
     select_sql = "select iata_code,name,name_en,belong_city_id,map_info,status,inner_order from airport where id=%s"
-    update_sql = "insert into airport(idta_code,name,name_en,belong_city_id,map_info,status,inner_order,city_id) values(%s,%s,%s,%s,%s,%s,%s,%s)"
+    update_sql = "insert ignore into airport(iata_code,name,name_en,belong_city_id,map_info,status,inner_order,city_id) values(%s,%s,%s,%s,%s,%s,%s,%s)"
     conn = pymysql.connect(**config)
     cursor = conn.cursor()
     _count = 0
@@ -32,7 +32,7 @@ def shareAirport_insert(config,param):
             result = list(cursor.fetchone())
             result.append(row['city_id'])
             print("result:",result)
-            save_result.append(result)
+            save_result.append(tuple(result))
             if len(save_result) >= 200:
                 cursor.execute(update_sql,save_result)
                 conn.commit()
