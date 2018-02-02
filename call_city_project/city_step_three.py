@@ -93,7 +93,7 @@ def task_start():
         city_insert_path = read_file(city_path,temp_config,param)
         if city_insert_path:
             select_sql = "select * from city where id=%s"
-            with open(path+'city_id.csv',r'+') as city:
+            with open(path+'city_id.csv','r+') as city:
                 reader = csv.DictReader(city)
                 for row in reader:
                     city_id = row['city_id']
