@@ -68,7 +68,7 @@ def task_start():
         collection_name, task_name = google_driver(save_cityId,param,config)
 
         with open('task.json', 'w+') as f:
-            tasks = json.loads(f.read())
+            tasks = json.load(f)
             tasks[param] = [collection_name, task_name]
             f.seek(0)
             json.dump(tasks, f)
