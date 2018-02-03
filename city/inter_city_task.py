@@ -104,7 +104,7 @@ def google_driver(city_id,param,config,):
     task_name = 'google_driver_{0}_{1}'.format(param,time_tag)
 
 
-    with InsertTask(worker='proj.total_tasks.google_driver_task', queue='file_downloader', routine_key='file_downloader',
+    with InsertTask(worker='proj.total_tasks.google_drive_task', queue='file_downloader', routine_key='file_downloader',
                     task_name=task_name, source='Google', _type='GoogleDriveTask',
                     priority=11) as it:
         for s_cid, d_cid, google_url in res:
