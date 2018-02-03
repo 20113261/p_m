@@ -36,6 +36,7 @@ def monitor_google_driver():
     client = pymongo.MongoClient(host='10.10.231.105')
     collection = client['MongoTask'][collection_name]
     total_count = collection.find({}).count()
+    print('01==========', total_count)
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
     for param, (_, task_name) in tasks.items():
