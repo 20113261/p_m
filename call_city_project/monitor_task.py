@@ -31,7 +31,7 @@ def monitor_google_driver():
     tasks_list = list(tasks.items())
     if len(tasks_list)==0:
         return
-    collection_name = tasks_list[0][0]
+    collection_name = tasks_list[0][1][0]
     print('0==========', collection_name)
     client = pymongo.MongoClient(host='10.10.231.105')
     collection = client['MongoTask'][collection_name]
