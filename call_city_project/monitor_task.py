@@ -50,7 +50,14 @@ def monitor_google_driver():
         print(status_id)
 
         if int(status_id) == 2:
-            results = collection.find({'$and':[{'finished':0},{'useds_times':{'$lt':7}},{'task_name':task_name}]})
+            results = collection.find(
+                {'$and':[
+                    {'finished':1},
+                    {'useds_times':{'$lt':7}},
+                    {'task_name':task_name}
+                ]
+                },
+                hint=[('task_name', 1), ('finished', 1), ('used_times', 1)])
             not_finish_num = results.count()
             print(not_finish_num)
 
