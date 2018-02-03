@@ -32,22 +32,23 @@ def monitor_google_driver():
     if len(tasks_list)==0:
         return
     collection_name = tasks_list[0][0]
-    print(collection_name)
+    print('0==========', collection_name)
     client = pymongo.MongoClient(host='10.10.231.105')
     collection = client['MongoTask'][collection_name]
     total_count = collection.find({}).count()
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
     for param, (_, task_name) in tasks.items():
+        print(param, (_, task_name))
         if total_count == 0:
             update_step_report('', param, -1, 0)
             return
 
         select_sql = "select step4 from city_order where id=%s"
-        print(select_sql, param)
+        print('1==========', select_sql, param)
         cursor.execute(select_sql, (param))
         status_id = cursor.fetchone()[0]
-        print(status_id)
+        print('2==========', status_id)
 
         if int(status_id) == 2:
             results = collection.find(
@@ -59,7 +60,7 @@ def monitor_google_driver():
                 },
                 hint=[('task_name', 1), ('finished', 1), ('used_times', 1)])
             not_finish_num = results.count()
-            print(not_finish_num)
+            print('3==========', not_finish_num)
 
             if int(not_finish_num) / int(total_count) <= 0:
                 update_step_report('', param, 1, 0)
