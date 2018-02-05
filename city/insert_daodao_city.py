@@ -55,7 +55,7 @@ def daodao_city(city_id,param):
 
             it.insert_task(args)
 
-        return it.generate_collection_name()
+        return it.generate_collection_name(),task_name
 
 if __name__ == '__main__':
     pass

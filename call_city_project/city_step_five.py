@@ -89,19 +89,22 @@ def task_start():
             for row in reader:
                 save_cityId.append(row['city_id'])
 
-        daodao_collection_name = daodao_city(save_cityId,param)
-        qyer_collection_name = qyer_city(save_cityId,param)
+        daodao_collection_name,daodao_task_name = daodao_city(save_cityId,param)
+        qyer_collection_name,qyer_task_name = qyer_city(save_cityId,param)
         hotel_collections_name = hotel_city(save_cityId,param,sources)
 
-        kwargs = {
-            'daodao_collection_name':daodao_collection_name,
-            'qyer_collection_name':qyer_collection_name,
-            'hotel_collections_name':hotel_collections_name,
-            'param':param
-        }
-        job = backgroudscheduler.add_job(monitor_daodao_qyer_hotel, trigger='cron', minute='*/2', hour='*', id='step5',
-                                         kwargs=kwargs)
-        backgroudscheduler.start()
+        save_collection_names = []
+        with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
+            tasks = json.load(f)
+
+            for collection_name in hotel_collections_name:
+                save_collection_names.append(collection_name)
+            save_collection_names.append((daodao_collection_name,daodao_task_name))
+            save_collection_names.append((qyer_collection_name,qyer_task_name))
+            tasks[param] = save_collection_names
+            f.seek(0)
+            json.dump(tasks, f)
+
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
 

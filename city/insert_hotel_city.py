@@ -69,7 +69,7 @@ def hotel_city(city_id,param,sources):
                 }
 
                 it.insert_task(args)
-            collections_name.append(it.generate_collection_name())
+            collections_name.append((it.generate_collection_name(),task_name))
     return collections_name
 if __name__ == '__main__':
     # source_list = ['booking', 'agoda', 'ctrip', 'hotels', 'expedia', 'elong']

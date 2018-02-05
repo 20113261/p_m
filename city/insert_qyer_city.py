@@ -40,6 +40,6 @@ def qyer_city(city_id,param):
                 'task_id': 'inner_{0}'.format(param)
             }
             it.insert_task(args)
-        return it.generate_collection_name()
+        return it.generate_collection_name(),task_name
 if __name__ == '__main__':
     pass
