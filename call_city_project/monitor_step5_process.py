@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from call_city_project.monitor_task import scheduler
+from call_city_project.monitor_step4_process import scheduler
 from city.config import OpCity_config
 import pymysql
 pymysql.install_as_MySQLdb()
