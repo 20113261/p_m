@@ -10,6 +10,7 @@ import pymysql
 pymysql.install_as_MySQLdb()
 import csv
 import pymongo
+from city.config import config
 from city.insert_daodao_city import daodao_city
 from city.insert_hotel_city import hotel_city
 from city.insert_qyer_city import qyer_city
@@ -83,15 +84,18 @@ def task_start():
         return_result['error']['error_id'] = 0
         return_result['error']['error_str'] = ''
         save_cityId = []
+        database_name = ''.join(['add_city_', param])
+        temp_config = config
+        temp_config['db'] = database_name
         path = ''.join([base_path, param, '/', 'city_id.csv'])
         with open(path, 'r+') as city:
             reader = csv.DictReader(city)
             for row in reader:
                 save_cityId.append(row['city_id'])
 
-        daodao_collection_name,daodao_task_name = daodao_city(save_cityId,param)
-        qyer_collection_name,qyer_task_name = qyer_city(save_cityId,param)
-        hotel_collections_name = hotel_city(save_cityId,param,sources)
+        daodao_collection_name,daodao_task_name = daodao_city(save_cityId,param,temp_config)
+        qyer_collection_name,qyer_task_name = qyer_city(save_cityId,param,temp_config)
+        hotel_collections_name = hotel_city(save_cityId,param,sources,temp_config)
 
         save_collection_names = []
         with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
