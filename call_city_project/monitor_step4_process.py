@@ -23,13 +23,13 @@ def update_step_report(csv_path,param,step_front,step_after):
     finally:
         conn.close()
 
-def monitor_google_driver():
+def monitor_task():
     print('running===============0')
     with open('tasks.json') as f:
         tasks = json.load(f)
 
     tasks_list = list(tasks.items())
-    if len(tasks_list)==0:
+    if len(tasks_list) == 0:
         return
     collection_name = tasks_list[0][1][0]
     print('0==========', collection_name)
@@ -65,12 +65,14 @@ def monitor_google_driver():
 
             if int(not_finish_num) / int(total_count) <= 0:
                 update_step_report('', param, 1, 0)
+                job = scheduler.get_job('step4')
+                job.remove()
 
     print('running===============1')
 
 def local_jobs():
     # scheduler.add_job(monitor_google_driver,trigger='cron',minute='*/2',hour='*',id='step4',)
-    scheduler.add_job(monitor_google_driver, 'cron', second='*/40', id='step4')
+    scheduler.add_job(monitor_task, 'cron', second='*/40', id='step4')
 
 if __name__ == '__main__':
     local_jobs()

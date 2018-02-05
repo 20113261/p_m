@@ -30,49 +30,49 @@ def update_step_report(csv_path,param,step_front,step_after):
         conn.rollback()
     finally:
         conn.close()
-
-def monitor_daodao(collection):
-    result = collection.find({'finished': 0})
-    not_finish_num = result.count()
-    total_num = collection.find({})
-    return not_finish_num / total_num
-def monitor_qyer(collection):
-    result = collection.find({'finished': 0})
-    not_finish_num = result.count()
-    total_num = collection.find({})
-    return not_finish_num / total_num
-def monitor_hotel(collections):
-    save_result = []
-    for collection in collections:
-        result = collection.find({'finished': 0})
-        not_finish_num = result.count()
-        total_num = collection.find({})
-        save_result.append(not_finish_num / total_num)
-    return max(save_result)
-
-def monitor_daodao_qyer_hotel(daodao_collection_name,qyer_collection_name,hotel_collections_name,param):
-    client = pymongo.MongoClient(host='10.10.231.105')
-    daodao_collection = client['MongoTask'][daodao_collection_name]
-    qyer_collection = client['MongoTask'][qyer_collection_name]
-    hotel_collections = []
-    for collection in hotel_collections_name:
-        hotel_collections.append(client['MongoTask'][collection])
-
-    conn = pymysql.connect(**OpCity_config)
-    cursor = conn.cursor()
-    select_sql = "select step5 from city_order where id=%s"
-    cursor.execute(select_sql)
-    status_id = cursor.fetchone()[0]
-    if int(status_id) == 2:
-
-        daodao_not_finish = monitor_daodao(daodao_collection)
-        qyer_not_finish = monitor_qyer(qyer_collection)
-        hotel_not_finish = monitor_hotel(hotel_collections)
-
-    if not daodao_not_finish and not qyer_not_finish and not hotel_not_finish:
-        job = backgroudscheduler.get_job('step5')
-        job.remove()
-        update_step_report('', param, 1, 0)
+#
+# def monitor_daodao(collection):
+#     result = collection.find({'finished': 0})
+#     not_finish_num = result.count()
+#     total_num = collection.find({})
+#     return not_finish_num / total_num
+# def monitor_qyer(collection):
+#     result = collection.find({'finished': 0})
+#     not_finish_num = result.count()
+#     total_num = collection.find({})
+#     return not_finish_num / total_num
+# def monitor_hotel(collections):
+#     save_result = []
+#     for collection in collections:
+#         result = collection.find({'finished': 0})
+#         not_finish_num = result.count()
+#         total_num = collection.find({})
+#         save_result.append(not_finish_num / total_num)
+#     return max(save_result)
+#
+# def monitor_daodao_qyer_hotel(daodao_collection_name,qyer_collection_name,hotel_collections_name,param):
+#     client = pymongo.MongoClient(host='10.10.231.105')
+#     daodao_collection = client['MongoTask'][daodao_collection_name]
+#     qyer_collection = client['MongoTask'][qyer_collection_name]
+#     hotel_collections = []
+#     for collection in hotel_collections_name:
+#         hotel_collections.append(client['MongoTask'][collection])
+#
+#     conn = pymysql.connect(**OpCity_config)
+#     cursor = conn.cursor()
+#     select_sql = "select step5 from city_order where id=%s"
+#     cursor.execute(select_sql)
+#     status_id = cursor.fetchone()[0]
+#     if int(status_id) == 2:
+#
+#         daodao_not_finish = monitor_daodao(daodao_collection)
+#         qyer_not_finish = monitor_qyer(qyer_collection)
+#         hotel_not_finish = monitor_hotel(hotel_collections)
+#
+#     if not daodao_not_finish and not qyer_not_finish and not hotel_not_finish:
+#         job = backgroudscheduler.get_job('step5')
+#         job.remove()
+#         update_step_report('', param, 1, 0)
 
 
 def task_start():
