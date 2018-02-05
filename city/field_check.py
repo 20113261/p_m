@@ -595,7 +595,6 @@ def get_sid(source,suggest):
 
 def add_others_source_city(city_path,hotels_path,attr_path,config,param):
     select_country = "select name from country where mid=%s"
-    insert_sql = "insert ignore into ota_location(source,sid_md5,sid,suggest_type,suggest,city_id,country_id,s_city,s_region,s_country,s_extra,label_batch,others_info)"
     conn = pymysql.connect(**check_field)
     cursor = conn.cursor()
     path = ''.join([base_path, str(param), '/'])
@@ -621,6 +620,7 @@ def add_others_source_city(city_path,hotels_path,attr_path,config,param):
             for source in sources:
                 source_city_info[source][row['id']] = row[source]
 
+    insert_sql = "insert ignore into ota_location(source,sid_md5,sid,suggest_type,suggest,city_id,country_id,s_city,s_region,s_country,s_extra,label_batch,others_info) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 
     with open(path+'新增城市.csv','r+') as city:
         reader = csv.DictReader(city)
