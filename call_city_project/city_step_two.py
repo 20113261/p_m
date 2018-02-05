@@ -39,29 +39,29 @@ def update_step_report(csv_path,param,step_front,step_after):
         conn.close()
 
 def task_start():
-    param = sys.argv[1]
-    task_start_one(param)
-    zip_path = get_zip_path(param)
-    file_name = zip_path.split('/')[-1]
-    zip_path = ''.join([base_path, file_name])
-    zip = zipfile.ZipFile(zip_path)
-    save_path = []
-    file_name = zip.filename.split('.')[0].split('/')[-1]
-    path = ''.join([base_path, str(param), '/'])
-    if path.endswith('/'):
-        file_path = ''.join([path, file_name])
-    else:
-        file_path = '/'.join([path, file_name])
-    file_list = os.listdir(file_path)
-    for child_file in file_list:
-        path = '/'.join([file_path, child_file])
-        if '新增城市' in child_file:
-            city_path = path
-        elif '新增机场' in child_file:
-            airport_path = path
-        elif os.path.isdir(path):
-            picture_path = path
     try:
+        param = sys.argv[1]
+        task_start_one(param)
+        zip_path = get_zip_path(param)
+        file_name = zip_path.split('/')[-1]
+        zip_path = ''.join([base_path, file_name])
+        zip = zipfile.ZipFile(zip_path)
+        save_path = []
+        file_name = zip.filename.split('.')[0].split('/')[-1]
+        path = ''.join([base_path, str(param), '/'])
+        if path.endswith('/'):
+            file_path = ''.join([path, file_name])
+        else:
+            file_path = '/'.join([path, file_name])
+        file_list = os.listdir(file_path)
+        for child_file in file_list:
+            path = '/'.join([file_path, child_file])
+            if '新增城市' in child_file:
+                city_path = path
+            elif '新增机场' in child_file:
+                airport_path = path
+            elif os.path.isdir(path):
+                picture_path = path
         return_result = defaultdict(dict)
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
