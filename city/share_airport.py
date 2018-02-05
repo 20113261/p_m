@@ -273,7 +273,7 @@ def update_share_airport(config,param):
                 write_csv(result[0], cond_inner_order_1[sort_key][0],param,config)
             else:
                 if len(cond_inner_order_1) >= 2:
-                    sort_key = min(cond_inner_order_1.keys())
+                    sort_key = max(cond_inner_order_1.keys())
                     write_csv(result[0], cond_inner_order_1[sort_key][0],param,config)
                 else:
                     degree_key = list(cond_trans_degree_1.keys())[0]
@@ -289,7 +289,7 @@ def update_share_airport(config,param):
                 write_csv(result[0], cond_trans_degree_2[sort_key][0],param,config)
             else:
                 if len(cond_inner_order_2) >= 2:
-                    sort_key = min(cond_inner_order_2.keys())
+                    sort_key = max(cond_inner_order_2.keys())
                     write_csv(result[0], cond_inner_order_2[sort_key][0],param,config)
                 else:
                     degree_key = list(cond_trans_degree_2.keys())[0]
@@ -305,7 +305,7 @@ def update_share_airport(config,param):
                 write_csv(result[0], cond_trans_degree_3[sort_key][0],param,config)
             else:
                 if len(cond_inner_order_3) >= 2:
-                    sort_key = min(cond_inner_order_3.keys())
+                    sort_key = max(cond_inner_order_3.keys())
                     write_csv(result[0], cond_inner_order_3[sort_key][0],param,config)
                 else:
                     degree_key = list(cond_trans_degree_3.keys())[0]
