@@ -253,19 +253,19 @@ def update_share_airport(config,param):
 
                 distance = dist_from_coordinates(float(city_lng), float(city_lat), float(airport_lng), float(airport_lat))
 
-                if distance / 1000 <= 100:
+                if distance<= 100:
                     condition_1 = 1
                     condition_judge_1(open_airport[0], result[0], open_airport[2], cond_trans_degree_1,
-                                      cond_inner_order_1, distance / 1000,config)
+                                      cond_inner_order_1, distance,config)
 
-                elif distance / 1000 <= 200:
+                elif distance <= 200:
                     condition_2 = 1
                     condition_judge_2(open_airport[0], result[0], open_airport[2], cond_trans_degree_2,
-                                      cond_inner_order_2, distance / 1000,config)
-                elif distance / 1000 <= 300:
+                                      cond_inner_order_2, distance,config)
+                elif distance<= 300:
                     condition_3 = 1
                     condition_judge_3(open_airport[0], result[0], open_airport[2], cond_trans_degree_3,
-                                      cond_inner_order_3, distance / 1000,config)
+                                      cond_inner_order_3, distance,config)
 
         if cond_trans_degree_1:
             if len(cond_trans_degree_1) >= 2:
