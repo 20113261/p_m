@@ -11,10 +11,11 @@ from my_logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
 from service_platform_conn_pool import source_info_config
 from datetime import datetime
+import copy
 logger = get_logger("insert_mongo_task")
 
 
-def get_tasks(source,city_id=None):
+def get_tasks(source,city_id=None,config=None):
     query_sql = '''SELECT *
     FROM ota_location
     WHERE source = '{0}' AND city_id in {1};'''.format(source,tuple(city_id))
@@ -29,13 +30,13 @@ def get_tasks(source,city_id=None):
     # WHERE source = '{}' AND city_id in ('20096');'''.format(
     #         source)
 
-    for _l in MysqlSource(db_config=source_info_config,
+    for _l in MysqlSource(db_config=config,
                           table_or_query=query_sql,
                           size=10000, is_table=False,
                           is_dict_cursor=True):
         yield _l
 
-def hotel_city(city_id,param,sources):
+def hotel_city(city_id,param,sources,config):
     source_list = sources
     collections_name = []
     for source in source_list:
@@ -44,7 +45,11 @@ def hotel_city(city_id,param,sources):
         with InsertTask(worker='proj.total_tasks.hotel_list_task', queue='hotel_list', routine_key='hotel_list',
                         task_name=task_name, source=source.title(), _type='HotelList',
                         priority=3, task_type=TaskType.CITY_TASK) as it:
-            for line in get_tasks(source=source,city_id=city_id):
+            temp_config = copy.deepcopy(config)
+            temp_config['database'] = temp_config['db']
+            del temp_config['db']
+            del temp_config['charset']
+            for line in get_tasks(source=source,city_id=city_id,config=temp_config):
                 suggest = line['suggest']
                 line['suggest_type'] = str(line['suggest_type'])
                 if line['suggest_type'] == '2':

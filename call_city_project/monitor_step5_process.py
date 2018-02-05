@@ -63,11 +63,14 @@ def monitor_task():
 
                 if int(not_finish_num) / int(total_count) <= 0:
                     save_result.append(int(not_finish_num) / int(total_count))
+
     if max(save_result) <= 0:
         update_step_report('',param,1,0)
+        job = scheduler.get_job('step5')
+        job.remove()
 
 def add_job():
-    scheduler.add_job(monitor_task, 'cron', second='*/40', id='step4')
+    scheduler.add_job(monitor_task, 'cron', second='*/40', id='step5')
 
 if __name__ == "__main__":
     add_job()

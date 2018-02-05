@@ -132,7 +132,7 @@ def city_inter_google_driver(urls,param):
                 'url': google_url,
                 'task_id': 'inner_{0}'.format(param)
             })
-        return it.generate_collection_name()
+        return it.generate_collection_name(),task_name
 
 if __name__ == '__main__':
     cids = ['40050', '40051', '40052', '40053', '51516', '51517', '51518', '51519', '51520', '51521', '51522']
