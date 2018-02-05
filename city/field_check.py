@@ -593,7 +593,7 @@ def get_sid(source,suggest):
 
 
 
-def add_others_source_city(city_path,hotels_path,attr_path,ota_config,param):
+def add_others_source_city(city_path,hotels_path,attr_path,config,param):
     select_country = "select name from country where mid=%s"
     insert_sql = "insert ignore into ota_location(source,sid_md5,sid,suggest_type,suggest,city_id,country_id,s_city,s_region,s_country,s_extra,label_batch,others_info)"
     conn = pymysql.connect(**check_field)
@@ -648,11 +648,11 @@ def add_others_source_city(city_path,hotels_path,attr_path,ota_config,param):
                     (source,sid_md5,sid,1,suggest,city_id,country_id,city_name,'NULL',country_name,'NULL',label_batch,others_info)
                 )
     conn.close()
-    conn = pymysql.connect(**ota_config)
+    conn = pymysql.connect(**config)
     cursor = conn.cursor()
     print(save_result)
-    #cursor.executemany(insert_sql,save_result)
-    #conn.commit()
+    cursor.executemany(insert_sql,save_result)
+    conn.commit()
     conn.close()
 if __name__ == "__main__":
     from city.config import config
