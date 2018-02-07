@@ -14,9 +14,15 @@ from city.config import config
 from city.insert_daodao_city import daodao_city
 from city.insert_hotel_city import hotel_city
 from city.insert_qyer_city import qyer_city
+from my_logger import get_logger
 from datetime import datetime
-from apscheduler.schedulers.background import BackgroundScheduler
-backgroudscheduler = BackgroundScheduler()
+# from apscheduler.schedulers.background import BackgroundScheduler
+# backgroudscheduler = BackgroundScheduler()
+
+param = sys.argv[1]
+path = ''.join([base_path, str(param), '/'])
+logger = get_logger('step5', path)
+
 def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
@@ -76,9 +82,9 @@ def update_step_report(csv_path,param,step_front,step_after):
 
 
 def task_start():
+    logger.info('[step5][%s]======== start =======' % (param,))
     try:
         sources = ['agoda', 'ctrip', 'elong', 'hotels', 'expedia', 'booking']
-        param = sys.argv[1]
         return_result = defaultdict(dict)
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
@@ -92,10 +98,15 @@ def task_start():
             reader = csv.DictReader(city)
             for row in reader:
                 save_cityId.append(row['city_id'])
-
-        daodao_collection_name,daodao_task_name = daodao_city(save_cityId,param,temp_config)
-        qyer_collection_name,qyer_task_name = qyer_city(save_cityId,param,temp_config)
-        hotel_collections_name = hotel_city(save_cityId,param,sources,temp_config)
+        logger.info('[step5][%s, %s, %s] 启动发 daodao 任务' % (save_cityId, param, temp_config))
+        daodao_collection_name,daodao_task_name = daodao_city(save_cityId,param, temp_config)
+        logger.info('[step5] 发 daodao 任务完成 [%s, %s]' % (daodao_collection_name, daodao_task_name))
+        logger.info('[step5][%s, %s, %s] 启动发 qyer 任务' % (save_cityId, param, temp_config))
+        qyer_collection_name,qyer_task_name = qyer_city(save_cityId,param, temp_config)
+        logger.info('[step5] 发 qyer 任务完成 [%s, %s]' % (qyer_collection_name, qyer_task_name))
+        logger.info('[step5][%s, %s, %s] 启动发 hotel 任务' % (save_cityId, param, temp_config))
+        hotel_collections_name = hotel_city(save_cityId, param, sources, temp_config)
+        logger.info('[step5] 发 hotel 任务完成 [%s]' % (hotel_collections_name))
 
         save_collection_names = []
         with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
@@ -103,22 +114,23 @@ def task_start():
 
             for collection_name in hotel_collections_name:
                 save_collection_names.append(collection_name)
-            save_collection_names.append((daodao_collection_name,daodao_task_name))
-            save_collection_names.append((qyer_collection_name,qyer_task_name))
+            save_collection_names.append((daodao_collection_name, daodao_task_name))
+            save_collection_names.append((qyer_collection_name, qyer_task_name))
             tasks[param] = save_collection_names
             f.seek(0)
             json.dump(tasks, f)
 
+            logger.info('[step5] 发 hotel 任务完成 [%s]' % (tasks))
+
         return_result = json.dumps(return_result)
-        print('[result][{0}]'.format(return_result))
+        logger.info('[step5] [result][{0}]'.format(return_result))
 
     except Exception as e:
-
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        print('[result][{0}]'.format(return_result))
-        update_step_report('', param, -1,0)
+        update_step_report('', param, -1, 0)
+        logger.info('[step5] [result][{0}]'.format(return_result))
 
 
 

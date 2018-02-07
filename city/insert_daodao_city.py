@@ -32,7 +32,7 @@ WHERE source = 'daodao' AND city_id in {0};'''.format(tuple(city_id))
 
 def daodao_city(city_id,param,config):
     time_lag = str(datetime.now())[:10].replace('-', '')
-    task_name = 'attr_daodao_{0}_{1}a'.format(param,time_lag)
+    task_name = 'city_attr_daodao_{}{}'.format(param, time_lag)
     with InsertTask(worker='proj.total_tasks.poi_list_task', queue='poi_list', routine_key='poi_list',
                     task_name=task_name, source='Daodao', _type='PoiList',
                     priority=3, task_type=TaskType.CITY_TASK) as it:
