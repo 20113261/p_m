@@ -153,6 +153,7 @@ def monitor_task5():
                 status_list_len.append(1)
         if len(status_list_len)==len(task_names):
             update_step_report('', param, 1, 0, 5)
+            modify_status('step5', param, flag=False)
             print('=== %s === 任务完成' % tag)
 
 
@@ -170,6 +171,7 @@ def monitor_task8():
         t_all, t_done, t_failed = line[3], line[4], line[5]
         if t_all==t_done+t_failed:
             update_step_report('', param, 1, 0, 8)
+            modify_status('step8', param, flag=False)
             print('-4-', '完成')
 
 
