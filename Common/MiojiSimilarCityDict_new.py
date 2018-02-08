@@ -148,7 +148,9 @@ class MiojiSimilarCityDict(object):
 
     def get_mioji_similar_dict(self):
         _dict = defaultdict(set)
-        db_test = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
+        #db_test = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
+        db_test = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8',
+                                  reflect_views=False)
         city_country_info = [
             i for i in db_test.query('''SELECT
   city.id,
