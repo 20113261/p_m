@@ -132,7 +132,7 @@ def monitor_task5():
     print('-0-', tasks)
     for param, values in tasks.items():
         if len(values)==0:continue
-        task_names = [val[1] for val in zip(**values)]
+        task_names = [val[1] for val in zip(*values)]
         print('-1-', task_names)
         tag = task_names.rsplit('_', 1)[-1]
         print('-2-', tag)
