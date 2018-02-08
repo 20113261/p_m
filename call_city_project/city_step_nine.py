@@ -19,6 +19,8 @@ param = sys.argv[1]
 path = ''.join([base_path, str(param), '/'])
 logger = get_logger('step9', path)
 
+urlsfile_path = '/search/cuixiyi/urls/'
+
 def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
@@ -50,20 +52,24 @@ def task_start():
                 save_cityId.append(row['city_id'])
 
         #获取google url
+        logger.info('[step9]获取google_url开始')
         inner_city(cid_list=save_cityId,config=config)
+        logger.info('[step9]获取google_url完成')
 
-        file_list = os.listdir('./urls/')
+        file_list = os.listdir(urlsfile_path)
         if '.DS_Store' in file_list:
             file_list.remove('.DS_Store')
         save_urls = []
         for city_id in save_cityId:
             for child_path in file_list:
                 if city_id in child_path:
-                    with open('./urls/{0}'.format(child_path),'r+') as city:
+                    with open(urlsfile_path+'{0}'.format(child_path),'r+') as city:
                         urls = city.readlines()
                         save_urls.extend(urls)
 
+        logger.info('[step9] 开启城市内任务')
         collection_name,task_name = city_inter_google_driver(save_urls,param)
+        logger.info('[step9] 开启城市内任务完成  %s %s' % (collection_name, task_name))
         with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
             tasks = json.load(f)
             tasks[param] = [collection_name, task_name]
@@ -71,7 +77,6 @@ def task_start():
             json.dump(tasks, f)
 
         return_result = json.dumps(return_result)
-        print('[result][{0}]'.format(return_result))
         logger.info('[step9][%s]======== success =======' % (param,))
     except Exception as e:
         return_result['error']['error_id'] = 1

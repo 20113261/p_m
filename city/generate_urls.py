@@ -8,6 +8,9 @@ import multiprocessing
 import time
 table_list=["chat_attraction","hotel","airport","station","chat_shopping"]
 #table_list=["chat_attraction","station"]
+
+file_path = '/search/cuixiyi'
+
 def formatBaseQuery(url_fp,base_query,city_type,nameA,pointA,nameB,pointB):
 
 	if ',' not in pointA or ',' not in pointB:
@@ -39,8 +42,8 @@ def formatBaseQuery(url_fp,base_query,city_type,nameA,pointA,nameB,pointB):
 def Process(cid,config):
 	filename=str(cid)+"_urls"
 	logname=str(cid)+"_logs"
-	fp=open("./urls/"+filename,"w")
-	fs=open("./logs/"+logname,"w")
+	fp=open(file_path+"/urls/"+filename,"w")
+	fs=open(file_path+"/logs/"+logname,"w")
 	fs.write("Process enter cid:"+str(cid)+"\n")
     
 	all_data=[]
@@ -122,6 +125,7 @@ def inner_city(cid_list,config):
 	pool.close()
 	pool.join()
 	end_time=time.time()
+	print(start_time, end_time)
 
 if __name__ == "__main__":
     #获取参数，参数是存储城市id的文件,可以有多个文件
