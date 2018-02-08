@@ -12,7 +12,7 @@ import pymongo
 
 def get_tasks():
     client = pymongo.MongoClient('mongodb://root:miaoji1109-=@10.19.2.103:27017/')
-    collections = client['SuggestName']['CtripPoiSDK_mioiji']
+    collections = client['SuggestName']['CtripPoiSDK_mioji']
     #tasks =set()
     #for data in collections.find():
     #    try:
@@ -29,13 +29,15 @@ def get_tasks():
     tasks = []
     for co in collections.find({}):
         tasks.append(co['task'])
+        if len(tasks) == 10:
+            break
 
     return tasks
 
 
 if __name__ == '__main__':
     with InsertTask(worker='proj.total_tasks.ctrip_poi_list_task', queue='poi_list', routine_key='poi_list',
-                    task_name='poi_total_ctripPoi_20180207i', source='CtripPoi', _type='CtripList',
+                    task_name='poi_total_ctripPoi_20180208a', source='CtripPoi', _type='CtripList',
                     priority=3, task_type=TaskType.LIST_TASK) as it:
         for line in get_tasks():
             args = {
