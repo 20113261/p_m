@@ -167,8 +167,8 @@ def monitor_task8():
         print('-2-', tasks_status)
         line = tasks_status[0]
         print('-3-', line)
-        t_all, t_done = line[3], line[4]
-        if t_all==t_done:
+        t_all, t_done, t_failed = line[3], line[4], line[5]
+        if t_all==t_done+t_failed:
             update_step_report('', param, 1, 0, 8)
             print('-4-', '完成')
 
