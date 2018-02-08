@@ -36,12 +36,12 @@ def get_tasks(source,city_id=None,config=None):
                           is_dict_cursor=True):
         yield _l
 
-def hotel_city(city_id,param,sources,config):
+def hotel_city(city_id, param, sources, config):
     source_list = sources
     collections_name = []
     for source in source_list:
         time_lag = str(datetime.now())[:10].replace('-', '')
-        task_name = 'city_hotel_{}_{}{}'.format(source,param,time_lag)
+        task_name = 'city_hotel_{}_{}{}'.format(source, time_lag, param)
         with InsertTask(worker='proj.total_tasks.hotel_list_task', queue='hotel_list', routine_key='hotel_list',
                         task_name=task_name, source=source.title(), _type='HotelList',
                         priority=3, task_type=TaskType.CITY_TASK) as it:

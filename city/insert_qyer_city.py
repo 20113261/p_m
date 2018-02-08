@@ -29,7 +29,7 @@ WHERE source = 'qyer' AND city_id in {};'''.format(tuple(city_id))
 def qyer_city(city_id,param,config):
     task_name = "city_total_qyer_{}{}"
     time_lag = str(datetime.now())[:10].replace('-','')
-    task_name = task_name.format(param,time_lag)
+    task_name = task_name.format(time_lag, param)
     with InsertTask(worker='proj.total_tasks.qyer_list_task', queue='poi_list', routine_key='poi_list',
                     task_name=task_name, source='Qyer', _type='QyerList',
                     priority=3, task_type=TaskType.CITY_TASK) as it:
