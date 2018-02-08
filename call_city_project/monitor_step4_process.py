@@ -142,7 +142,7 @@ def monitor_task5():
             print('-4-', '完蛋')
             continue
         status_list_len = []
-        for _0, _1, _2, l_done, l_failed, _5, l_all, d_done, d_failed, _9, d_all, i_done, i_failed, i_all, _14 in tasks_status:
+        for (_0, _1, _2, l_done, l_failed, _5, l_all, d_done, d_failed, _9, d_all, i_done, i_failed, i_all, _14) in tasks_status:
             if not (l_done+l_failed==l_all and d_done+d_failed==d_all and i_done+i_failed==i_all):
                 print('-5-', '不行')
                 break
