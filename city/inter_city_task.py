@@ -122,7 +122,7 @@ def google_driver(city_id,param,config,):
 
 def city_inter_google_driver(urls,param):
     time_tag = str(datetime.now())[:10].replace('-', '')
-    task_name = 'google_drive_task_{0}_{1}'.format(param, time_tag)
+    task_name = 'google_drive_{0}_{1}'.format(param, time_tag)
 
     with InsertTask(worker='proj.total_tasks.google_drive_task', queue='file_downloader', routine_key='file_downloader',
                     task_name=task_name, source='Google', _type='GoogleDriveTask',
