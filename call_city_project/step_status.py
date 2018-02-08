@@ -59,10 +59,10 @@ def getStepStatus(step):
         for line in cursor.fetchone():
             tasks = line[0]
         logger.info('==0--', tasks)
-        return tasks
     except TypeError as e:
         logger.info('==1-- %s', str(traceback.format_exc()))
-        return {}
     finally:
         cursor.close()
         conn.close()
+
+    return tasks or {}
