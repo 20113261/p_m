@@ -10,7 +10,7 @@ def modify_status(step, key, values=[], flag=True):
     :param flag: True添加任务
     :return:
     """
-    with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
+    with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r') as f:
         tasks = json.load(f)
         if not tasks.haskey(step):
             return {}
@@ -19,7 +19,7 @@ def modify_status(step, key, values=[], flag=True):
             step_tasks[key] = values
         else:
             step_tasks.pop(key)
-        f.seek(0)
+    with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'w+') as f:
         json.dump(tasks, f)
 
     return tasks[step]
