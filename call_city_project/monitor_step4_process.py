@@ -180,7 +180,7 @@ def local_jobs():
     scheduler.add_job(monitor_task5, 'cron', second='*/80', id='step5')
 
 if __name__ == '__main__':
-    # local_jobs()
-    # scheduler.start()
+    local_jobs()
+    scheduler.start()
     # monitor_task5()
-    monitor_task8()
+    # monitor_task8()
