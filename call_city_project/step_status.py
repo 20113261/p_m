@@ -12,9 +12,9 @@ def modify_status(step, key, values=[], flag=True):
     """
     with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
         tasks = json.load(f)
+        tasks.setdefault(step)
         step_tasks = tasks[step]
         if flag:
-            step_tasks.setdefault(key)
             step_tasks[key] = values
         else:
             step_tasks.remove(key)
