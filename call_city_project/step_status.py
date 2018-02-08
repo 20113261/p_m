@@ -51,6 +51,7 @@ def getStepStatus(step):
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
     logger.info('==-1--')
+    tasks = {}
     sel_sql = "select json_status from step_status where id=%s"
     try:
         logger.info('==-4--')
@@ -65,4 +66,4 @@ def getStepStatus(step):
         cursor.close()
         conn.close()
 
-    return tasks or {}
+    return tasks
