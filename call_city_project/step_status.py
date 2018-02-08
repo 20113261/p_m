@@ -18,7 +18,7 @@ def modify_status(step, key, values=[], flag=True):
         if flag:
             step_tasks[key] = values
         else:
-            step_tasks.pop(key)
+            del step_tasks[key]
     with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'w+') as f:
         json.dump(tasks, f)
 
