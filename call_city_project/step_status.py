@@ -57,6 +57,9 @@ def getStepStatus(step):
         logger.info('==-4--')
         cursor.execute(sel_sql, (step,))
         logger.info('==51--')
+        if cursor.fetchone() is None:
+            logger.info('==8--', tasks)
+            return tasks
         for line in cursor.fetchone():
             tasks = line[0]
         logger.info('==0--', tasks)
