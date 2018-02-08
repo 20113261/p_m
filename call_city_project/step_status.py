@@ -26,4 +26,5 @@ def modify_status(step, key, values=[], flag=True):
 def getStepStatus(step):
     with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
         tasks = json.load(f)
+        tasks.setdefault(step, {})
         return tasks[step]
