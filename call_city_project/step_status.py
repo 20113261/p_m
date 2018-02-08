@@ -41,7 +41,7 @@ def modify_status(step, key, values=[], flag=True):
     # with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'w+') as f:
     #     json.dump(tasks, f)
 
-    return tasks[step]
+    return tasks
 
 def getStepStatus(step):
     conn = pymysql.connect(**data_config)
