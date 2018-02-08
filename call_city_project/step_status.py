@@ -24,9 +24,11 @@ def modify_status(step, key, values=[], flag=True):
             del tasks[key]
 
         cursor.execute(upd_sql, (tasks, step))
+        conn.commit()
     except Exception as e:
         conn.rollback()
     finally:
+        cursor.close()
         conn.close()
 
     # with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r') as f:
