@@ -65,5 +65,5 @@ def getStepStatus(step):
     finally:
         cursor.close()
         conn.close()
-
+    logger.info('==8--', tasks)
     return tasks
