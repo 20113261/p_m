@@ -15,6 +15,7 @@ from city.insert_daodao_city import daodao_city
 from city.insert_hotel_city import hotel_city
 from city.insert_qyer_city import qyer_city
 from my_logger import get_logger
+from call_city_project.step_status import modify_status
 
 param = sys.argv[1]
 path = ''.join([base_path, str(param), '/'])
@@ -106,18 +107,14 @@ def task_start():
         logger.info('[step5] 发 hotel 任务完成 [%s]' % (hotel_collections_name))
 
         save_collection_names = []
-        with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
-            tasks = json.load(f)
+        for collection_name in hotel_collections_name:
+            save_collection_names.append(collection_name)
+        save_collection_names.append((daodao_collection_name, daodao_task_name))
+        save_collection_names.append((qyer_collection_name, qyer_task_name))
 
-            for collection_name in hotel_collections_name:
-                save_collection_names.append(collection_name)
-            save_collection_names.append((daodao_collection_name, daodao_task_name))
-            save_collection_names.append((qyer_collection_name, qyer_task_name))
-            tasks[param] = save_collection_names
-            f.seek(0)
-            json.dump(tasks, f)
+        tasks = modify_status('step5', param, save_collection_names)
 
-            logger.info('[step5] 发 hotel 任务完成 [%s]' % (tasks))
+        logger.info('[step5] 发 hotel 任务完成 [%s]' % (tasks))
 
         return_result = json.dumps(return_result)
         logger.info('[step5] [result][{0}]'.format(return_result))

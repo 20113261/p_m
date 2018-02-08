@@ -5,6 +5,7 @@ from city.config import base_path,OpCity_config,config
 from MongoTask.MongoTaskInsert import InsertTask
 from collections import defaultdict
 from my_logger import get_logger
+from call_city_project.step_status import modify_status
 import sys
 import datetime
 import pymysql
@@ -67,6 +68,11 @@ def start_task():
                     'target_table': 'hotel'
                 }
                 it.insert_task(args)
+            save_collection_names = it.generate_collection_name(), task_name
+
+        tasks = modify_status('step8', param, save_collection_names)
+        logger.info('[step8][%s] tasks: %s' % (param, str(tasks)))
+
         update_step_report('', param, 1, 0)
         logger.info('[step8][%s]======== success =======' % (param,))
     except Exception as e:

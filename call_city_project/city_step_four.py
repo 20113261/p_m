@@ -12,6 +12,7 @@ import json
 import traceback
 import pymongo
 from my_logger import get_logger
+from call_city_project.step_status import modify_status
 from datetime import datetime
 # from apscheduler.schedulers.background import BackgroundScheduler
 # backgroudscheduler = BackgroundScheduler()
@@ -74,11 +75,8 @@ def task_start():
         collection_name, task_name = google_driver(save_cityId,param,config)
         logger.info('[step4][%s] 任务已发完[%s][%s]' % (param, collection_name, task_name,))
 
-        with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
-            tasks = json.load(f)
-            tasks[param] = [collection_name, task_name]
-            f.seek(0)
-            json.dump(tasks, f)
+        tasks = modify_status('step4', param, [collection_name, task_name])
+
         logger.info('[step4][%s] tasks: %s' % (param, str(tasks)))
 
         # job = backgroudscheduler.add_job(monitor_google_driver,trigger='cron',minute='*/2',hour='*',id='step4',kwargs={'collection_name':collection_name,'param':param, 'task_name': task_name})
