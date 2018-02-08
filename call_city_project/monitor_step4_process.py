@@ -24,12 +24,14 @@ def update_step_report(csv_path,param,step_front,step_after,step_num):
     finally:
         conn.close()
 
-def from_tag_get_tasks_status(tag):
+def from_tag_get_tasks_status(name, flag=False):
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
-    sql = "select * from service_platform_product_mongo_report where tag=%s"
+    sql_step5 = "select * from service_platform_product_mongo_report where tag=%s"
+    sql_step8 = "select * from serviceplatform_product_mongo_split_task_summary where task_name=%s"
+    sql = sql_step5 if flag else sql_step8
     try:
-        cursor.execute(sql, (tag,))
+        cursor.execute(sql, (name,))
         result = cursor.fetchall()
     finally:
         conn.close()
@@ -155,14 +157,30 @@ def monitor_task5():
 
 
 def monitor_task8():
-    pass
+    tasks = getStepStatus('step8')
+    print('-0-', tasks)
+    for param, values in tasks.items():
+        if len(values)==0:continue
+        task_name = values[-1]
+        print('-1-', task_name)
+        tasks_status = from_tag_get_tasks_status(task_name)
+        print('-2-', tasks_status)
+        line = tasks_status[0]
+        print('-3-', line)
+        t_all, t_done = line[3], line[4]
+        if t_all==t_done:
+            update_step_report('', param, 1, 0, 8)
+            print('-4-', '完成')
+
 
 
 def local_jobs():
     scheduler.add_job(monitor_task4, 'cron', second='*/40', id='step4')
     scheduler.add_job(monitor_task9, 'cron', second='*/40', id='step9')
+    scheduler.add_job(monitor_task5, 'cron', second='*/80', id='step5')
 
 if __name__ == '__main__':
     # local_jobs()
     # scheduler.start()
-    monitor_task5()
+    # monitor_task5()
+    monitor_task8()
