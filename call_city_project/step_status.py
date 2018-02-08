@@ -45,8 +45,8 @@ def modify_status(step, key, values=[], flag=True):
     return tasks
 
 def getStepStatus(step):
-    path = base_path
-    logger = get_logger('status', path)
+    path = '/search/service/nginx/html/MioaPyApi/store/opcity/668/'
+    logger = get_logger('status1', path)
 
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
