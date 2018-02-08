@@ -5,16 +5,16 @@ import pymongo
 import pymysql
 import json
 
-from city.config import base_path,config,OpCity_config
+from city.config import data_config, OpCity_config
 from call_city_project.step_status import modify_status, getStepStatus
 
 scheduler = BlockingScheduler()
 
-def update_step_report(csv_path,param,step_front,step_after):
+def update_step_report(csv_path,param,step_front,step_after,step_num):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
-    update_sql_front = "update city_order set report4=%s,step4=%s where id=%s"
-    update_sql_after = "update city_order set step5=%s where id=%s"
+    update_sql_front = "update city_order set report"+str(step_num)+"=%s,step"+str(step_num)+"=%s where id=%s"
+    update_sql_after = "update city_order set step"+str(step_num+1)+"=%s where id=%s"
     try:
        cursor.execute(update_sql_front,(csv_path,step_front,param))
        cursor.execute(update_sql_after,(step_after,param))
@@ -23,6 +23,17 @@ def update_step_report(csv_path,param,step_front,step_after):
         conn.rollback()
     finally:
         conn.close()
+
+def from_tag_get_tasks_status(tag):
+    conn = pymysql.connect(**OpCity_config)
+    cursor = conn.cursor()
+    sql = "select * from service_platform_product_mongo_report where tag=%s"
+    try:
+        cursor.execute(sql, (tag,))
+        result = cursor.fetchall()
+    finally:
+        conn.close()
+    return result
 
 def monitor_task4():
     print('running===============0')
@@ -42,7 +53,7 @@ def monitor_task4():
     for param, (_, task_name) in tasks.items():
         print(param, (_, task_name))
         if total_count == 0:
-            update_step_report('', param, -1, 0)
+            update_step_report('', param, -1, 0, 4)
             return
 
         select_sql = "select step4 from city_order where id=%s"
@@ -64,7 +75,7 @@ def monitor_task4():
             print('3==========', not_finish_num)
 
             if int(not_finish_num) / int(total_count) <= 0:
-                update_step_report('', param, 1, 0)
+                update_step_report('', param, 1, 0, 4)
                 modify_status('step4', param, flag=False)
 
 
@@ -88,7 +99,7 @@ def monitor_task9():
     for param, (_, task_name) in tasks.items():
         print(param, (_, task_name))
         if total_count == 0:
-            update_step_report('', param, -1, 0)
+            update_step_report('', param, -1, 0, 9)
             return
 
         select_sql = "select step9 from city_order where id=%s"
@@ -110,14 +121,38 @@ def monitor_task9():
             print('3==========', not_finish_num)
 
             if int(not_finish_num) / int(total_count) <= 0:
-                update_step_report('', param, 1, 0)
+                update_step_report('', param, 1, 0, 9)
                 modify_status('step9', param, flag=False)
 
     print('running===============1')
 
 
 def monitor_task5():
-    pass
+    tasks = getStepStatus('step5')
+    print('-0-', tasks)
+    for param, values in tasks.items():
+        if len(values)==0:continue
+        task_names = [val[1] for val in zip(**values)]
+        print('-1-', task_names)
+        tag = task_names.rsplit('_', 1)[-1]
+        print('-2-', tag)
+        tasks_status = from_tag_get_tasks_status(tag)
+        print('-3-', tasks_status)
+        if len(tasks_status) < len(task_names):
+            print('-4-', '完蛋')
+            continue
+        status_list_len = []
+        for _0, _1, _2, l_done, l_failed, _5, l_all, d_done, d_failed, _9, d_all, i_done, i_failed, i_all, _14 in tasks_status:
+            if not (l_done+l_failed==l_all and d_done+d_failed==d_all and i_done+i_failed==i_all):
+                print('-5-', '不行')
+                break
+            else:
+                print('-6-', '可以', _1)
+                status_list_len.append(1)
+        if len(status_list_len)==len(task_names):
+            update_step_report('', param, 1, 0, 5)
+            print('=== %s === 任务完成' % tag)
+
 
 def monitor_task8():
     pass
@@ -128,5 +163,6 @@ def local_jobs():
     scheduler.add_job(monitor_task9, 'cron', second='*/40', id='step9')
 
 if __name__ == '__main__':
-    local_jobs()
-    scheduler.start()
+    # local_jobs()
+    # scheduler.start()
+    monitor_task5()
