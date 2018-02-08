@@ -52,6 +52,8 @@ def getStepStatus(step):
         for line in cursor.fetchone():
             tasks = line[0]
         return tasks
+    except TypeError as e:
+        return {}
     finally:
         conn.close()
     # with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r') as f:
