@@ -23,16 +23,16 @@ def modify_status(step, key, values=[], flag=True):
 
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
-    upd_sql = "update step_status set json_status=%s where id=%s"
+    upd_sql = "replace into step_status (id, json_status) values (%s, %s)"
     tasks = getStepStatus(step)
-    logger.info('--0==', tasks)
+    logger.info('--0== {}'.format(repr(tasks)))
     try:
         if flag:
             tasks[key] = values
         else:
             del tasks[key]
-        logger.info('--1==', tasks)
-        cursor.execute(upd_sql, (json.dumps(tasks), step))
+        logger.info('--1== %s'.format(tasks))
+        cursor.execute(upd_sql, (step, json.dumps(tasks)))
         conn.commit()
         logger.info('--2==提交')
     except Exception as e:
@@ -53,27 +53,23 @@ def getStepStatus(step):
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
     logger.info('==-1--')
-    tasks = {}
     sel_sql = "select json_status from step_status where id=%s"
     try:
         logger.info('==-4--')
         cursor.execute(sel_sql, (step,))
         logger.info('==51--')
-        result = cursor.fetchone()
-        logger.info('52---', type(result))
-        if result is None:
-            logger.info('==8--', tasks)
-            return tasks
-        for line in result:
-            tasks = line[0]
-        logger.info('==0--', tasks)
+
+        for line in cursor.fetchone():
+            tasks = line
+        logger.info('==0-- {}'.format(tasks))
     except TypeError as e:
-        logger.info('==1-- %s', str(traceback.format_exc()))
+        logger.info('==1-- {}'.format(str(traceback.format_exc())))
+        tasks = '{}'
     finally:
         cursor.close()
         conn.close()
-    logger.info('==8--', tasks)
-    return tasks
+    logger.info('==8-- {}'.format(tasks))
+    return json.loads(tasks)
 
 if __name__ == '__main__':
     modify_status('step4', 668, ['aaaaa', 'bbbbb'])
