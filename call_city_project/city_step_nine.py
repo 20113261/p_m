@@ -71,11 +71,6 @@ def task_start():
         logger.info('[step9] 开启城市内任务')
         collection_name,task_name = city_inter_google_driver(save_urls,param)
         logger.info('[step9] 开启城市内任务完成  %s %s' % (collection_name, task_name))
-        with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r+') as f:
-            tasks = json.load(f)
-            tasks[param] = [collection_name, task_name]
-            f.seek(0)
-            json.dump(tasks, f)
         tasks = modify_status('step5', param, [collection_name, task_name])
 
         return_result = json.dumps(return_result)
