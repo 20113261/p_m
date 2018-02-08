@@ -68,13 +68,12 @@ def start_task():
                 }
                 it.insert_task(args)
         update_step_report('', param, 1, 0)
-        logger.info('[step8] [result][{0}]'.format(return_result))
+        logger.info('[step8][%s]======== success =======' % (param,))
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        update_step_report('', param, -1, 0)
-        logger.info('[step8] [result][{0}]'.format(return_result))
+        logger.info('[step8][%s]======== failed =======' % (return_result,))
 
 
 if __name__ == '__main__':

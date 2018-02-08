@@ -12,11 +12,13 @@ import csv
 import os
 from city.generate_urls import inner_city
 from city.inter_city_task import city_inter_google_driver
-import multiprocessing
 import pymongo
-from datetime import datetime
-from apscheduler.schedulers.background import BackgroundScheduler
-backgroudscheduler = BackgroundScheduler()
+from my_logger import get_logger
+
+param = sys.argv[1]
+path = ''.join([base_path, str(param), '/'])
+logger = get_logger('step9', path)
+
 def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
@@ -31,29 +33,9 @@ def update_step_report(csv_path,param,step_front,step_after):
     finally:
         conn.close()
 
-def monitor_google_driver(collection_name,param):
-    client = pymongo.MongoClient(host='10.10.231.105')
-    collection = client['MongoTask'][collection_name]
-    total_count = collection.find({})
-    conn = pymysql.connect(**OpCity_config)
-    cursor = conn.cursor()
-    select_sql = "select step6 from city_order where id=%s"
-
-    cursor.execute(select_sql)
-    status_id = cursor.fetchone()[0]
-    if int(status_id) == 2:
-
-        results = collection.find({'finished': 0})
-        not_finish_num = results.count()
-
-    if not_finish_num / total_count <= 0:
-        job = backgroudscheduler.get_job('step6')
-        job.remove()
-        update_step_report('',param,1,0)
-
 def task_start():
+    logger.info('[step9][%s]======== start =======' % (param,))
     try:
-        param = sys.argv[1]
         return_result = defaultdict(dict)
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
@@ -90,12 +72,12 @@ def task_start():
 
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
-
+        logger.info('[step9][%s]======== success =======' % (param,))
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
-        print('[result][{0}]'.format(return_result))
+        logger.info('[step9][%s]======== failed =======' % (return_result,))
         update_step_report('', param, -1,0)
 
 

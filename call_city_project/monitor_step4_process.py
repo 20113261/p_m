@@ -70,6 +70,26 @@ def monitor_task4():
 
     print('running===============1')
 
+def monitor_task9():
+    client = pymongo.MongoClient(host='10.10.231.105')
+    collection = client['MongoTask'][collection_name]
+    total_count = collection.find({})
+    conn = pymysql.connect(**OpCity_config)
+    cursor = conn.cursor()
+    select_sql = "select step6 from city_order where id=%s"
+
+    cursor.execute(select_sql)
+    status_id = cursor.fetchone()[0]
+    if int(status_id) == 2:
+
+        results = collection.find({'finished': 0})
+        not_finish_num = results.count()
+
+    if not_finish_num / total_count <= 0:
+        job = backgroudscheduler.get_job('step6')
+        job.remove()
+        update_step_report('',param,1,0)
+
 def local_jobs():
     scheduler.add_job(monitor_task4, 'cron', second='*/40', id='step4')
 

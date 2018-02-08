@@ -41,13 +41,13 @@ def task_start():
         第{}批次 共{}数据已处理完毕，检验合格
         """ .format(param, '100万'), SEND_TO)
         update_step_report('', param, 1, 0)
-        logger.info('[step6] [result][{0}]'.format(return_result))
+        logger.info('[step6][%s]======== success =======' % (param,))
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         return_result = json.dumps(return_result)
         update_step_report('', param, -1, 0)
-        logger.info('[step6] [result][{0}]'.format(return_result))
+        logger.info('[step6][%s]======== failed =======' % (return_result,))
 
 
 if __name__ == "__main__":
