@@ -14,6 +14,7 @@ from city.generate_urls import inner_city
 from city.inter_city_task import city_inter_google_driver
 import pymongo
 from my_logger import get_logger
+from call_city_project.step_status import modify_status
 
 param = sys.argv[1]
 path = ''.join([base_path, str(param), '/'])
@@ -75,6 +76,7 @@ def task_start():
             tasks[param] = [collection_name, task_name]
             f.seek(0)
             json.dump(tasks, f)
+        tasks = modify_status('step5', param, [collection_name, task_name])
 
         return_result = json.dumps(return_result)
         logger.info('[step9][%s]======== success =======' % (param,))
