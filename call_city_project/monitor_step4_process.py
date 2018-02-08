@@ -23,7 +23,7 @@ def update_step_report(csv_path,param,step_front,step_after):
     finally:
         conn.close()
 
-def monitor_task():
+def monitor_task4():
     print('running===============0')
     with open('tasks.json') as f:
         tasks = json.load(f)
@@ -71,8 +71,7 @@ def monitor_task():
     print('running===============1')
 
 def local_jobs():
-    # scheduler.add_job(monitor_google_driver,trigger='cron',minute='*/2',hour='*',id='step4',)
-    scheduler.add_job(monitor_task, 'cron', second='*/40', id='step4')
+    scheduler.add_job(monitor_task4, 'cron', second='*/40', id='step4')
 
 if __name__ == '__main__':
     local_jobs()

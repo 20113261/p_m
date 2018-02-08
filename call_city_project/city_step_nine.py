@@ -20,11 +20,11 @@ backgroudscheduler = BackgroundScheduler()
 def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
-    update_sql_front = "update city_order set report6=%s,step6=%s where id=%s"
-    update_sql_after = "update city_order set step7=%s where id=%s"
+    update_sql_front = "update city_order set report9=%s,step9=%s where id=%s"
+    # update_sql_after = "update city_order set step7=%s where id=%s"
     try:
        cursor.execute(update_sql_front,(csv_path,step_front,param))
-       cursor.execute(update_sql_after,(step_after,param))
+       # cursor.execute(update_sql_after,(step_after,param))
        conn.commit()
     except Exception as e:
         conn.rollback()

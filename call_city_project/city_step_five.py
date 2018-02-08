@@ -15,9 +15,6 @@ from city.insert_daodao_city import daodao_city
 from city.insert_hotel_city import hotel_city
 from city.insert_qyer_city import qyer_city
 from my_logger import get_logger
-from datetime import datetime
-# from apscheduler.schedulers.background import BackgroundScheduler
-# backgroudscheduler = BackgroundScheduler()
 
 param = sys.argv[1]
 path = ''.join([base_path, str(param), '/'])

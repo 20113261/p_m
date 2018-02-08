@@ -1,44 +1,54 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python3
 # -*- coding:utf-8 -*-
-
-
-from city.share_airport import update_share_airport
-from city.config import config,base_path
-import os
-import sys
-import zipfile
 
 import pymysql
 pymysql.install_as_MySQLdb()
-def get_zip_path(param):
-    conn = pymysql.connect(**config)
+from city.config import OpCity_config,base_path,config
+from collections import defaultdict
+import json
+import traceback
+import sys
+from my_logger import get_logger
+from city.send_email import send_email, SEND_TO
+
+param = sys.argv[1]
+path = ''.join([base_path, str(param), '/'])
+logger = get_logger('step7', path)
+
+def update_step_report(csv_path,param,step_front,step_after):
+    conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
-    select_sql = "select path1 from city_order  where id=%s"
-    path = ''
+    update_sql_front = "update city_order set report7=%s,step7=%s where id=%s"
+    update_sql_after = "update city_order set step8=%s where id=%s"
     try:
-        cursor.execute(select_sql,(param,))
-        path = cursor.fetchone()[0]
+       cursor.execute(update_sql_front,(csv_path,step_front,param))
+       cursor.execute(update_sql_after,(step_after,param))
+       conn.commit()
     except Exception as e:
         conn.rollback()
-    return path
+    finally:
+        conn.close()
 
 def task_start():
-    param = sys.argv[1]
-    zip_path = get_zip_path(param)
-    zip = zipfile.ZipFile(zip_path)
-    file_name = zip.filename.split('.')[0].split('/')[-1]
-    path = ''.join([base_path, str(param), '/'])
-    if path.endswith('/'):
-        file_path = ''.join([path, file_name])
-    else:
-        file_path = '/'.join([path, file_name])
-    file_list = os.listdir(file_path)
-    for child_file in file_list:
-        path = '/'.join([file_path, child_file])
-        if '新增城市.xlsx' in child_file:
-            city_path = path
-            break
-    update_share_airport()
+    logger.info('[step7][%s]======== start =======' % (param,))
+    try:
+        return_result = defaultdict(dict)
+        return_result['data'] = {}
+        return_result['error']['error_id'] = 0
+        return_result['error']['error_str'] = ''
+        return_result = json.dumps(return_result)
+        send_email('城市上线酒店融合' + '第%s批次' % param, """
+        第{}批次 共{}数据已处理完毕，检验合格
+        """.format(param, '100万'), SEND_TO)
+        update_step_report('', param, 1, 0)
+        logger.info('[step7] [result][{0}]'.format(return_result))
+    except Exception as e:
+        return_result['error']['error_id'] = 1
+        return_result['error']['error_str'] = traceback.format_exc()
+        return_result = json.dumps(return_result)
+        update_step_report('', param, -1, 0)
+        logger.info('[step7] [result][{0}]'.format(return_result))
+
 
 if __name__ == "__main__":
     task_start()
