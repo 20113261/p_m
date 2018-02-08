@@ -44,8 +44,8 @@ def modify_status(step, key, values=[], flag=True):
 
     return tasks
 
-def getStepStatus(step, key='sel_status'):
-    path = ''.join([base_path, str(key), '/'])
+def getStepStatus(step):
+    path = ''.join([base_path, '/'])
     logger = get_logger('status', path)
 
     conn = pymysql.connect(**data_config)
