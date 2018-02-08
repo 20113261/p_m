@@ -134,7 +134,7 @@ def monitor_task5():
         if len(values)==0:continue
         task_names = [val[1] for val in zip(*values)]
         print('-1-', task_names)
-        tag = task_names.rsplit('_', 1)[-1]
+        tag = task_names[0].rsplit('_', 1)[-1]
         print('-2-', tag)
         tasks_status = from_tag_get_tasks_status(tag)
         print('-3-', tasks_status)
