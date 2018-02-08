@@ -46,6 +46,13 @@ test_config = {
         'db': 'base_data',
         'charset': 'utf8'
 }
+data_config = {
+        'host': '10.10.228.253',
+        'user': 'mioji_admin',
+        'password': 'mioji1109',
+        'db': 'Report',
+        'charset': 'utf8'
+}
 
 #zip 文件所在路径
 
