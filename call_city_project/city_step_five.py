@@ -117,7 +117,7 @@ def task_start():
         logger.info('[step5] 发 hotel 任务完成 [%s]' % (tasks))
 
         return_result = json.dumps(return_result)
-        logger.info('[step5] [result][{0}]'.format(return_result))
+        logger.info('[step5][%s]======== successed ======= \n%s' % (param, return_result))
 
     except Exception as e:
         return_result['error']['error_id'] = 1
