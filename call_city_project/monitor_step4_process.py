@@ -25,7 +25,7 @@ def update_step_report(csv_path,param,step_front,step_after,step_num):
         conn.close()
 
 def from_tag_get_tasks_status(tag):
-    conn = pymysql.connect(**OpCity_config)
+    conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
     sql = "select * from service_platform_product_mongo_report where tag=%s"
     try:
