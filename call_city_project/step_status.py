@@ -17,6 +17,7 @@ def modify_status(step, key, values=[], flag=True):
     :param flag: True添加任务
     :return:
     """
+    # base_path = '/Users/luwn/'
     path = ''.join([base_path, str(key), '/'])
     logger = get_logger('status', path)
 
@@ -31,7 +32,7 @@ def modify_status(step, key, values=[], flag=True):
         else:
             del tasks[key]
         logger.info('--1==', tasks)
-        cursor.execute(upd_sql, (tasks, step))
+        cursor.execute(upd_sql, (json.dumps(tasks), step))
         conn.commit()
         logger.info('--2==提交')
     except Exception as e:
@@ -46,6 +47,7 @@ def modify_status(step, key, values=[], flag=True):
 
 def getStepStatus(step):
     path = '/search/service/nginx/html/MioaPyApi/store/opcity/668/'
+    # path = '/Users/luwn/'
     logger = get_logger('status1', path)
 
     conn = pymysql.connect(**data_config)
@@ -72,3 +74,6 @@ def getStepStatus(step):
         conn.close()
     logger.info('==8--', tasks)
     return tasks
+
+if __name__ == '__main__':
+    modify_status('step4', 668, ['aaaaa', 'bbbbb'])
