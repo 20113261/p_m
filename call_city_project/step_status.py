@@ -2,6 +2,11 @@
 import json
 import pymysql
 from city.config import data_config
+from city.config import base_path
+from my_logger import get_logger
+import sys
+
+
 
 def modify_status(step, key, values=[], flag=True):
     """
@@ -12,40 +17,37 @@ def modify_status(step, key, values=[], flag=True):
     :param flag: True添加任务
     :return:
     """
+    path = ''.join([base_path, str(key), '/'])
+    logger = get_logger('status', path)
 
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
     upd_sql = "update step_status set json_status=%s where id=%s"
     tasks = getStepStatus(step)
+    logger.info('--0==', tasks)
     try:
         if flag:
             tasks[key] = values
         else:
             del tasks[key]
-
+        logger.info('--1==', tasks)
         cursor.execute(upd_sql, (tasks, step))
         conn.commit()
+        logger.info('--2==提交')
     except Exception as e:
         conn.rollback()
+        logger.info('--3==huigun')
     finally:
+        logger.info('--4==关闭连接')
         cursor.close()
         conn.close()
-
-    # with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r') as f:
-    #     tasks = json.load(f)
-    #     if not tasks.haskey(step):
-    #         return {}
-    #     step_tasks = tasks[step]
-    #     if flag:
-    #         step_tasks[key] = values
-    #     else:
-    #         del step_tasks[key]
-    # with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'w+') as f:
-    #     json.dump(tasks, f)
 
     return tasks
 
 def getStepStatus(step):
+    path = ''.join([base_path, str(key), '/'])
+    logger = get_logger('status', path)
+
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
     sel_sql = "select json_status from step_status where id=%s"
@@ -53,12 +55,11 @@ def getStepStatus(step):
         cursor.execute(sel_sql, (step,))
         for line in cursor.fetchone():
             tasks = line[0]
+        logger.info('==0--', tasks)
         return tasks
     except TypeError as e:
+        logger.info('==1--', {})
         return {}
     finally:
+        cursor.close()
         conn.close()
-    # with open('/search/cuixiyi/PoiCommonScript/call_city_project/tasks.json', 'r') as f:
-    #     tasks = json.load(f)
-    #     tasks.setdefault(step, {})
-    #     return tasks[step]
