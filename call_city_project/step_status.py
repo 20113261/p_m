@@ -5,7 +5,7 @@ from city.config import data_config
 from city.config import base_path
 from my_logger import get_logger
 import sys
-
+import traceback
 
 
 def modify_status(step, key, values=[], flag=True):
@@ -53,13 +53,15 @@ def getStepStatus(step):
     logger.info('==-1--')
     sel_sql = "select json_status from step_status where id=%s"
     try:
+        logger.info('==-4--')
         cursor.execute(sel_sql, (step,))
+        logger.info('==51--')
         for line in cursor.fetchone():
             tasks = line[0]
         logger.info('==0--', tasks)
         return tasks
     except TypeError as e:
-        logger.info('==1--', {})
+        logger.info('==1-- %s', str(traceback.format_exc()))
         return {}
     finally:
         cursor.close()
