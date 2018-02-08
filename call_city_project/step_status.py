@@ -14,7 +14,8 @@ def modify_status(step, key, values=[], flag=True):
         tasks = json.load(f)
         step_tasks = tasks[step]
         if flag:
-            step_tasks[key] =  values
+            step_tasks.setdefault(key)
+            step_tasks[key] = values
         else:
             step_tasks.remove(key)
         f.seek(0)
