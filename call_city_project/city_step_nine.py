@@ -79,7 +79,7 @@ def task_start():
         tasks = modify_status('step5', param, [collection_name, task_name])
 
         return_result = json.dumps(return_result)
-        logger.info('[step9][%s]======== success =======' % (param,))
+        logger.info('[step9][%s]======== success ======= %s' % (param, return_result))
     except Exception as e:
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
