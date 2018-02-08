@@ -23,7 +23,7 @@ def modify_status(step, key, values=[], flag=True):
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
     upd_sql = "update step_status set json_status=%s where id=%s"
-    tasks = getStepStatus(step)
+    tasks = getStepStatus(step, key)
     logger.info('--0==', tasks)
     try:
         if flag:
@@ -44,7 +44,7 @@ def modify_status(step, key, values=[], flag=True):
 
     return tasks
 
-def getStepStatus(step):
+def getStepStatus(step, key='sel_status'):
     path = ''.join([base_path, str(key), '/'])
     logger = get_logger('status', path)
 
