@@ -178,6 +178,8 @@ def local_jobs():
     scheduler.add_job(monitor_task4, 'cron', second='*/40', id='step4')
     scheduler.add_job(monitor_task9, 'cron', second='*/40', id='step9')
     scheduler.add_job(monitor_task5, 'cron', second='*/80', id='step5')
+    scheduler.add_job(monitor_task8, 'cron', second='*/80', id='step8')
+
 
 if __name__ == '__main__':
     local_jobs()
