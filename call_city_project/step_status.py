@@ -17,7 +17,7 @@ def modify_status(step, key, values=[], flag=True):
         if flag:
             step_tasks[key] = values
         else:
-            step_tasks.remove(key)
+            step_tasks.pop(key)
         f.seek(0)
         json.dump(tasks, f)
 
