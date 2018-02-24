@@ -9,20 +9,22 @@
 import requests
 import sys
 
-SEND_TO = ['luwanning@mioji.com']
+SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
 
-def send_email(title, mail_info, mail_list, want_send_html=False):
-    try:
-        mail_list = ';'.join(mail_list)
-        data = {
-            'mailto': mail_list,
-            'content': mail_info,
-            'title': title,
-        }
-        if want_send_html:
-            data['mail_type'] = 'html'
-        requests.post('http://10.10.150.16:9000/sendmail', data=data)
-    except Exception as e:
-        sys.stderr.write('Error code:%s\n' % e.message)
-        return False
-    return True
+def send_mail(title, content, mail_list, need_qq=False):
+    mailapi = "http://10.10.150.16:9000/sendmail"
+    mail_list = ';'.join(mail_list)
+    mail_data = {"content": content,
+                 "title": title,
+                 "mailto": mail_list,
+                 "level": 0
+                 }
+    if need_qq:
+        mail_data['qq'] = 1
+    mail_r = requests.post(mailapi, data=mail_data)
+    r_code = mail_r.status_code
+    print("[mail][%s][send alert mail]" % (r_code))
+
+
+if __name__ == '__main__':
+    send_mail("123q", "这是一封测试邮件", ["luwanning@mioji.com"])
