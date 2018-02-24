@@ -37,7 +37,7 @@ def task_start():
         return_result['error']['error_id'] = 0
         return_result['error']['error_str'] = ''
         return_result = json.dumps(return_result)
-        send_email('城市上线酒店融合' + '第%s批次' % param, """
+        send_email('城市上线POI融合' + '第%s批次' % param, """
         第{}批次 共{}数据已处理完毕，检验合格
         """.format(param, '100万'), SEND_TO)
         update_step_report('', param, 1, 0)
