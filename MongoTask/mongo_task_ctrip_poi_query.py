@@ -29,16 +29,17 @@ def get_tasks():
     tasks = []
     for co in collections.find({}):
         tasks.append(co['task'])
-        if len(tasks) == 10:
+        if len(tasks) == 3:
             break
 
     return tasks
 
 
 if __name__ == '__main__':
+
     with InsertTask(worker='proj.total_tasks.ctrip_poi_list_task', queue='poi_list', routine_key='poi_list',
-                    task_name='poi_total_ctripPoi_20180208a', source='CtripPoi', _type='CtripList',
-                    priority=3, task_type=TaskType.LIST_TASK) as it:
+                    task_name='city_total_ctripPoi_20180211w', source='CtripPoi', _type='CtripList',
+                    priority=3, task_type=TaskType.CITY_TASK) as it:
         for line in get_tasks():
             args = {
                 "city_id": "000",
