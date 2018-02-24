@@ -11,7 +11,7 @@ import sys
 
 SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
 
-def send_mail(title, content, mail_list, need_qq=False):
+def send_email(title, content, mail_list, need_qq=False):
     mailapi = "http://10.10.150.16:9000/sendmail"
     mail_list = ';'.join(mail_list)
     mail_data = {"content": content,
@@ -27,4 +27,4 @@ def send_mail(title, content, mail_list, need_qq=False):
 
 
 if __name__ == '__main__':
-    send_mail("123q", "这是一封测试邮件", ["luwanning@mioji.com"])
+    send_email("123q", "这是一封测试邮件", ["luwanning@mioji.com", 'cuixiyi@mioji.com'])
