@@ -4,6 +4,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 import pymongo
 import pymysql
 import json
+import datetime
 
 from city.config import data_config, OpCity_config
 from call_city_project.step_status import modify_status, getStepStatus
@@ -134,24 +135,29 @@ def monitor_task5():
     print('-0-', tasks)
     for param, values in tasks.items():
         if len(values)==0:continue
-        task_names = [val[1] for val in zip(*values)]
+        task_names = zip(*values)[0]
         print('-1-', task_names)
-        tag = task_names[0].rsplit('_', 1)[-1]
+        tag = str(task_names[0].rsplit('_', 1)[-1])
         print('-2-', tag)
-        tasks_status = from_tag_get_tasks_status(tag)
+        tasks_status = from_tag_get_tasks_status(tag, True)
+        finaled_date = max(a[-1] for a in tasks_status)
+        all_finaled_data = [a for a in tasks_status if a[-1]==finaled_date]
         print('-3-', tasks_status)
         if len(tasks_status) < len(task_names):
             print('-4-', '完蛋')
             continue
-        status_list_len = []
-        for (_0, _1, _2, l_done, l_failed, _5, l_all, d_done, d_failed, d_all, i_done, i_failed, i_all, _13) in tasks_status:
-            if not (l_done+l_failed==l_all and d_done+d_failed==d_all and i_done+i_failed==i_all):
+        status_list_len = 0
+        for (_0, _1, _2, l_done, l_failed, _5, l_all, d_done, d_failed, d_all, i_done, i_failed, i_all, _13) in all_finaled_data:
+            #规则 1 完成任务数 + 失败任务数 = 任务总数
+            #规则 2 失败任务数 == 任务总数 发邮件报警
+            if not (l_done+l_failed==l_all and d_done+d_failed==d_all and i_done+i_failed==i_all) or l_failed==l_all or d_failed==d_all:
+                if _1 in ('Qyer', 'Daodao'):continue
                 print('-5-', '不行')
                 break
             else:
                 print('-6-', '可以', _1)
-                status_list_len.append(1)
-        if len(status_list_len)==len(task_names):
+                status_list_len+=1
+        if status_list_len==len(task_names)-2:
             update_step_report('', param, 1, 0, 5)
             modify_status('step5', param, flag=False)
             print('=== %s === 任务完成' % tag)
@@ -177,6 +183,7 @@ def monitor_task8():
 
 
 def local_jobs():
+    # scheduler.add_job(monitor_task5, 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
     scheduler.add_job(monitor_task4, 'cron', second='*/40', id='step4')
     scheduler.add_job(monitor_task9, 'cron', second='*/40', id='step9')
     scheduler.add_job(monitor_task5, 'cron', second='*/80', id='step5')
