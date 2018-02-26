@@ -1,11 +1,8 @@
 #coding:utf-8
 
 from apscheduler.schedulers.blocking import BlockingScheduler
-import pymongo
 import pymysql
-import json
 import datetime
-import os
 
 from city.config import data_config, OpCity_config, base_path
 from call_city_project.step_status import modify_status, getStepStatus
