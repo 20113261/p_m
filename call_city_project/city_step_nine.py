@@ -71,7 +71,7 @@ def task_start():
         logger.info('[step9] 开启城市内任务')
         collection_name,task_name = city_inter_google_driver(save_urls,param)
         logger.info('[step9] 开启城市内任务完成  %s %s' % (collection_name, task_name))
-        tasks = modify_status('step5', param, [collection_name, task_name])
+        tasks = modify_status('step9', param, [collection_name, task_name])
 
         return_result = json.dumps(return_result)
         logger.info('[step9][%s]======== success ======= %s' % (param, return_result))
