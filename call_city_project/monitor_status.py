@@ -103,5 +103,3 @@ def local_jobs():
 if __name__ == '__main__':
     local_jobs()
     scheduler.start()
-    # monitor_task5()
-    # monitor_task8()
