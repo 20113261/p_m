@@ -28,7 +28,7 @@ def get_tasks():
     #print(len(tasks))
     tasks = []
     for co in collections.find({}):
-        tasks.append(co['task'])
+        tasks.append(co)
         if len(tasks) == 10:
             break
 
@@ -45,6 +45,6 @@ if __name__ == '__main__':
                 "city_id": line['city_id'],
                 "country_id": "",
                 "source": "ctripPoi",
-                'city_url': line
+                'city_url': line['task']
             }
             it.insert_task(args)
