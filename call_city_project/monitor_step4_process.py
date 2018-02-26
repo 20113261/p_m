@@ -38,7 +38,7 @@ def from_tag_get_tasks_status(name, flag=False):
         conn.close()
     return result
 
-def monitor_task4():
+def monitor_task4_bak():
     print('running===============0')
     tasks = getStepStatus('step4')
 
@@ -84,7 +84,24 @@ def monitor_task4():
 
     print('running===============1')
 
-def monitor_task9():
+def monitor_task4():
+    tasks = getStepStatus('step4')
+    print('-0-', tasks)
+    for param, values in tasks.items():
+        if len(values) == 0: continue
+        task_name = values[-1]
+        print('-1-', task_name)
+        tasks_status = from_tag_get_tasks_status(task_name)
+        print('-2-', tasks_status)
+        line = tasks_status[0]
+        print('-3-', line)
+        t_all, t_done, t_failed = line[3], line[4], line[5]
+        if t_all == t_done + t_failed:
+            update_step_report('', param, 1, 0, 4)
+            modify_status('step4', param, flag=False)
+            print('-4-', '完成')
+
+def monitor_task9_bak():
     print('running===============0')
     tasks = getStepStatus('step9')
 
@@ -129,6 +146,23 @@ def monitor_task9():
 
     print('running===============1')
 
+
+def monitor_task9():
+    tasks = getStepStatus('step9')
+    print('-0-', tasks)
+    for param, values in tasks.items():
+        if len(values) == 0: continue
+        task_name = values[-1]
+        print('-1-', task_name)
+        tasks_status = from_tag_get_tasks_status(task_name)
+        print('-2-', tasks_status)
+        line = tasks_status[0]
+        print('-3-', line)
+        t_all, t_done, t_failed = line[3], line[4], line[5]
+        if t_all == t_done + t_failed:
+            update_step_report('', param, 1, 0, 9)
+            modify_status('step9', param, flag=False)
+            print('-4-', '完成')
 
 def monitor_task5():
     tasks = getStepStatus('step5')
@@ -183,11 +217,11 @@ def monitor_task8():
 
 
 def local_jobs():
-    # scheduler.add_job(monitor_task5, 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
-    scheduler.add_job(monitor_task4, 'cron', second='*/40', id='step4')
-    scheduler.add_job(monitor_task9, 'cron', second='*/40', id='step9')
-    scheduler.add_job(monitor_task5, 'cron', second='*/80', id='step5')
-    scheduler.add_job(monitor_task8, 'cron', second='*/80', id='step8')
+    scheduler.add_job(monitor_task9, 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
+    # scheduler.add_job(monitor_task4, 'cron', second='*/40', id='step4')
+    # scheduler.add_job(monitor_task9, 'cron', second='*/40', id='step9')
+    # scheduler.add_job(monitor_task5, 'cron', second='*/80', id='step5')
+    # scheduler.add_job(monitor_task8, 'cron', second='*/20', id='step8')
 
 
 if __name__ == '__main__':
