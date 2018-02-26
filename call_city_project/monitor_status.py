@@ -97,11 +97,11 @@ def monitor_report(step):
 
 
 def local_jobs():
-    scheduler.add_job(monitor_report, 'date', args=('5',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
-    # scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
-    # scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')
-    # scheduler.add_job(monitor_report, 'cron', args=('5',), second='*/300', id='step5')
-    # scheduler.add_job(monitor_task_summary, 'cron', args=('8',), second='*/300', id='step8')
+    # scheduler.add_job(monitor_report, 'date', args=('5',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
+    scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
+    scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')
+    scheduler.add_job(monitor_report, 'cron', args=('5',), second='*/300', id='step5')
+    scheduler.add_job(monitor_task_summary, 'cron', args=('8',), second='*/300', id='step8')
 
 
 if __name__ == '__main__':
