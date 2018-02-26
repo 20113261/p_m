@@ -29,9 +29,9 @@ def update_step_report(csv_path,param,step_front,step_after,step_num):
 def from_tag_get_tasks_status(name, flag=False):
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
-    sql_step5 = "select * from service_platform_product_mongo_report where tag=%s"
-    sql_step8 = "select * from serviceplatform_product_mongo_split_task_summary where task_name=%s"
-    sql = sql_step5 if flag else sql_step8
+    sql_step_report = "select * from service_platform_product_mongo_report where tag=%s"
+    sql_step_summary = "select * from serviceplatform_product_mongo_split_task_summary where task_name=%s"
+    sql = sql_step_report if flag else sql_step_summary
     try:
         cursor.execute(sql, (name,))
         result = cursor.fetchall()
