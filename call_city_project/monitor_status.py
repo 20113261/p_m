@@ -39,6 +39,7 @@ def from_tag_get_tasks_status(name, flag=False):
     return result
 
 def monitor_task_summary(step):
+    print('================= step'+step+'=================')
     tasks = getStepStatus('step' + step)
     print('-0-', tasks)
     for param, values in tasks.items():
@@ -55,20 +56,8 @@ def monitor_task_summary(step):
             modify_status('step' + step, param, flag=False)
             print('-4-', '完成')
 
-def monitor_task4():
-    step = '4'
-    monitor_task_summary(step)
-
-def monitor_task8():
-    step = '8'
-    monitor_task_summary(step)
-
-def monitor_task9():
-    step = '9'
-    monitor_task_summary(step)
-
-def monitor_task5():
-    tasks = getStepStatus('step5')
+def monitor_report(step):
+    tasks = getStepStatus('step' + step)
     print('-0-', tasks)
     for param, values in tasks.items():
         if len(values)==0:continue
@@ -95,17 +84,17 @@ def monitor_task5():
                 print('-6-', '可以', _1)
                 status_list_len+=1
         if status_list_len==len(task_names)-2:
-            update_step_report('', param, 1, 0, 5)
-            modify_status('step5', param, flag=False)
+            update_step_report('', param, 1, 0, int(step))
+            modify_status('step' + step, param, flag=False)
             print('=== %s === 任务完成' % tag)
 
 
 def local_jobs():
     # scheduler.add_job(monitor_task9, 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
-    scheduler.add_job(monitor_task4, 'cron', second='*/40', id='step4')
-    scheduler.add_job(monitor_task9, 'cron', second='*/40', id='step9')
-    # scheduler.add_job(monitor_task5, 'cron', second='*/80', id='step5')
-    scheduler.add_job(monitor_task8, 'cron', second='*/20', id='step8')
+    scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/40', id='step4')
+    scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/60', id='step9')
+    scheduler.add_job(monitor_report, 'cron', args=('5',), second='*/80', id='step5')
+    scheduler.add_job(monitor_task_summary, 'cron', args=('8',), second='*/20', id='step8')
 
 
 if __name__ == '__main__':
