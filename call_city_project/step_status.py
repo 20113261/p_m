@@ -4,8 +4,9 @@ import pymysql
 from city.config import data_config
 from city.config import base_path
 from my_logger import get_logger
-import sys
 import traceback
+
+logger = get_logger('monitor', base_path)
 
 
 def modify_status(step, key, values=[], flag=True):
@@ -17,58 +18,47 @@ def modify_status(step, key, values=[], flag=True):
     :param flag: True添加任务
     :return:
     """
-    # base_path = '/Users/luwn/'
-    path = ''.join([base_path, str(key), '/'])
-    logger = get_logger('status', path)
-
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
+    str_key = str(key)
     upd_sql = "replace into step_status (id, json_status) values (%s, %s)"
     tasks = getStepStatus(step)
-    logger.info('--0== {}'.format(repr(tasks)))
     try:
+        word = '空'
         if flag:
             tasks[key] = values
+            word = '添加'
         else:
             del tasks[key]
-        logger.info('--1== %s'.format(tasks))
+            word = '删除'
+        logger.info('{} {}, {}'.format(str_key, word, tasks))
         cursor.execute(upd_sql, (step, json.dumps(tasks)))
         conn.commit()
-        logger.info('--2==提交')
     except Exception as e:
+        logger.info('{} 更新状态报错 {}'.format(str_key, str(traceback.format_exc())))
         conn.rollback()
-        logger.info('--3==huigun')
     finally:
-        logger.info('--4==关闭连接')
         cursor.close()
         conn.close()
-
+    logger.info('{} 更新完成'.format(key))
     return tasks
 
 def getStepStatus(step):
-    path = '/search/service/nginx/html/MioaPyApi/store/opcity/668/'
-    # path = '/Users/luwn/'
-    logger = get_logger('status1', path)
-
     conn = pymysql.connect(**data_config)
     cursor = conn.cursor()
-    logger.info('==-1--')
     sel_sql = "select json_status from step_status where id=%s"
     try:
-        logger.info('==-4--')
         cursor.execute(sel_sql, (step,))
-        logger.info('==51--')
 
         for line in cursor.fetchone():
             tasks = line
-        logger.info('==0-- {}'.format(tasks))
+        logger.info('{} 查询到状态 {}'.format(step, repr(tasks)))
     except TypeError as e:
-        logger.info('==1-- {}'.format(str(traceback.format_exc())))
+        logger.info('{} 查询状态报错 {}'.format(step, str(traceback.format_exc())))
         tasks = '{}'
     finally:
         cursor.close()
         conn.close()
-    logger.info('==8-- {}'.format(tasks))
     return json.loads(tasks)
 
 if __name__ == '__main__':
