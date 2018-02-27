@@ -86,7 +86,7 @@ def monitor_report(step):
             else:
                 logger.info('{}, {}: {}'.format(stepa, '已完成', source))
                 status_list_len+=1
-        if status_list_len==len(task_names)-2:
+        if status_list_len>=len(task_names)-2:
             update_step_report('', param, 1, 0, int(step))
             modify_status(stepa, param, flag=False)
             logger.info('{}, 开始生成报表'.format(stepa))
