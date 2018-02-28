@@ -12,10 +12,10 @@ import os
 import subprocess
 import time
 from my_logger import get_logger
-from city.send_email import send_email, SEND_TO
+from city.send_email import send_email
 
-# param = sys.argv[1]
-param = '671'
+param = sys.argv[1]
+SEND_TO = ['luwanning@mioji.com', 'mazhenyang@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com']
 path = ''.join([base_path, str(param), '/'])
 logger = get_logger('step6', path)
 hotels = ['agoda', 'booking', 'ctrip', 'elong', 'expedia', 'hotels']
@@ -96,10 +96,15 @@ def task_start():
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
         return_result['error']['error_str'] = ''
-
+        logger.info('[step6][%s] 汇总数据到BaseDataFinal 开始' % (param,))
         tag = selectServicePlatform2BaseDataFinal()
+        logger.info('[step6][%s]  汇总数据到BaseDataFinal 完成' % (param,))
+        logger.info('[step6][%s] 检查数据 开始' % (param,))
         check_result = check_hotel_data(tag)
+        logger.info('[step6][%s] 检查数据 完成' % (param,))
+        logger.info('[step6][%s] 导出数据 开始' % (param,))
         data_path = dumps_sql(tag)
+        logger.info('[step6][%s] 导出数据 完成' % (param,))
 
         return_result = json.dumps(return_result)
         send_email('城市上线酒店融合' + '第 %s 批次' % param,
