@@ -122,7 +122,7 @@ def task_start():
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         send_email('城市上线酒店融合' + '第 %s 批次' % param,
-                   """融合前检查失败""", SEND_TO[:1])
+                   """酒店融合前检查失败""", SEND_TO[:1])
         return_result = json.dumps(return_result)
         update_step_report('', param, -1, 0)
         logger.info('[step6][%s]======== failed =======' % (return_result,))
