@@ -46,7 +46,7 @@ def selectServicePlatform2BaseDataFinal():
             tag = result[0]
         else:
             raise Exception('没有获取到tag')
-        with open('hotel.sql') as f:
+        with open('/search/cuixiyi/PoiCommonScript/call_city_project/hotel.sql') as f:
             create_table = f.read()
             create_table = create_table.format(tag)
         cursor.execute(create_table, ())
@@ -122,7 +122,7 @@ def task_start():
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
         send_email('城市上线酒店融合' + '第 %s 批次' % param,
-                   """融合前检查失败""", SEND_TO)
+                   """融合前检查失败""", SEND_TO[:1])
         return_result = json.dumps(return_result)
         update_step_report('', param, -1, 0)
         logger.info('[step6][%s]======== failed =======' % (return_result,))
