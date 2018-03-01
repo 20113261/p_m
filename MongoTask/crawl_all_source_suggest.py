@@ -18,12 +18,12 @@ def create_task():
                     task_name=get_task_name(), source='sources', _type='SourceSuggest',
                     priority=11) as it:
         citys = add_city_suggest()
-        for source,citys in citys:
+        for source,citys in citys.items():
             for city in citys:
                 args = {
                     'source': source,
                     'keyword': city[0],
-                    'country_id': city[1],
+                    'country_id': str(city[1]),
                     'map_info': city[2]
                 }
                 it.insert_task(args)

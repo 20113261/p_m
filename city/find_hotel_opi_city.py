@@ -114,7 +114,7 @@ def from_ota_get_city():
 def add_city_suggest():
     conn = data_connection_pool()
     cursor = conn.cursor()
-    city_data = pandas.read_excel('新增城市.xlsx',)
+    city_data = pandas.read_excel('/Users/miojilx/Desktop/new_city/新增城市.xlsx',)
     city_names = city_data['name'].values
     city_countryIds = city_data['country_id'].values
     city_mapinfos = city_data['map_info'].values
