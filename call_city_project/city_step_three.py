@@ -141,8 +141,8 @@ def task_start():
             shareAirport_insert(temp_config,param)
         logger.debug("城市共享机场入库结束")
         logger.debug("将新增城市更新到ota_location的各个源-开始")
-        if hotels_path and judge_city_id:
-            add_others_source_city(city_path,hotels_path,attr_path,config,param)
+        # if hotels_path and judge_city_id:
+        #     add_others_source_city(city_path,hotels_path,attr_path,config,param)
         logger.debug("将新增城市更新到ota_location的各个源-结束")
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
