@@ -62,4 +62,4 @@ def getStepStatus(step):
     return json.loads(tasks)
 
 if __name__ == '__main__':
-    modify_status('step7', 671, [['Task_Queue_supplement_field_TaskName_daodao_mapinfo_20180227671', 'daodao_mapinfo_20180227671']])
+    modify_status('step4', 668, ['aaaaa', 'bbbbb'])

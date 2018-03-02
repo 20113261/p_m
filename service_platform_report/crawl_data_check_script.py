@@ -248,7 +248,13 @@ def insert_error_map_info_task(duplicate_map_info_set, task_table, task_type):
                                  exc_info=exc)
 
 
-def detectOriData():
+def supplement_field(table_name, sid, source, address):
+    tag = table_name.rsplit('_')[-1]
+    table_name = 'detail_attr_daodao_' if table_name.startswith('attr_final_') else 'detail_total_qyer_'
+    return {'source': source, 'sid': sid, 'other_info': json.dumps({'address': address}), 'table_name': table_name+tag}
+
+
+def detectOriData(need_detection_table_name=None):
     city_map_info_dict = get_city_map()
     dt = datetime.datetime.now()
 
@@ -289,10 +295,15 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
     #     _conn.close()
 
     report_data = []
+    tasks_data = []
     for cand_table, conn_config, table_type in table_list:
         error_count = {}
         source_count = defaultdict(int)
         error_dict = defaultdict(int)
+
+        if need_detection_table_name is not None and cand_table != need_detection_table_name:
+            print('=====  跳过表 {}'.format(cand_table))
+            continue
 
         if table_type == 'ota':
             # 当判定为 ota 类型时字段查找使用以下方式进行
@@ -331,7 +342,8 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
           id,
           city_id,
           map_info,
-          grade
+          grade,
+          address
         FROM {};'''.format(cand_table)
             else:
                 # 未知类型，当前跳过
@@ -397,6 +409,7 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                 cid = word_list[4]
             map_info = word_list[5]
             grade = word_list[6]
+            address = word_list[7]
 
             # 增加本表中抓取源的统计
             source_count[source] += 1
@@ -430,6 +443,8 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                 right = False
             elif not map_info_legal(map_info):
                 error_dict[(source, '坐标错误(坐标为空或坐标格式错误，除去NULL)')] += 1
+                if address:
+                    tasks_data.append(supplement_field(cand_table, sid, source, address))
                 right = False
             else:
                 # 经纬度重复情况判定
@@ -439,6 +454,8 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                         # 当此经纬度出现 1 次时，经纬度重复加 2 ，之后正常
                         error_dict[(source, "经纬度重复")] += 1
                     duplicate_map_info_set[source].add(map_info)
+                    if address:
+                        tasks_data.append(supplement_field(cand_table, sid, source, address))
                     right = False
 
                 # 当前情况为 map_info 为正确的情况，经纬度集合添加 map_info
@@ -459,6 +476,8 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
                                 error_dict[(source, "距离过远坐标翻转后属于所属城市")] += 1
                             else:
                                 distance_set.add(sid)
+                            if address:
+                                tasks_data.append(supplement_field(cand_table, sid, source, address))
 
             try:
                 grade_f = float(grade)
@@ -524,10 +543,11 @@ WHERE TABLE_SCHEMA = 'BaseDataFinal';''')
             logger.exception(msg="[update report table error]", exc_info=exc)
     db.commit()
     logger.debug('Done')
+    return report_data, tasks_data
 
 
 if __name__ == '__main__':
-    detectOriData()
+    detectOriData('attr_final_20180227671')
 
     #     < !--  # error_key = ['全量','数据源错误', '无 name、name_en', "中英文名字相反", "中文名中含有英文名", '坐标错误(NULL)',-->
     # < !--  # '坐标错误(坐标为空或坐标格式错误，除去NULL)', "经纬度重复", '坐标与所属城市距离过远', "距离过远坐标翻转后属于所属城市",-->

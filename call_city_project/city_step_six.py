@@ -15,7 +15,8 @@ from my_logger import get_logger
 from city.send_email import send_email
 
 param = sys.argv[1]
-SEND_TO = ['luwanning@mioji.com', 'mazhenyang@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com']
+# SEND_TO = ['luwanning@mioji.com', 'mazhenyang@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com']
+SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
 path = ''.join([base_path, str(param), '/'])
 logger = get_logger('step6', path)
 hotels = ['agoda', 'booking', 'ctrip', 'elong', 'expedia', 'hotels']
@@ -81,23 +82,6 @@ def check_hotel_data(tag):
         else:
             return data
 
-def mapping_city(tag):
-    hotel_sources = ['agoda', 'booking', 'ctrip', 'elong', 'expedia', 'hotels']
-    select_sql = 'select d.source_id, l.city_id, l.country_id from ServicePlatform.list_hotel_{1}_{0} as l left join ServicePlatform.detail_hotel_{1}_{0} as d on l.source_id=d.source_id;'
-    update_sql = 'update BaseDataFinal.hotel_final_{0} set city_id=%s, country_id=%s where source=%s and source_id=%s'
-    conn = pymysql.connect(**data_config)
-    cursor = conn.cursor()
-    for source in hotel_sources:
-        cursor.execute(select_sql.format(tag, source), ())
-        for source_id, city_id, country_id in cursor.fetchall():
-            cursor.execute(update_sql.format(tag), (city_id, country_id, source, source_id))
-
-        conn.commit()
-
-    cursor.close()
-    conn.close()
-
-
 def dumps_sql(tag):
     cmd = """mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 BaseDataFinal hotel_final_{0} > /data/hourong/output/hotel_final_{0}.sql"""
     cmd = cmd.format(tag)
@@ -119,9 +103,6 @@ def task_start():
         logger.info('[step6][%s] 检查数据 开始' % (param,))
         check_result = check_hotel_data(tag)
         logger.info('[step6][%s] 检查数据 完成' % (param,))
-        logger.info('[step6][%s] mapping数据 开始' % (param,))
-        mapping_city(tag)
-        logger.info('[step6][%s] mapping数据 完成' % (param,))
         logger.info('[step6][%s] 导出数据 开始' % (param,))
         data_path = dumps_sql(tag)
         logger.info('[step6][%s] 导出数据 完成' % (param,))

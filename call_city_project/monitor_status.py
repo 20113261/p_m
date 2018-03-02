@@ -47,15 +47,19 @@ def step7_detection(tag):
     qyer_report_result, _1, daodao_report_result, _2 = check_POI_data(tag)
     print(qyer_report_result)
     print(daodao_report_result)
-    qyer_flag, qyer_report = analysis_result(qyer_report_result)
-    daodao_flag, daodao_report = analysis_result(daodao_report_result)
+    qyer_flag, qyer_report = analysis_result(qyer_report_result, 'qyer')
+    daodao_flag, daodao_report = analysis_result(daodao_report_result, 'daodao')
+
     report = success_report(tag)
+    check_report = '数据检测结果：\n' + qyer_report + '\n' + daodao_report + '\n\n' + report
     if qyer_flag and daodao_flag:
         for source in ['total', 'attr']:
-            dumps_sql(tag, source)
-            send_email_format(report)
+            rsync_path = dumps_sql(tag, source)
+        send_email_format(check_report, rsync_path)
     else:
-        pass
+        for source in ['total', 'attr']:
+            rsync_path = dumps_sql(tag, source)
+        send_email_format(check_report, rsync_path)
 
 
 def monitor_task_summary(step):
@@ -132,7 +136,6 @@ def local_jobs():
     # scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
     # scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')
     # scheduler.add_job(monitor_report, 'cron', args=('5',), second='*/300', id='step5')
-    # scheduler.add_job(monitor_task_summary, 'cron', args=('7',), second='*/300', id='step7')
     # scheduler.add_job(monitor_task_summary, 'cron', args=('8',), second='*/300', id='step8')
 
 

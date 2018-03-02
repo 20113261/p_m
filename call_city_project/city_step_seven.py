@@ -17,7 +17,8 @@ from call_city_project.step_status import modify_status
 
 # param = sys.argv[1]
 param = '671'
-SEND_TO = ['luwanning@mioji.com', 'lidongwei@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com']
+# SEND_TO = ['luwanning@mioji.com', 'lidongwei@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com']
+SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
 path = ''.join([base_path, str(param), '/'])
 logger = get_logger('step7', path)
 
@@ -162,14 +163,14 @@ def send_tasks(tasks_data, tag):
 
         return it.generate_collection_name(), task_name
 
-def analysis_result(result_report):
+def analysis_result(result_report, source):
     i = 0
-    report = ''
+    report = source + ' '
     for line in result_report:
         i += 1
-        report += line['error_type'] + ': ' + str(line['num'])
+        report += line['error_type'] + ': ' + str(line['num']) + '  '
 
-    return False if i>2 else True, report
+    return False if i>2 else True, report+'\n'
 
 def success_report(tag):
     success_rate_sql = "select * from Report.service_platform_product_mongo_report where tag = '{}' and source in ('Daodao', 'Qyer') order by date limit 2;".format(tag)
@@ -265,6 +266,13 @@ def dumps_sql(tag, source):
         return '10.10.114.35::output/{0}{1}.sql'.format(prefix, tag)
 
 
+def send_email_format(report, rsync_path):
+    send_email('城市上线POI融合' + '第 %s 批次' % param, """
+hi all：
+    {0}
+    数据地址： {1}
+            """.format(report, rsync_path), SEND_TO)
+
 def task_start():
     logger.info('[step7][%s]======== start =======' % (param,))
     try:
@@ -306,10 +314,6 @@ def task_start():
 
         tasks = modify_status('step7', param, tasks_names)
         logger.info('[step7][%s] tasks: %s' % (param, str(tasks)))
-
-        send_email('城市上线POI融合' + '第%s批次' % param, """
-        第{}批次 共{}数据已处理完毕，检验合格
-        """.format(param, '100万'), SEND_TO)
         # update_step_report('', param, 1, 0)
         logger.info('[step7][%s]======== success =======' % (param,))
     except Exception as e:
