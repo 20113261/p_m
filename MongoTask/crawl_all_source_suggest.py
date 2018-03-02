@@ -7,6 +7,7 @@ from datetime import datetime
 import csv
 import json
 from city.find_hotel_opi_city import add_city_suggest
+
 def get_task_name():
     task_name = "all_source_suggest_{0}"
     local_time = str(datetime.now())[:10].replace('-','')
@@ -21,7 +22,7 @@ def get_city_id(path):
         for row in reader:
             city_id[row['city_id_number']] = city_id[row['city_id']]
     return city_id
-def create_task(city_path,path):
+def create_task(city_path,path,database_name):
     task_name = get_task_name()
     city_map_id = get_city_id(path)
     with InsertTask(worker='proj.total_tasks.allhotel_city_suggest', queue='poi_detail', routine_key='poi_detail',
@@ -35,7 +36,8 @@ def create_task(city_path,path):
                     'keyword': city[0],
                     'country_id': str(city[1]),
                     'map_info': city[2],
-                    'city_id': city_map_id[city[3]]
+                    'city_id': city_map_id[city[3]],
+                    'database_name': database_name
                 }
                 it.insert_task(args)
         collection_name = it.generate_collection_name()

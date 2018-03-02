@@ -153,7 +153,7 @@ def task_start():
             os.system('java -jar /search/cuixiyi/ks3up-tool-2.0.6-20170801/ks3up-2.0.6.jar -c /search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf start')
         logger.debug("上传图片结束")
         logger.debug("开始更新ota_location表")
-        collection_name,task_name = create_task(city_path,path)
+        collection_name,task_name = create_task(city_path,path,database_name)
         tasks = modify_status('step3',param,[collection_name,task_name])
         logger.debug("结束更新ota_location表")
     except Exception as e:
