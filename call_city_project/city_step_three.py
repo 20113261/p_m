@@ -19,7 +19,9 @@ pymysql.install_as_MySQLdb()
 import configparser
 import pymongo
 from my_logger import get_logger
-
+from city.find_hotel_opi_city import add_city_suggest
+from MongoTask.crawl_all_source_suggest import create_task
+from call_city_project.step_status import modify_status
 import csv
 
 def get_zip_path(param):
@@ -150,6 +152,10 @@ def task_start():
         if judge_city_id:
             os.system('java -jar /search/cuixiyi/ks3up-tool-2.0.6-20170801/ks3up-2.0.6.jar -c /search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf start')
         logger.debug("上传图片结束")
+        logger.debug("开始更新ota_location表")
+        collection_name,task_name = create_task(city_path)
+        tasks = modify_status('step3',param,[collection_name,task_name])
+        logger.debug("结束更新ota_location表")
     except Exception as e:
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1

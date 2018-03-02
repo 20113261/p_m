@@ -7,6 +7,7 @@ import json
 from city.config import OpCity_config
 import pymongo
 from apscheduler.schedulers.blocking import BlockingScheduler
+from call_city_project.step_status import getStepStatus
 scheduler = BlockingScheduler()
 def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
