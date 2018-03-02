@@ -20,7 +20,7 @@ def get_city_id(path):
     with open(path+'city_id.csv','r+') as city:
         reader = csv.DictReader(city)
         for row in reader:
-            city_id[row['city_id_number']] = city_id[row['city_id']]
+            city_id[int(row['city_id_number'])] = city_id[row['city_id']]
     return city_id
 def create_task(city_path,path,database_name):
     task_name = get_task_name()
@@ -36,7 +36,7 @@ def create_task(city_path,path,database_name):
                     'keyword': city[0],
                     'country_id': str(city[1]),
                     'map_info': city[2],
-                    'city_id': city_map_id[city[3]],
+                    'city_id': city_map_id[int(city[3])],
                     'database_name': database_name
                 }
                 it.insert_task(args)
