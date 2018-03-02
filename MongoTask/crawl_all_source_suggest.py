@@ -13,11 +13,12 @@ def get_task_name():
     local_time = ''.join([local_time,'a'])
     task_name = task_name.format(local_time)
     return task_name
-def create_task():
+def create_task(city_path):
+    task_name = get_task_name()
     with InsertTask(worker='proj.total_tasks.allhotel_city_suggest', queue='poi_detail', routine_key='poi_detail',
-                    task_name=get_task_name(), source='sources', _type='SourceSuggest',
+                    task_name=task_name, source='sources', _type='SourceSuggest',
                     priority=11) as it:
-        citys = add_city_suggest()
+        citys = add_city_suggest(city_path)
         for source,citys in citys.items():
             for city in citys:
                 args = {
@@ -27,7 +28,8 @@ def create_task():
                     'map_info': city[2]
                 }
                 it.insert_task(args)
-
+        collection_name = it.generate_collection_name()
+        return collection_name,task_name
 
 if __name__ == "__main__":
     create_task()

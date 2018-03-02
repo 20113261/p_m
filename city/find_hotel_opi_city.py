@@ -67,6 +67,12 @@ def data_connection_pool():
     return conn
 
 def from_ota_get_city():
+    with open('酒店配置.csv','w+') as hotel:
+        writer = csv.writer(hotel)
+        writer.writerow(('name','ctrip','elong','agoda','booking','expedia','hotels'))
+    with open("景点配置.csv",'w+') as poi:
+        writer = csv.writer(poi)
+        writer.writerow(('name','daodao','qyer'))
     conn = data_connection_pool()
     cursor = conn.cursor()
     city_data = pandas.read_csv('city_list.csv',)
@@ -111,10 +117,10 @@ def from_ota_get_city():
             writer = csv.DictWriter(poi,fieldnames=['name','daodao','qyer'])
             writer.writerow(poi_save)
 
-def add_city_suggest():
+def add_city_suggest(city_path):
     conn = data_connection_pool()
     cursor = conn.cursor()
-    city_data = pandas.read_excel('/Users/miojilx/Desktop/new_city/新增城市.xlsx',)
+    city_data = pandas.read_excel(city_path,)
     city_names = city_data['name'].values
     city_countryIds = city_data['country_id'].values
     city_mapinfos = city_data['map_info'].values
@@ -132,12 +138,7 @@ def add_city_suggest():
     return deletion_city_suggest
 
 if __name__ == "__main__":
-    with open('酒店配置.csv','w+') as hotel:
-        writer = csv.writer(hotel)
-        writer.writerow(('name','ctrip','elong','agoda','booking','expedia','hotels'))
-    with open("景点配置.csv",'w+') as poi:
-        writer = csv.writer(poi)
-        writer.writerow(('name','daodao','qyer'))
+
 
     add_city_suggest()
 

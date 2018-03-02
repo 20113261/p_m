@@ -8,6 +8,8 @@ from city.config import OpCity_config
 import pymongo
 from apscheduler.schedulers.blocking import BlockingScheduler
 scheduler = BlockingScheduler()
+from call_city_project.step_status import getStepStatus
+from city.find_hotel_opi_city import from_ota_get_city
 def update_step_report(csv_path,param,step_front,step_after):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
@@ -29,8 +31,7 @@ def get_total_count(collection_name):
     return total_count
 
 def monitor_step3_bark():
-    with open('tasks.json','r+') as f:
-        tasks = json.load(f)
+    tasks = getStepStatus('step3')
 
     tasks_list = list(tasks.items())
     if len(tasks_list) == 0:
