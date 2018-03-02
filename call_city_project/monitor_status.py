@@ -9,7 +9,7 @@ from call_city_project.step_status import modify_status, getStepStatus
 from my_logger import get_logger
 from call_city_project.report import make_poi_and_hotel_report
 from call_city_project.step_status import modify_status
-from call_city_project.city_step_seven import check_POI_data, update_mapinfo, analysis_result, success_report, dumps_sql, send_email
+from call_city_project.city_step_seven import check_POI_data, update_mapinfo, analysis_result, success_report, dumps_sql, send_email_format
 
 scheduler = BlockingScheduler()
 logger = get_logger('monitor', base_path)
@@ -49,10 +49,11 @@ def step7_detection(tag):
     print(daodao_report_result)
     qyer_flag, qyer_report = analysis_result(qyer_report_result)
     daodao_flag, daodao_report = analysis_result(daodao_report_result)
-    success_report(tag)
+    report = success_report(tag)
     if qyer_flag and daodao_flag:
         for source in ['total', 'attr']:
             dumps_sql(tag, source)
+            send_email_format(report)
     else:
         pass
 

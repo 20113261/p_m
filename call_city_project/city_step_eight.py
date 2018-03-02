@@ -57,7 +57,7 @@ def start_task():
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
         return_result['error']['error_str'] = ''
-        task_name = 'merge_hotel_image_' + datetime.datetime.now().strftime('%Y%m%d_%H')+param
+        task_name = 'merge_hotel_image_' + datetime.datetime.now().strftime('%Y%m%d_')+param
         with InsertTask(worker='proj.total_tasks.hotel_img_merge_task', queue='merge_task', routine_key='merge_task',
                         task_name=task_name, source='Any', _type='HotelImgMerge',
                         priority=11) as it:

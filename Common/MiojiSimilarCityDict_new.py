@@ -209,7 +209,8 @@ FROM city
 
     @staticmethod
     def get_obj_lis(cid):
-        db_test = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8')
+        db_test = dataset.connect('mysql+pymysql://reader:miaoji1109@10.10.69.170/base_data?charset=utf8',
+                                  reflect_views=False)
         sql_res = db_test.query('''SELECT
 
                           city.name,

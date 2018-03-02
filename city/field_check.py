@@ -18,6 +18,7 @@ import pypinyin
 import json
 from city.config import base_path
 from my_logger import get_logger
+from service_platform_conn_pool import source_info_pool, fetchall
 from datetime import datetime
 import hashlib
 import os
@@ -509,12 +510,26 @@ def new_airport_insert(config,param):
         line = line.astype('str',inplace=True)
         line = line.to_dict()
         del line['utime']
-        airport_table.insert(line)
+        # airport_table.insert(line)
+        airport_table.upsert(line, keys=['id'])
 
     db.commit()
     return True
 
-def get_sid(source,suggest):
+def hotels_get_geo_id_by_dest_id(dest_id):
+    sql = '''SELECT sid
+FROM ota_location
+WHERE source = 'hotels' AND suggest_type = 2 AND json_extract(suggest, '$.destinationId') = '{}';'''.format(dest_id)
+    res = None
+    for line in fetchall(source_info_pool, sql):
+        res = line
+
+    if res:
+        return res[0]
+    else:
+        return None
+
+def get_sid(source,suggest,city_id):
     if source == 'daodao':
         suggest = suggest
         _l_sid = re.findall('-(g\d+)', suggest)
@@ -536,7 +551,9 @@ def get_sid(source,suggest):
         if _l_sid:
             sid = _l_sid[0]
         else:
-            pass
+            _l_sid = re.findall('cid=(\d+)', suggest)
+            if _l_sid:
+                sid = _l_sid[0]
     elif source == 'elong':
         suggest = suggest
         if 'poi_' in suggest:
@@ -574,7 +591,7 @@ def get_sid(source,suggest):
         if _l_sid:
             sid = _l_sid[0]
         else:
-            sid = suggest
+            sid = 'city-{}'.format(city_id)
             logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
 
     elif source == 'hotels':
@@ -586,9 +603,14 @@ def get_sid(source,suggest):
             _l_sid = re.findall('destination-id=([\d]+)', suggest)
             if _l_sid:
                 dest_id = _l_sid[0]
-                sid = dest_id
+                sid = hotels_get_geo_id_by_dest_id(dest_id=dest_id)
+                if not sid:
+                    sid = 'dest-{}'.format(dest_id)
+                    # logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+                    # continue
             else:
                 logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+                
     return sid
 
 
@@ -637,7 +659,7 @@ def add_others_source_city(city_path,hotels_path,attr_path,config,param):
                     continue
                 label_batch = str(datetime.now())[:10].replace('-','')
                 label_batch = ''.join([label_batch,'a'])
-                sid = get_sid(source,suggest)
+                sid = get_sid(source,suggest,city_id)
                 md5 = hashlib.md5()
                 md5.update(sid.encode('utf-8'))
                 sid_md5 = md5.hexdigest()

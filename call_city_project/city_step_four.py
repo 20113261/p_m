@@ -70,7 +70,7 @@ def task_start():
             reader = csv.DictReader(city)
             for row in reader:
                 save_cityId.append(row['city_id'])
-        save_cityId = ['10001','10003','10005']
+        # save_cityId = ['10001','10003','10005']
         logger.info('[step4][%s] 启动发任务' % [param])
         collection_name, task_name = google_driver(save_cityId,param,config)
         logger.info('[step4][%s] 任务已发完[%s][%s]' % (param, collection_name, task_name,))
