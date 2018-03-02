@@ -124,7 +124,8 @@ def add_city_suggest(city_path):
     city_names = city_data['name'].values
     city_countryIds = city_data['country_id'].values
     city_mapinfos = city_data['map_info'].values
-    city_names = list(zip(city_names,city_countryIds,city_mapinfos))
+    city_numbers = city_data['id'].values
+    city_names = list(zip(city_names,city_countryIds,city_mapinfos,city_numbers))
     sources = ['ctrip', 'elong', 'agoda', 'booking', 'expedia', 'hotels', 'daodao', 'qyer']
     deletion_city_suggest = defaultdict(list)
     select_sql = "select s_city,source,suggest from ota_location where source=%s and s_city=%s"
