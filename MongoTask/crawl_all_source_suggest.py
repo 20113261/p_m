@@ -15,7 +15,7 @@ def get_task_name():
     return task_name
 def create_task(city_path):
     task_name = get_task_name()
-    with InsertTask(worker='proj.total_tasks.allhotel_city_suggest', queue='poi_detail', routine_key='poi_detail',
+    with InsertTask(worker='proj.total_tasks.allhotel_city_suggest', queue='supplement_field', routine_key='supplement_field',
                     task_name=task_name, source='sources', _type='SourceSuggest',
                     priority=11) as it:
         citys = add_city_suggest(city_path)
