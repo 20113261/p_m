@@ -8,6 +8,8 @@ from city.config import data_config, OpCity_config, base_path
 from call_city_project.step_status import modify_status, getStepStatus
 from my_logger import get_logger
 from call_city_project.report import make_poi_and_hotel_report
+from call_city_project.step_status import modify_status
+from call_city_project.city_step_seven import check_POI_data, update_mapinfo, analysis_result, success_report, dumps_sql, send_email_format
 
 scheduler = BlockingScheduler()
 logger = get_logger('monitor', base_path)
@@ -40,23 +42,55 @@ def from_tag_get_tasks_status(name, flag=False):
         conn.close()
     return result
 
+def step7_detection(tag):
+    # update_mapinfo(tag)
+    qyer_report_result, _1, daodao_report_result, _2 = check_POI_data(tag)
+    print(qyer_report_result)
+    print(daodao_report_result)
+    qyer_flag, qyer_report = analysis_result(qyer_report_result, 'qyer')
+    daodao_flag, daodao_report = analysis_result(daodao_report_result, 'daodao')
+
+    report = success_report(tag)
+    check_report = '数据检测结果：\n' + qyer_report + '\n' + daodao_report + '\n\n' + report
+    if qyer_flag and daodao_flag:
+        for source in ['total', 'attr']:
+            rsync_path = dumps_sql(tag, source)
+        send_email_format(check_report, rsync_path)
+    else:
+        for source in ['total', 'attr']:
+            rsync_path = dumps_sql(tag, source)
+        send_email_format(check_report, rsync_path)
+
+
 def monitor_task_summary(step):
     stepa = 'step'+step
     logger.info('================= ' + stepa + ' ================= 开始')
     tasks = getStepStatus(stepa)
     for param, values in tasks.items():
-        if len(values) == 0: continue
-        task_name = values[-1]
-        logger.info('{}, {}'.format(stepa, task_name))
-        tasks_status = from_tag_get_tasks_status(task_name)
-        logger.info('{}, {}'.format(stepa, tasks_status))
-        line = tasks_status[0]
-        t_all, t_done, t_failed = line[3], line[4], line[5]
-        if t_all == t_done + t_failed:
-            update_step_report('', param, 1, 0, int(step))
-            modify_status(stepa, param, flag=False)
-            logger.info('================= ' + stepa + ' ================= 完成')
-    logger.info('================= ' + stepa + ' ================= 1')
+        if len(values) == 0: return
+        if type(values[0]) is list:
+            task_naems = list(zip(*values))[1]
+        else:
+            task_naems = [values[1]]
+        the_progress_of = 0
+        for task_name in task_naems:
+            logger.info('{}, {}'.format(stepa, task_name))
+            tasks_status = from_tag_get_tasks_status(task_name)
+            logger.info('{}, {}'.format(stepa, tasks_status))
+            line = tasks_status[0]
+            t_all, t_done, t_failed = line[3], line[4], line[5]
+            if t_all == t_done + t_failed:
+                the_progress_of += 1
+
+            if the_progress_of==len(task_naems):
+                if step=='7':
+                    tag = task_name.rsplit('_')[-1]
+                    step7_detection(tag)
+                    return
+                update_step_report('', param, 1, 0, int(step))
+                modify_status(stepa, param, flag=False)
+                logger.info('================= ' + stepa + ' ================= 完成')
+        logger.info('================= ' + stepa + ' ================= 1')
 
 def monitor_report(step):
     stepa = 'step' + step
@@ -97,12 +131,12 @@ def monitor_report(step):
 
 
 def local_jobs():
-    # scheduler.add_job(monitor_report, 'date', args=('5',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
-    scheduler.add_job(monitor_task_summary,'cron',args=('3',),second='*/300',id='step3')
-    scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
-    scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')
-    scheduler.add_job(monitor_report, 'cron', args=('5',), second='*/300', id='step5')
-    scheduler.add_job(monitor_task_summary, 'cron', args=('8',), second='*/300', id='step8')
+    scheduler.add_job(monitor_task_summary, 'date', args=('7',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
+    # scheduler.add_job(monitor_task_summary,'cron',args=('3',),second='*/300',id='step3')
+    # scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
+    # scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')
+    # scheduler.add_job(monitor_report, 'cron', args=('5',), second='*/300', id='step5')
+    # scheduler.add_job(monitor_task_summary, 'cron', args=('8',), second='*/300', id='step8')
 
 
 if __name__ == '__main__':
