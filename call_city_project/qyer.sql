@@ -32,7 +32,7 @@ CREATE TABLE `BaseDataFinal`.`total_final_{}` (
   `url` varchar(512) DEFAULT NULL,
   `phone` varchar(64) DEFAULT NULL,
   `site` varchar(256) DEFAULT NULL,
-  `imgurl` varchar(2048) DEFAULT NULL,
+  `imgurl` text,
   `commenturl` varchar(512) DEFAULT NULL,
   `introduction` text,
   `opentime` varchar(1000) DEFAULT NULL,
