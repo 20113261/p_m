@@ -9,8 +9,6 @@
 import requests
 import sys
 
-SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
-
 def send_email(title, content, mail_list, need_qq=False):
     mailapi = "http://10.10.150.16:9000/sendmail"
     mail_list = ';'.join(mail_list)

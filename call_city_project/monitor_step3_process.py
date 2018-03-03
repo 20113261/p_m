@@ -28,11 +28,8 @@ def get_total_count(collection_name):
     total_count = collection.find({}).count()
     return total_count
 
-def monitor_step3_bark():
-    with open('tasks.json','r+') as f:
-        tasks = json.load(f)
-
-    tasks_list = list(tasks.items())
+def monitor_step3_bark(stepa):
+    tasks = getStepStatus(stepa)
     if len(tasks_list) == 0:
         return
     conn = pymysql.connect(**OpCity_config)
@@ -40,10 +37,10 @@ def monitor_step3_bark():
     save_result = []
     for param, collection_names in tasks.items():
 
-        select_sql = "select step5 from city_order where id=%s"
+        select_sql = "select step3 from city_order where id=%s"
 
         cursor.execute(select_sql, (param))
-        status_id = cursor.fetchone()[0]
+        status_id = cursor.fetchone()
         for collection_name,task_name in collection_names:
             total_count = get_total_count(collection_name)
             if int(total_count) == 0:
