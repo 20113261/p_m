@@ -6,12 +6,24 @@ pymysql.install_as_MySQLdb()
 import pandas
 from DBUtils.PooledDB import PooledDB
 import sys
-
 import csv
 from collections import defaultdict
 import json
 
-
+base_data_config = {
+    'host': '10.10.69.170',
+    'user': 'mioji_admin',
+    'passwd': 'miaoji1109',
+    'db': 'base_data',
+    'charset': 'utf8'
+}
+ota_location_config = {
+    'host': '10.10.230.206',
+    'user': 'mioji_admin',
+    'passwd': 'mioji1109',
+    'db': 'source_info',
+    'charset': 'utf8'
+}
 def get_elong_url(suggest):
     url = "http://ihotel.elong.com/region_{0}/"
     try:
@@ -61,8 +73,8 @@ def get_expedia_url(suggest):
 def get_booking_url():
     pass
 
-def data_connection_pool():
-    __conn = PooledDB(creator=pymysql,mincached=1,maxcached=20,host='10.10.228.253',user='mioji_admin',passwd='mioji1109',db='source_info',charset='utf8')
+def data_connection_pool(config):
+    __conn = PooledDB(creator=pymysql,mincached=1,maxcached=20,**config)
     conn = __conn.connection()
     return conn
 
@@ -117,25 +129,22 @@ def from_ota_get_city():
             writer = csv.DictWriter(poi,fieldnames=['name','daodao','qyer'])
             writer.writerow(poi_save)
 
+
 def add_city_suggest(city_path):
-    conn = data_connection_pool()
+    conn = data_connection_pool(ota_location_config)
     cursor = conn.cursor()
     city_data = pandas.read_excel(city_path,)
     city_names = city_data['name'].values
     city_countryIds = city_data['country_id'].values
     city_mapinfos = city_data['map_info'].values
     city_numbers = city_data['id'].values
-    city_names = list(zip(city_names,city_countryIds,city_mapinfos,city_numbers))
+    city_infos = list(zip(city_names,city_countryIds,city_mapinfos,city_numbers))
     sources = ['ctrip', 'elong', 'agoda', 'booking', 'expedia', 'hotels', 'daodao', 'qyer']
     deletion_city_suggest = defaultdict(list)
-    select_sql = "select s_city,source,suggest from ota_location where source=%s and s_city=%s"
 
     for source in sources:
-        for city_name in city_names:
-            cursor.execute(select_sql, (source, str(city_name[0])))
-            result = cursor.fetchone()
-            if not result:
-                deletion_city_suggest[source].append(city_name)
+        for city_info in city_infos:
+            deletion_city_suggest[source].append(city_info)
     return deletion_city_suggest
 
 if __name__ == "__main__":
