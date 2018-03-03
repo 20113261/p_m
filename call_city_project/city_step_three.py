@@ -147,7 +147,7 @@ def task_start():
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
-        update_step_report(csv_path, param, 1,0)
+        # update_step_report(csv_path, param, 1,0)
         logger.debug("上传图片开始")
         if judge_city_id:
             os.system('java -jar /search/cuixiyi/ks3up-tool-2.0.6-20170801/ks3up-2.0.6.jar -c /search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf start')
