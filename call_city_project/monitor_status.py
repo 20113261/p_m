@@ -179,6 +179,7 @@ def monitor_step3(stepa):
 
         if success_finish_num == total_count:
             update_step_report(step, param, 1, 0)
+            modify_status(step, param, flag=False)
             logger.info('{0}, {1} 成功'.format(step, collection_name))
 
 
