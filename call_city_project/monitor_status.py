@@ -174,11 +174,11 @@ def monitor_step3(stepa):
 
         logger.info('{0}, collections: {1}  total: {2}  success: {3}  failed: {4}'.format(step, collection_name, total_count, success_finish_num, failed_finish_num))
         if failed_finish_num>0 and failed_finish_num+success_finish_num==total_count:
-            update_step_report(step, param, -1, 0)
+            update_step_report('', param, -1, 0, int(stepa))
             logger.info('{0}, {1} 失败'.format(step, collection_name))
 
         if success_finish_num == total_count:
-            update_step_report(step, param, 1, 0)
+            update_step_report('', param, 1, 0, int(stepa))
             modify_status(step, param, flag=False)
             logger.info('{0}, {1} 成功'.format(step, collection_name))
 
