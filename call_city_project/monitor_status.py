@@ -9,7 +9,7 @@ import pymongo
 from city.config import data_config, OpCity_config, base_path
 from call_city_project.step_status import modify_status, getStepStatus
 from my_logger import get_logger
-from call_city_project.report import make_poi_and_hotel_report
+from call_city_project.report import make_poi_and_hotel_report, make_image_content_report, get_file
 from call_city_project.step_status import modify_status
 from call_city_project.city_step_seven import check_POI_data, update_mapinfo, analysis_result, success_report, dumps_sql, send_email_format
 
@@ -94,7 +94,10 @@ def monitor_task_summary(step):
                 if step=='7':
                     tag = task_name.rsplit('_')[-1]
                     step7_detection(tag)
-                    return
+                    if not get_file(param, 'poireport.csv'):
+                        return
+                elif step=='8':
+                    make_image_content_report(t_all, t_done, t_failed, param)
                 update_step_report('', param, 1, 0, int(step))
                 modify_status(stepa, param, flag=False)
                 logger.info('================= ' + stepa + ' ================= 完成')

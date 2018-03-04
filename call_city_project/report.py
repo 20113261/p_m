@@ -42,6 +42,18 @@ def make_image_content_report(t_all, t_done, t_failed, param):
     else:
         logger.info('{}, 报表上传失败'.format(param))
 
+def get_file(param, filename):
+    cmd = "rsync  10.10.150.16::opcity/{0}/{1} /tmp".format(param, filename)
+    status = system(cmd)
+    print(status)
+    if status==0:
+        logger.info('{}, 获取文件成功'.format(param))
+        return True
+    else:#5888
+        logger.info('{}, 获取文件失败'.format(param))
+        return False
+
 if __name__ == '__main__':
     # make_image_content_report(19666, 19345, 321, '674')
-    make_poi_and_hotel_report('', '674')
+    # make_poi_and_hotel_report('', '674')
+    get_file('674', 'merge_image_and_contenta.txt')
