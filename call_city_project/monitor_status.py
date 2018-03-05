@@ -73,6 +73,7 @@ def step7_detection(tag):
 def monitor_task_summary(step):
     stepa = 'step'+step
     logger.info('================= ' + stepa + ' ================= 开始')
+    csvpath = ''
     tasks = getStepStatus(stepa)
     for param, values in tasks.items():
         if len(values) == 0: return
@@ -94,12 +95,14 @@ def monitor_task_summary(step):
                 if step=='7':
                     tag = task_name.rsplit('_')[-1]
                     step7_detection(tag)
-                    if not get_file(param, 'poireport.csv'):
-                        return
+                    # if not get_file(param, 'poireport.csv'):
+                    return
                 elif step=='8':
-                    make_image_content_report(t_all, t_done, t_failed, param)
-                update_step_report('', param, 1, 0, int(step))
-                modify_status(stepa, param, flag=False)
+                    if not make_image_content_report(t_all, t_done, t_failed, param):return
+                    csvpath = '{}/merge_image_and_content.txt'.format(param)
+                update_step_report(csvpath, param, 1, 0, int(step))
+                if step!='4':
+                    modify_status(stepa, param, flag=False)
                 logger.info('================= ' + stepa + ' ================= 完成')
         logger.info('================= ' + stepa + ' ================= 1')
 
@@ -187,7 +190,7 @@ def monitor_step3(stepa):
 
 
 def local_jobs():
-    # scheduler.add_job(monitor_step3, 'date', args=('3',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
+    # scheduler.add_job(monitor_task_summary, 'date', args=('8',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
     scheduler.add_job(monitor_step3,'cron',args=('3',),second='*/300',id='step3')
     scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
     scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')

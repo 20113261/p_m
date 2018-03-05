@@ -37,10 +37,12 @@ def make_image_content_report(t_all, t_done, t_failed, param):
     print(cmd)
     status = system(cmd)
     print(status)
-    if status==256:
+    if status==0:
         logger.info('{}, 报表上传成功'.format(param))
+        return True
     else:
         logger.info('{}, 报表上传失败'.format(param))
+        return False
 
 def get_file(param, filename):
     cmd = "rsync  10.10.150.16::opcity/{0}/{1} /tmp".format(param, filename)
