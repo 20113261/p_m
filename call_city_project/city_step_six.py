@@ -66,21 +66,25 @@ def selectServicePlatform2BaseDataFinal():
 
 def check_hotel_data(tag):
     cmd = 'python get_illegal_ori_parse_data.py {}'.format(tag)
-    subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, cwd='/search/cuixiyi/PoiCommonScript/check_base_hotel', )
-
-    result_path = os.path.join('/search/cuixiyi/PoiCommonScript/check_base_hotel', time.strftime('%Y%m%d') + '.log')
-    with open(result_path, 'r') as f:
-        data = f.read()
-        index = 0
-        for i in range(5):
-            index = data.find('\n', index+1)
-            if i < 2:
-                data = data[:index+1] + '        ' + data[index+1:]
-        if index>-1:
-            update_step_report('', param, -1, 0)
-            raise Exception('执行检查命令失败')
-        else:
-            return data
+    result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, cwd='/search/cuixiyi/PoiCommonScript/check_base_hotel', )
+    for i in range(600):
+        time.sleep(0.1)
+        logger.info(result.stdout.read())
+        if not result.wait():
+            result_path = os.path.join('/search/cuixiyi/PoiCommonScript/check_base_hotel', time.strftime('%Y%m%d') + '.log')
+            with open(result_path, 'r') as f:
+                data = f.read()
+                index = 0
+                for i in range(5):
+                    index = data.find('\n', index+1)
+                    if i < 2:
+                        data = data[:index+1] + '        ' + data[index+1:]
+                if index>-1:
+                    update_step_report('', param, -1, 0)
+                    raise Exception('执行检查命令失败')
+                else:
+                    return data
+            break
 
 def dumps_sql(tag):
     cmd = """mysqldump -h10.10.228.253 -umioji_admin -pmioji1109 BaseDataFinal hotel_final_{0} > /data/hourong/output/hotel_final_{0}.sql"""
