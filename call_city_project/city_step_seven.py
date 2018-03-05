@@ -293,7 +293,7 @@ def task_start():
         logger.info('[step6][%s] mapping qyer 开始' % (param,))
         logger.info('[step6][%s] 检查数据 开始' % (param,))
         _1, qyer_tasks_data, _2, daodao_tasks_data = check_POI_data(tag)
-        logger.info('[step6][%s] 检查数据 完成' % (param,))
+        logger.info('[step6][%s] 检查数据 完成 \n%s\n%s' % (param, str(qyer_tasks_data), str(daodao_tasks_data)))
 
         tasks_names = []
         if qyer_tasks_data:
