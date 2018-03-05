@@ -96,13 +96,12 @@ def monitor_task_summary(step):
                     tag = task_name.rsplit('_')[-1]
                     step7_detection(tag)
                     # if not get_file(param, 'poireport.csv'):
-                    return
                 elif step=='8':
                     if not make_image_content_report(t_all, t_done, t_failed, param):return
                     csvpath = '{}/merge_image_and_content.txt'.format(param)
                 if step in ('4', '9'):
                     update_step_report(csvpath, param, 4, 0, int(step))
-                else:
+                elif step not in ('6', '7'):
                     update_step_report(csvpath, param, 1, 0, int(step))
                 modify_status(stepa, param, flag=False)
                 logger.info('================= ' + stepa + ' ================= 完成')
@@ -137,10 +136,10 @@ def monitor_report(step):
                 logger.info('{}, {}: {}'.format(stepa, '已完成', source))
                 status_list_len+=1
         if status_list_len>=len(task_names)-2:
-            update_step_report('', param, 1, 0, int(step))
             modify_status(stepa, param, flag=False)
             logger.info('{}, 开始生成报表'.format(stepa))
-            make_poi_and_hotel_report(all_finaled_data, param)
+            csv_file = make_poi_and_hotel_report(all_finaled_data, param)
+            update_step_report(csv_file, param, 1, 0, int(step))
             logger.info('================= ' + stepa + ' ================= 完成')
 
     logger.info('================= ' + stepa + ' ================= 1')
@@ -192,7 +191,7 @@ def monitor_step3(stepa):
 
 
 def local_jobs():
-    # scheduler.add_job(monitor_task_summary, 'date', args=('8',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
+    # scheduler.add_job(monitor_task_summary, 'date', args=('7',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
     scheduler.add_job(monitor_step3,'cron',args=('3',),second='*/300',id='step3')
     scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
     scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')
