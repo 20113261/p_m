@@ -100,9 +100,11 @@ def monitor_task_summary(step):
                 elif step=='8':
                     if not make_image_content_report(t_all, t_done, t_failed, param):return
                     csvpath = '{}/merge_image_and_content.txt'.format(param)
-                update_step_report(csvpath, param, 1, 0, int(step))
-                if step!='4':
-                    modify_status(stepa, param, flag=False)
+                if step in ('4', '9'):
+                    update_step_report(csvpath, param, 4, 0, int(step))
+                else:
+                    update_step_report(csvpath, param, 1, 0, int(step))
+                modify_status(stepa, param, flag=False)
                 logger.info('================= ' + stepa + ' ================= 完成')
         logger.info('================= ' + stepa + ' ================= 1')
 
