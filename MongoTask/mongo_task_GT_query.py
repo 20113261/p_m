@@ -23,6 +23,9 @@ def get_tasks():
 
 
 if __name__ == '__main__':
+    #
+    # ctrip or tuniu
+    #
     args = [{
         "dept_info": {
             "id": "1",
@@ -34,10 +37,12 @@ if __name__ == '__main__':
             "name": "巴厘岛",
             "name_en": "bali"
         },
-        "vacation_type": "grouptravel"
+        "vacation_type": "grouptravel",
+
+        'source':'ctrip'
     }]
-    with InsertTask(worker='proj.total_tasks.ctrip_GT_list_task', queue='poi_list', routine_key='poi_list',
-                    task_name='city_total_ctripGT_20180228b', source='CtripGT', _type='CtripList',
+    with InsertTask(worker='proj.total_tasks.GT_list_task', queue='poi_list', routine_key='poi_list',
+                    task_name='city_total_GT_20180305a', source='GT', _type='GTList',
                     priority=3, task_type=TaskType.CITY_TASK) as it:
         for line in args:
 
