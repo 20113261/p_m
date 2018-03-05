@@ -7,6 +7,7 @@ from os import system
 from my_logger import get_logger
 
 poi_and_hotel_report_name = 'poi_and_hotel_report.csv'
+merge_image_and_content = 'merge_image_and_content.txt'
 logger = get_logger('monitor', base_path)
 
 def make_poi_and_hotel_report(data, param):
@@ -25,3 +26,36 @@ def make_poi_and_hotel_report(data, param):
         logger.info('{}, 报表上传成功'.format(param))
     else:
         logger.info('{}, 报表上传失败'.format(param))
+
+def make_image_content_report(t_all, t_done, t_failed, param):
+    txtfile = path_join(base_path, param, merge_image_and_content)
+    print(txtfile)
+    with open(txtfile, 'w') as f:
+        data = '第 {0} 批 总数 {1} 生成成功 {2} 生成失败 {3}'.format(param, t_all, format(t_done/t_all, '.0%'), format(t_failed/t_all, '.0%'))
+        f.write(data)
+    cmd = "rsync -vI {0} 10.10.150.16::opcity/{1}".format(txtfile, param)
+    print(cmd)
+    status = system(cmd)
+    print(status)
+    if status==0:
+        logger.info('{}, 报表上传成功'.format(param))
+        return True
+    else:
+        logger.info('{}, 报表上传失败'.format(param))
+        return False
+
+def get_file(param, filename):
+    cmd = "rsync  10.10.150.16::opcity/{0}/{1} /tmp".format(param, filename)
+    status = system(cmd)
+    print(status)
+    if status==0:
+        logger.info('{}, 获取文件成功'.format(param))
+        return True
+    else:#5888
+        logger.info('{}, 获取文件失败'.format(param))
+        return False
+
+if __name__ == '__main__':
+    # make_image_content_report(19666, 19345, 321, '674')
+    # make_poi_and_hotel_report('', '674')
+    get_file('674', 'merge_image_and_contenta.txt')

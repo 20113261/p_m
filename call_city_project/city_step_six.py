@@ -117,7 +117,7 @@ def task_start():
         {data_path}
     融合类型：增量融合
         """ .format(check_result=check_result[:-2], data_path=data_path), SEND_TO)
-        update_step_report('', param, 1, 0)
+        # update_step_report('', param, 1, 0)
         logger.info('[step6][%s]======== success =======' % (param,))
     except Exception as e:
         return_result['error']['error_id'] = 1

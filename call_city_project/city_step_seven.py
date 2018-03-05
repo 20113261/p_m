@@ -15,8 +15,8 @@ from city.send_email import send_email
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
 from call_city_project.step_status import modify_status
 
-# param = sys.argv[1]
-param = '671'
+param = sys.argv[1]
+# param = '671'
 # SEND_TO = ['luwanning@mioji.com', 'lidongwei@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com']
 SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
 path = ''.join([base_path, str(param), '/'])
