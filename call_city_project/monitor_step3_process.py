@@ -39,7 +39,7 @@ def monitor_step3_bark():
     save_result = []
     for param, collection_names in tasks.items():
 
-        select_sql = "select step5 from city_order where id=%s"
+        select_sql = "select step3 from city_order where id=%s"
 
         cursor.execute(select_sql, (param))
         status_id = cursor.fetchone()[0]
@@ -72,4 +72,4 @@ def monitor_step3_bark():
 
 
 if __name__ == "__main__":
-    pass
+    monitor_step3_bark()
