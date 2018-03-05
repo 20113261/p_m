@@ -23,7 +23,7 @@ from city.find_hotel_opi_city import add_city_suggest
 from MongoTask.crawl_all_source_suggest import create_task
 from call_city_project.step_status import modify_status
 import csv
-
+from city.find_hotel_opi_city import from_ota_get_city
 def get_zip_path(param):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
@@ -155,7 +155,13 @@ def task_start():
         logger.debug("开始更新ota_location表")
         collection_name,task_name = create_task(city_path,path,database_name)
         tasks = modify_status('step3',param,[collection_name,task_name])
+        # hotel_file_name,poi_file_name = from_ota_get_city(temp_config,param)
+        # temp_path = ''.join([base_path,hotel_file_name,])
+        # os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path, param))
+        # temp_path = ''.join([base_path,poi_file_name])
+        # os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path, param))
         logger.debug("结束更新ota_location表")
+
     except Exception as e:
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1

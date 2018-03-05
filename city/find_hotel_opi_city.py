@@ -9,7 +9,7 @@ import sys
 import csv
 from collections import defaultdict
 import json
-
+from city.config import base_path,config
 base_data_config = {
     'host': '10.10.69.170',
     'user': 'mioji_admin',
@@ -70,36 +70,57 @@ def get_expedia_url(suggest):
         return url
     except Exception as e:
         return None
-def get_booking_url():
-    pass
-
+def get_booking_url(suggest):
+    url = 'http://www.booking.com/searchresults.zh-cn.html?label=misc-aHhSC9cmXHUO1ZtqOcw05wS94870954985:pl:ta:p1:p2:ac:ap1t1:neg:fi:tikwd-11455299683:lp9061505:li:dec:dm&sid=2fabc4030e6b847b9ef3b059e24c6b83&aid=376390&error_url=http://www.booking.com/index.zh-cn.html?label=gen173nr-1FCAEoggJCAlhYSDNiBW5vcmVmcgV1c19kZYgBAZgBMsIBA2FibsgBDNgBAegBAfgBC6gCBA;sid=8ba5e9abe3eb9fcadf8e837d4d5a2464;sb_price_type=total&;&ss=Boucau&ssne=Boucau&ssne_untouched=Boucau&dest_id={0}&dest_type=city&checkin_year=&checkin_month=&checkin_monthday=&checkout_year=&checkout_month=&checkout_monthday=&no_rooms=&group_adults=&group_children=0&from_sf=1ss=Boucau&ssne=Boucau&ssne_untouched=Boucau&dest_id={0}&dest_type=city&checkin_year=&checkin_month=&checkin_monthday=&checkout_year=&checkout_month=&checkout_monthday=&no_rooms=&group_adults=&group_children=0&from_sf=1'
+    try:
+        dest_id = suggest['dest_id']
+        url = url.format(dest_id)
+        return url
+    except Exception as e:
+        return None
+def get_daodao_url(suggest):
+    try:
+        url = suggest['url']
+        url = ''.join(['https://www.tripadvisor.cn',url])
+        return url
+    except Exception as e:
+        return None
+def get_qyer_url(suggest):
+    return suggest
 def data_connection_pool(config):
     __conn = PooledDB(creator=pymysql,mincached=1,maxcached=20,**config)
     conn = __conn.connection()
     return conn
 
-def from_ota_get_city():
-    with open('酒店配置.csv','w+') as hotel:
+def from_ota_get_city(config,param):
+    path = ''.join([base_path, str(param), '/'])
+    with open(path+'酒店配置.csv','w+') as hotel:
         writer = csv.writer(hotel)
-        writer.writerow(('name','ctrip','elong','agoda','booking','expedia','hotels'))
-    with open("景点配置.csv",'w+') as poi:
+        writer.writerow(('id','name','ctrip','elong','agoda','booking','expedia','hotels'))
+    with open(path+"景点配置.csv",'w+') as poi:
         writer = csv.writer(poi)
-        writer.writerow(('name','daodao','qyer'))
-    conn = data_connection_pool()
+        writer.writerow(('id','name','daodao','qyer'))
+    conn = data_connection_pool(config)
     cursor = conn.cursor()
-    city_data = pandas.read_csv('city_list.csv',)
-    city_names = city_data['city_name'].values
+    city_data = pandas.read_csv(path+'city_id.csv',)
+    city_names = city_data['name'].values
+    city_names_en = city_data['name_en'].values
+    city_id_numbers = city_data['city_id_number'].values
+    city_ids = city_data['city_id'].values
+    city_infos = zip(city_id_numbers,city_ids,city_names,city_names_en)
     sources = ['ctrip','elong','agoda','booking','expedia','hotels','daodao','qyer']
     hotel_source = ['ctrip','elong','agoda','booking','expedia','hotels']
     poi_source = ['daodao','qyer']
     select_sql = "select s_city,source,suggest from ota_location where source=%s and s_city=%s"
-    for city_name in city_names:
+    for city_info in city_infos:
         hotel_save = {}
         poi_save = {}
-        hotel_save['name'] = city_name
-        poi_save['name'] = city_name
+        poi_save['id'] = hotel_save['id'] = str(city_info[0])
+        poi_save['name'] = hotel_save['name'] = str(city_info[2])
+        poi_save['name_en'] = hotel_save['name_en'] = str(city_info[3])
+
         for source in sources:
-            cursor.execute(select_sql,(source,city_name))
+            cursor.execute(select_sql,(source,city_info[2]))
             result = cursor.fetchone()
             if not result:
                 pass
@@ -107,6 +128,9 @@ def from_ota_get_city():
                 name,city_source,suggest = result
                 if '{' in suggest or 'ctrip' in source:
                     if 'ctrip' in source:
+                        get_url = getattr(sys.modules[__name__],'get_{0}_url'.format(source))
+                        url = get_url(suggest)
+                    elif 'qyer' in source:
                         get_url = getattr(sys.modules[__name__],'get_{0}_url'.format(source))
                         url = get_url(suggest)
                     else:
@@ -122,13 +146,13 @@ def from_ota_get_city():
                     hotel_save[source] = suggest
                 elif source in poi_source:
                     poi_save[source] = suggest
-        with open('酒店配置.csv','a+') as hotel:
-            writer = csv.DictWriter(hotel,fieldnames=['name','ctrip','elong','agoda','booking','expedia','hotels'])
+        with open(path+'酒店配置.csv','a+') as hotel:
+            writer = csv.DictWriter(hotel,fieldnames=['id','name','name_en','ctrip','elong','agoda','booking','expedia','hotels'])
             writer.writerow(hotel_save)
-        with open('景点配置.csv','a+') as poi:
-            writer = csv.DictWriter(poi,fieldnames=['name','daodao','qyer'])
+        with open(path+'景点配置.csv','a+') as poi:
+            writer = csv.DictWriter(poi,fieldnames=['id','name','name_en','daodao','qyer'])
             writer.writerow(poi_save)
-
+    return '酒店配置.csv','景点配置.csv'
 
 def add_city_suggest(city_path):
     conn = data_connection_pool(ota_location_config)
@@ -148,7 +172,8 @@ def add_city_suggest(city_path):
     return deletion_city_suggest
 
 if __name__ == "__main__":
-
+    temp_config = config
+    temp_config['db'] = 'add_city_681'
 
     add_city_suggest()
 

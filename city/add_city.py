@@ -171,10 +171,10 @@ def read_file(xlsx_path,config,param):
                 print(data)
             else:
                 data_table.upsert(data, keys=['id'])
-            all_city_id.append((city_id_number,data['id']))
+            all_city_id.append((city_id_number,data['id'],data['name'],data['name_en']))
     with open(path+'city_id.csv','w+') as city:
         writer = csv.writer(city)
-        writer.writerow(("city_id_number","city_id",))
+        writer.writerow(("city_id_number","city_id",'name','name_en'))
         for city_id in all_city_id:
             writer.writerow(city_id)
 
