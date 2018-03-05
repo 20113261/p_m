@@ -111,7 +111,7 @@ def google_driver(city_id,param,config,):
             it.insert_task({
                 'url': google_url,
 
-                'task_id': 'inner_{0}'.format(param),
+                'task_id': 'inter_{0}'.format(param),
                 's_cid': s_cid,
                 'd_cid': d_cid
 
