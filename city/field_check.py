@@ -643,7 +643,7 @@ def add_others_source_city(city_path,hotels_path,attr_path,config,param):
                 source_city_info[source][row['id']] = row[source]
 
     insert_sql = "insert ignore into ota_location(source,sid_md5,sid,suggest_type,suggest,city_id,country_id,s_city,s_region,s_country,s_extra,label_batch,others_info) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-
+    real_insert_sql = "insert ignore into source_info.ota_location(source,sid_md5,sid,suggest_type,suggest,city_id,country_id,s_city,s_region,s_country,s_extra,label_batch,others_info) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
     with open(path+'新增城市.csv','r+') as city:
         reader = csv.DictReader(city)
         for row in reader:
@@ -674,6 +674,7 @@ def add_others_source_city(city_path,hotels_path,attr_path,config,param):
     cursor = conn.cursor()
     print(save_result)
     cursor.executemany(insert_sql,save_result)
+    cursor.executemany(real_insert_sql,save_result)
     conn.commit()
     conn.close()
 if __name__ == "__main__":
