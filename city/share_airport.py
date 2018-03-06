@@ -354,10 +354,10 @@ def from_file_get_share_airport(param):
                                                   row['time2city_center'],row['inner_order']))
                 city_id_map.pop(save_pop_key)
         else:
-            save_city_name = []
+            save_city_id = []
             if city_id_map:
                 for key,value in city_id_map.items():
-                    save_city_name.append(value[1])
+                    save_city_id.append(value[0])
     with open(path+'add_new_airport.csv', 'a+') as airport:
         writer = csv.writer(airport)
         for new_airport in save_add_new_airport:
@@ -367,6 +367,6 @@ def from_file_get_share_airport(param):
         for new_share_airport in save_add_new_share_airport:
             writer.writerow(new_share_airport)
 
-    return 'add_new_airport.csv','add_new_share_airport.csv',save_city_name
+    return 'add_new_airport.csv','add_new_share_airport.csv',save_city_id
 if __name__ == '__main__':
     from_file_get_share_airport('686')
