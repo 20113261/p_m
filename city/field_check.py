@@ -623,7 +623,11 @@ def get_sid(source,suggest,city_id):
                     # logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
                     # continue
             else:
-                logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
+                _l_sid = re.findall('resolved-location=(.*?)&', suggest)
+                if _l_sid:
+                    sid = _l_sid[0]
+                else:
+                    logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
                 
     return sid
 
