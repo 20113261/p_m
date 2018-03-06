@@ -43,7 +43,6 @@ def shareAirport_insert(config,param,airport_paths):
             save_result = []
 def from_file_airport_insert(config,param,airport_paths):
     path = ''.join([base_path,str(param),'/'])
-    path = '/Users/miojilx/Desktop/'
     update_sql = "insert ignore into airport(iata_code,name,name_en,city_id,belong_city_id,map_info,status,time2city_center,inner_order) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
     conn = pymysql.connect(**config)
     cursor= conn.cursor()

@@ -324,7 +324,6 @@ def update_share_airport(config,param,add_new_city=None):
 
 def from_file_get_share_airport(param):
     path = ''.join([base_path, str(param), '/'])
-    path = '/Users/miojilx/Desktop/'
     with open(path+'add_new_airport.csv', 'w+') as airport:
         writer = csv.writer(airport)
         writer.writerow(('iata_code','name','name_en','city_id','belong_city_id','map_info','status','time2city_center','inner_order'))
