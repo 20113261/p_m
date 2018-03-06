@@ -112,7 +112,7 @@ def task_start():
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
         if flag:
-            update_step_report(csv_path,param,1,0)
+            update_step_report('',param,1,0)
         else:
             update_step_report(csv_path,param,-1,0)
     except Exception as e:
