@@ -136,14 +136,15 @@ def task_start():
             share_airport_path = update_share_airport(temp_config,param)
         elif airport_path:
             share_airport_path = from_file_get_share_airport(param)
-            share_airport_to_data_path = share_airport_path
             citys = share_airport_path[2]
             if citys:
                 need_share_airport_path = update_share_airport(temp_config,param,citys)
             else:
                 need_share_airport_path = []
-            share_airport_path = list(share_airport_path).pop(2).append(need_share_airport_path)
 
+            share_airport_path = list(share_airport_path).pop(2)
+            share_airport_to_data_path = share_airport_path
+            share_airport_path = share_airport_path.append(need_share_airport_path)
         if share_airport_path and judge_city_id:
             share_airport_path = list(share_airport_path)
             for airport_file_path in share_airport_path:
