@@ -251,7 +251,7 @@ def city_field_check(city_path,param,picture_path):
         writer = csv.writer(city)
         writer.writerow(('字段名称','不合格城市'))
         for key,value in not_standard_field.items():
-            value_str = json.dumps(value)
+            value_str = json.dumps(value, ensure_ascii=False)
             writer.writerow((key,value_str))
     if not_standard_field:
         return '/'.join([param,'check_city.csv'])
@@ -367,7 +367,7 @@ def airport_field_check(airport_path,param):
         writer = csv.writer(airport)
         writer.writerow(('字段名称','不合格机场'))
         for key,value in not_standard_field.items():
-            value_str = json.dumps(value)
+            value_str = json.dumps(value, ensure_ascii=False)
             writer.writerow((key,value_str))
     if not_standard_field:
         return '/'.join([param,'check_airport.csv'])
@@ -411,7 +411,7 @@ def check_repeat_city(city_path,param):
         writer = csv.writer(city)
         writer.writerow(('repeat_city','重复城市列表'))
         for key,value in repeat_city.items():
-            value_str = json.dumps(value)
+            value_str = json.dumps(value, ensure_ascii=False)
             writer.writerow((key,value_str))
     if repeat_city:
         return '/'.join([param,'check_repeat_city.csv'])
@@ -456,7 +456,7 @@ def check_repeat_airport(airport_path,param):
             writer = csv.writer(airport)
             writer.writerow(('repeat_airport','重复机场列表'))
             for key,value in repeat_airport.items():
-                value_str = json.dumps(value)
+                value_str = json.dumps(value, ensure_ascii=False)
                 writer.writerow((key,value_str))
         if repeat_airport:
             return '/'.join([param,'check_repeat_airport.csv'])
