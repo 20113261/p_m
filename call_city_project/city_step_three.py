@@ -142,7 +142,7 @@ def task_start():
                 need_share_airport_path = update_share_airport(temp_config,param,citys)
             else:
                 need_share_airport_path = []
-            share_airport_path = share_airport_path.pop(2).append(need_share_airport_path)
+            share_airport_path = list(share_airport_path).pop(2).append(need_share_airport_path)
 
         if share_airport_path and judge_city_id:
             share_airport_path = list(share_airport_path)
