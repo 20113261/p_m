@@ -142,18 +142,18 @@ def task_start():
                 need_share_airport_path = update_share_airport(temp_config,param,citys)
             else:
                 need_share_airport_path = []
-            logger.debug(share_airport_path)
             share_airport_path = list(share_airport_path)[:2]
-            logger.debug(share_airport_path)
             share_airport_to_data_path = share_airport_path
-            share_airport_path = share_airport_path.extend(need_share_airport_path)
-            logger.debug(share_airport_path)
+            logger.debug("share_airport_to_data_path:",share_airport_to_data_path)
+            if need_share_airport_path:
+                share_airport_path = share_airport_path.extend(need_share_airport_path)
+                logger.debug("share_airport_path:",share_airport_path)
         if share_airport_path and judge_city_id:
             for airport_file_path in share_airport_path:
                 airport_file_path = '/'.join([param,airport_file_path])
                 temp_path = ''.join([base_path,airport_file_path])
                 os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-            save_path.extend(share_airport_path)
+                save_path.append(temp_path)
         logger.debug("城市共享机场执行完毕")
         logger.debug("城市共享机场入库开始")
         if judge_city_id and share_airport_to_data_path:
