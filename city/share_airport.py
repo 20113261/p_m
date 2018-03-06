@@ -207,7 +207,7 @@ def write_city_list(result,param,config):
         writer.writerow(results)
 
 
-def update_share_airport(config,param):
+def update_share_airport(config,param,add_new_city=None):
 
     path = ''.join([base_path, str(param), '/'])
 
@@ -223,6 +223,8 @@ def update_share_airport(config,param):
     city_conn = pymysql.connect(**config)
     cursor = city_conn.cursor()
     citys, airports = get_need_share_airport_city(config)
+    if add_new_city:
+        citys = add_new_city
     print('citys:',len(citys),'airports:',len(airports))
     select_city = 'SELECT map_info,country_id FROM city WHERE id = %s'
 
@@ -320,7 +322,52 @@ def update_share_airport(config,param):
 
     return 'share_airport.csv','city_list.csv'
 
+def from_file_get_share_airport(param):
+    path = ''.join([base_path, str(param), '/'])
+    path = '/Users/miojilx/Desktop/'
+    with open(path+'add_new_airport.csv', 'w+') as airport:
+        writer = csv.writer(airport)
+        writer.writerow(('iata_code','name','name_en','city_id','belong_city_id','map_info','status','time2city_center','inner_order'))
+    with open(path+'add_new_share_airport.csv', 'w+') as airport:
+        writer = csv.writer(airport)
+        writer.writerow(('iata_code', 'name', 'name_en', 'city_id', 'belong_city_id', 'map_info', 'status',
+                         'time2city_center',  'inner_order'))
+    city_id_map = {}
+    with open(path+'city_id.csv','r+') as city:
+        reader = csv.DictReader(city)
+        for row in reader:
+            city_id_map[row['city_id_number']] = [row['city_id'],row['name']]
+    save_add_new_airport = []
+    save_add_new_share_airport = []
+    with open(path+'新增机场.csv','r+') as airport:
+        reader = csv.DictReader(airport)
+        for row in reader:
+            save_pop_key = row['city_id']
+            if row['city_id'] == row['belong_city_id']:
+                row['city_id'] = row['belong_city_id'] = city_id_map[row['city_id']][0]
+                city_id_map.pop(save_pop_key)
+                save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
+                                                  row['city_id'], row['belong_city_id'], row['map_info'], row['status'],
+                                                  row['time2city_center'], row['inner_order']))
+            elif row['city_id'] != row['belong_city_id']:
+                row['city_id'] = city_id_map[row['city_id']][0]
+                save_add_new_share_airport.append((row['iata_code'],row['name'],row['name_en'],row['city_id'],row['belong_city_id'],row['map_info'],row['status'],
+                                                  row['time2city_center'],row['inner_order']))
+                city_id_map.pop(save_pop_key)
+        else:
+            save_city_name = []
+            if city_id_map:
+                for key,value in city_id_map.items():
+                    save_city_name.append(value[1])
+    with open(path+'add_new_airport.csv', 'a+') as airport:
+        writer = csv.writer(airport)
+        for new_airport in save_add_new_airport:
+            writer.writerow(new_airport)
+    with open(path+'add_new_share_airport.csv', 'a+') as airport:
+        writer = csv.writer(airport)
+        for new_share_airport in save_add_new_share_airport:
+            writer.writerow(new_share_airport)
 
-
+    return 'add_new_airport.csv','add_new_share_airport.csv',save_city_name
 if __name__ == '__main__':
-    update_share_airport()
+    from_file_get_share_airport('686')

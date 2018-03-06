@@ -22,6 +22,8 @@ from my_logger import get_logger
 from city.find_hotel_opi_city import add_city_suggest
 from MongoTask.crawl_all_source_suggest import create_task
 from call_city_project.step_status import modify_status
+from city.share_airport import from_file_get_share_airport
+from city.db_insert import from_file_airport_insert
 import csv
 from city.find_hotel_opi_city import from_ota_get_city
 def get_zip_path(param):
@@ -107,6 +109,9 @@ def task_start():
                     if cursor.fetchall():
                         judge_city_id = 0
                         break
+            save_path.append(city_insert_path[1])
+            temp_path = ''.join([base_path, city_insert_path[1]])
+            os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path, param))
         logger.debug("[新增城市入库执行完毕]")
         logger.debug("[新增城市图片名称更新开始]")
         if judge_city_id:
@@ -125,21 +130,33 @@ def task_start():
             new_airport_insert(temp_config, param)
         logger.debug("新增机场入库执行完毕")
         logger.debug("为城市提供共享机场开始执行")
-        share_airport_path = update_share_airport(temp_config,param)
+        share_airport_path = []
+        share_airport_to_data_path = []
+        if not airport_path:
+            share_airport_path = update_share_airport(temp_config,param)
+        elif airport_path:
+            share_airport_path = from_file_get_share_airport(param)
+            share_airport_to_data_path = share_airport_path
+            citys = share_airport_path[3]
+            if citys:
+                need_share_airport_path = update_share_airport(temp_config,param,citys)
+            else:
+                need_share_airport_path = []
+            share_airport_path = share_airport_path.pop(2).append(need_share_airport_path)
+
         if share_airport_path and judge_city_id:
             share_airport_path = list(share_airport_path)
-            share_airport_path[0] = '/'.join([param,share_airport_path[0]])
-            share_airport_path[1] = '/'.join([param,share_airport_path[1]]) 
-            temp_path = ''.join([base_path,share_airport_path[0]])
-            os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-            temp_path = ''.join([base_path,share_airport_path[1]])
-            os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
+            for airport_file_path in share_airport_path:
+                airport_file_path = '/'.join([param,airport_file_path])
+                temp_path = ''.join([base_path,airport_file_path])
+                os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
             save_path.extend(share_airport_path)
         logger.debug("城市共享机场执行完毕")
         logger.debug("城市共享机场入库开始")
-        if judge_city_id:
-            shareAirport_insert(temp_config,param)
-        logger.debug("城市共享机场入库结束")
+        if judge_city_id and share_airport_to_data_path:
+            count = from_file_airport_insert(temp_config,param,share_airport_to_data_path)
+
+        logger.debug("城市共享机场入库结束,机场入库总数：{0}".format(count))
         logger.debug("将新增城市更新到ota_location的各个源-开始")
         if hotels_path and judge_city_id:
             add_others_source_city(city_path,hotels_path,attr_path,config,param)
