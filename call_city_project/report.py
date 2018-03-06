@@ -27,6 +27,8 @@ def make_poi_and_hotel_report(data, param):
     else:
         logger.info('{}, 报表上传失败'.format(param))
 
+    return str(param) +'/'+poi_and_hotel_report_name
+
 def make_image_content_report(t_all, t_done, t_failed, param):
     txtfile = path_join(base_path, param, merge_image_and_content)
     print(txtfile)

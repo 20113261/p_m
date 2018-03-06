@@ -299,6 +299,13 @@ FROM city
                 keys = (keys[0], keys[-1] + '市')
             elif (keys[0], keys[-1] + '县') in self.dict:
                 keys = (keys[0], keys[-1] + '县')
+            elif keys[0] == '中国':
+                if ('中国台湾', keys[-1]) in self.dict:
+                    keys = ('中国台湾', keys[-1])
+                elif ('中国澳门', keys[-1]) in self.dict:
+                    keys = ('中国澳门', keys[-1])
+                elif ('中国香港', keys[-1]) in self.dict:
+                    keys = ('中国香港', keys[-1])
 
         if keys in self.dict:
             temp = []

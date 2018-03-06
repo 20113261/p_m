@@ -16,9 +16,9 @@ from MongoTask.MongoTaskInsert import InsertTask, TaskType
 from call_city_project.step_status import modify_status
 
 param = sys.argv[1]
-# param = '671'
-# SEND_TO = ['luwanning@mioji.com', 'lidongwei@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com']
-SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
+# param = '682'
+SEND_TO = ['luwanning@mioji.com', 'lidongwei@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com']
+# SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
 path = ''.join([base_path, str(param), '/'])
 logger = get_logger('step7', path)
 
@@ -271,7 +271,8 @@ def send_email_format(report, rsync_path):
 hi all：
     {0}
     数据地址： {1}
-            """.format(report, rsync_path), SEND_TO)
+              {2}
+            """.format(report, rsync_path[0], rsync_path[1]), SEND_TO)
 
 def task_start():
     logger.info('[step7][%s]======== start =======' % (param,))
@@ -282,34 +283,34 @@ def task_start():
         return_result['error']['error_str'] = ''
         return_result = json.dumps(return_result)
 
-        logger.info('[step6][%s] 汇总数据到BaseDataFinal 开始' % (param,))
+        logger.info('[step7][%s] 汇总数据到BaseDataFinal 开始' % (param,))
         tag = selectServicePlatform2BaseDataFinal()
-        logger.info('[step6][%s]  汇总数据到BaseDataFinal 完成' % (param,))
-        logger.info('[step6][%s] mapping daodao 开始' % (param,))
+        logger.info('[step7][%s]  汇总数据到BaseDataFinal 完成' % (param,))
+        logger.info('[step7][%s] mapping daodao 开始' % (param,))
         mapping_daodao_by_sid_and_sourcecityid(tag)
-        logger.info('[step6][%s] mapping daodao 开始' % (param,))
-        logger.info('[step6][%s] mapping qyer 开始' % (param,))
+        logger.info('[step7][%s] mapping daodao 开始' % (param,))
+        logger.info('[step7][%s] mapping qyer 开始' % (param,))
         mapping_daodao_by_othersinfoscityid_and_sourcecityid(tag)
-        logger.info('[step6][%s] mapping qyer 开始' % (param,))
-        logger.info('[step6][%s] 检查数据 开始' % (param,))
+        logger.info('[step7][%s] mapping qyer 开始' % (param,))
+        logger.info('[step7][%s] 检查数据 开始' % (param,))
         _1, qyer_tasks_data, _2, daodao_tasks_data = check_POI_data(tag)
-        logger.info('[step6][%s] 检查数据 完成' % (param,))
+        logger.info('[step7][%s] 检查数据 完成 \n%s\n%s' % (param, str(qyer_tasks_data), str(daodao_tasks_data)))
 
         tasks_names = []
         if qyer_tasks_data:
-            logger.info('[step6][%s] qyer补充mapinfo任务 开始' % (param,))
+            logger.info('[step7][%s] qyer补充mapinfo任务 开始' % (param,))
             collection_name, task_name = send_tasks(qyer_tasks_data, tag)
             tasks_names.append([collection_name, task_name])
-            logger.info('[step6][%s] qyer补充mapinfo任务 完成' % (param,))
+            logger.info('[step7][%s] qyer补充mapinfo任务 完成' % (param,))
         if daodao_tasks_data:
-            logger.info('[step6][%s] daodao补充mapinfo任务 完成' % (param,))
+            logger.info('[step7][%s] daodao补充mapinfo任务 完成' % (param,))
             collection_name, task_name = send_tasks(daodao_tasks_data, tag)
             tasks_names.append([collection_name, task_name])
-        logger.info('[step6][%s] daodao补充mapinfo任务 完成' % (param,))
+        logger.info('[step7][%s] daodao补充mapinfo任务 完成' % (param,))
 
-        # logger.info('[step6][%s] 导出数据 开始' % (param,))
+        # logger.info('[step7][%s] 导出数据 开始' % (param,))
         # data_path = dumps_sql(tag)
-        # logger.info('[step6][%s] 导出数据 完成' % (param,))
+        # logger.info('[step7][%s] 导出数据 完成' % (param,))
 
 
         tasks = modify_status('step7', param, tasks_names)

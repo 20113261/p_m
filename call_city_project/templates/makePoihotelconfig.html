@@ -3,12 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <title>生成景点酒店配置文件</title>
+    <style type="text/css">
+        body{
+            background-color: #ccc;
+        }
+        .main{
+            position: relative;
+            text-align: center;
+            top: 100px;
+        }
+        .lower{
+            top: 300px;
+        }
+        .param{
+            position: relative;
+            left: -70px;
+        }
+    </style>
 </head>
 <body>
-    <form id="form1" method="post" action="/api/upload" enctype="multipart/form-data">
-    <div>
-        <input id="File1" type="file" name="myfile"/>
-        <input type="submit">提交</input>
+    <form id="form1" method="post" action="/upload" enctype="multipart/form-data">
+    <div class="main">
+        <div class="param">批次号: <input type="text" name="param"/></div>
+        <div>
+            <input id="File1" type="file" name="myfile"/>
+            <input type="submit">提交</input>
+        </div>
+    </div>
+    <div class="main lower">
+        <h4><a href="/download/hotel">酒店配置</a></h4>
+        <h4><a href="/download/sign">景点配置</a></h4>
     </div>
 </form>
 </body>
