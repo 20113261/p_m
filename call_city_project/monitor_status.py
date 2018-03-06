@@ -135,7 +135,7 @@ def monitor_report(step):
             else:
                 logger.info('{}, {}: {}'.format(stepa, '已完成', source))
                 status_list_len+=1
-        if status_list_len>=len(task_names)-2:
+        if status_list_len>=len(task_names):
             modify_status(stepa, param, flag=False)
             logger.info('{}, 开始生成报表'.format(stepa))
             csv_file = make_poi_and_hotel_report(all_finaled_data, param)
@@ -191,8 +191,8 @@ def monitor_step3(stepa):
 
 
 def local_jobs():
-    # scheduler.add_job(monitor_task_summary, 'date', args=('7',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
-    # scheduler.add_job(monitor_step3,'cron',args=('3',),second='*/300',id='step3')
+    # scheduler.add_job(monitor_report, 'date', args=('5',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
+    scheduler.add_job(monitor_step3,'cron',args=('3',),second='*/300',id='step3')
     scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
     scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')
     scheduler.add_job(monitor_report, 'cron', args=('5',), second='*/300', id='step5')
