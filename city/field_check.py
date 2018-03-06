@@ -378,7 +378,9 @@ def airport_field_check(airport_path,param):
 def check_repeat_city(city_path,param):
 
     path = ''.join([base_path, str(param), '/'])
-    select_sql = "select * from city where name=%s"
+    select_sql = "select * from city where name=%s and country_id=%s"
+    judge_prov_id = "select * from city where name=%s and country_id =%s and prov_id=%s"
+    judge_region_id = "select * from city where name=%s and country_id =%s and region_id=%s"
     select_mapInfo = "select map_info from city"
     conn = pymysql.connect(**check_field)
     cursor = conn.cursor()
@@ -396,7 +398,15 @@ def check_repeat_city(city_path,param):
         for row in reader:
             long,lat = row['map_info'].replace('，',',').split(',')
             name = row['name']
-            cursor.execute(select_sql,(name,))
+            country_id = row['country_id']
+            region_id = row['region_id']
+            prov_id = row['prov_id']
+            if not region_id and not prov_id:
+                cursor.execute(select_sql,(name,country_id))
+            elif region_id:
+                cursor.execute(judge_region_id,(name,country_id,region_id))
+            elif prov_id:
+                cursor.execute((judge_prov_id,(name,country_id,prov_id)))
             judge_city = cursor.fetchall()
             if judge_city:
                 for map_info in mapInfo_list:
