@@ -74,13 +74,13 @@ def task_start():
                 temp_path = ''.join([base_path,city_repeat_path])
                 os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
                 flag = 0
-        if flag:
-            airport_repeat_path = check_repeat_airport(airport_path,param)
-            if airport_repeat_path and flag:
-                temp_path = ''.join([base_path,airport_repeat_path])
-                os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-                save_path.append(airport_repeat_path)
-                flag = 0
+        # if flag:
+        #     airport_repeat_path = check_repeat_airport(airport_path,param)
+        #     if airport_repeat_path and flag:
+        #         temp_path = ''.join([base_path,airport_repeat_path])
+        #         os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
+        #         save_path.append(airport_repeat_path)
+        #         flag = 0
         if flag:
             city_must_path = city_must_write_field(city_path,param)
             if city_must_path and flag:
@@ -111,7 +111,10 @@ def task_start():
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
-        update_step_report(csv_path,param,1,0)
+        if flag:
+            update_step_report(csv_path,param,1,0)
+        else:
+            update_step_report(csv_path,param,-1,0)
     except Exception as e:
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1

@@ -56,8 +56,7 @@ def city_must_write_field(city_path,param):
     path = ''.join([base_path, str(param), '/'])
 
     check_not_empty_field = [
-        'name','name_en','py','map_info','time_zone','summer_zone','summer_start',
-         'summer_end','grade','summer_start_next_year','summer_end_next_year','country_id',
+        'name','name_en','map_info','time_zone','summer_zone','grade','country_id',
          'trans_degree',
          ]
     city_data = pandas.read_excel(city_path,)
@@ -71,14 +70,14 @@ def city_must_write_field(city_path,param):
         empty_city = empty_field_city['name'].values
         for city in empty_city:
             city_field_empty[city].append(field)
-    with open(path+'check_empty_city.csv','w+') as city:
+    with open(path+'check_file_empty_city.csv','w+') as city:
         writer = csv.writer(city)
         writer.writerow(('国家名','空字段'))
         for key,value in city_field_empty.items():
             value_str = ','.join(value)
             writer.writerow((key,value_str))
     if city_field_empty:
-        return '/'.join([param,'check_empty_city.csv'])
+        return '/'.join([param,'check_file_empty_city.csv'])
     else:
         return None
 
@@ -112,8 +111,11 @@ def city_field_check(city_path,param,picture_path):
 
             #检查城市三字码
             try:
-                cursor.execute(select_tricode,(row['tri_code']))
-                judge_tricode = cursor.fetchall()
+                tri_code = row['tri_code']
+                judge_tricode = ''
+                if tri_code and tri_code != 'NULL':
+                    cursor.execute(select_tricode,(row['tri_code']))
+                    judge_tricode = cursor.fetchall()
             except Exception as e:
                 raise e
             if judge_tricode:
@@ -127,10 +129,12 @@ def city_field_check(city_path,param,picture_path):
                 except:
                     not_standard_field['alias'].append((row['id'],row['name']))
             #检查拼音
-            pinyin = pypinyin.lazy_pinyin(row['name'])
-            pinyin_str = ''.join(pinyin)
-            if pinyin_str != row['py']:
-                not_standard_field['py'].append((row['id'],row['name']))
+            str_pinyin = row.get('py',None)
+            if str_pinyin:
+                pinyin = pypinyin.lazy_pinyin(row['name'])
+                pinyin_str = ''.join(pinyin)
+                if str_pinyin and pinyin_str != str_pinyin:
+                    not_standard_field['py'].append((row['id'],row['name']))
 
             #检查 time_zone,summer_zone
             time_zone = int(row['time_zone'])
@@ -150,7 +154,8 @@ def city_field_check(city_path,param,picture_path):
             save_time['summer_end_next_year'] = row['summer_end_next_year']
             for key,value in save_time.items():
                 try:
-                    datetime.strptime(value,'%Y-%m-%dT%H:%M:%S')
+                    if value and value != 'NULL':
+                        datetime.strptime(value,'%Y-%m-%dT%H:%M:%S')
                 except:
                     not_standard_field[key].append((row['id'],row['name']))
 
@@ -247,14 +252,14 @@ def city_field_check(city_path,param,picture_path):
         except:
             not_standard_field['product'].append((child,))
 
-    with open(path+'check_city.csv','w+') as city:
+    with open(path+'check_file_city.csv','w+') as city:
         writer = csv.writer(city)
         writer.writerow(('字段名称','不合格城市'))
         for key,value in not_standard_field.items():
             value_str = json.dumps(value, ensure_ascii=False)
             writer.writerow((key,value_str))
     if not_standard_field:
-        return '/'.join([param,'check_city.csv'])
+        return '/'.join([param,'check_file_city.csv'])
     else:
         return False
 
@@ -275,14 +280,14 @@ def airport_must_write_field(airport_path,param):
         for airport in empty_airport:
             airport_field_empty[airport].append(field)
 
-    with open(path+'check_empty_airport.csv', 'w+') as airport:
+    with open(path+'check_file_empty_airport.csv', 'w+') as airport:
         writer = csv.writer(airport)
         writer.writerow(('机场名', '空字段'))
         for key, value in airport_field_empty.items():
             value_str = ','.join(value)
             writer.writerow((key, value_str))
     if airport_field_empty:
-        return '/'.join([param,'check_empty_airport.csv'])
+        return '/'.join([param,'check_file_empty_airport.csv'])
     else:
         return False
 #机场字段检查
@@ -309,13 +314,13 @@ def airport_field_check(airport_path,param):
                 not_standard_field['name_en'].append((row['id'],row['name']))
 
             #检查机场三字码
-            try:
-                cursor.execute(select_tricode,(row['iata_code'],))
-                judge_airport = cursor.fetchall()
-            except Exception as e:
-                raise e
-            if judge_airport:
-                not_standard_field['iata_code'].append((row['id'],row['name']))
+            # try:
+            #     cursor.execute(select_tricode,(row['iata_code'],))
+            #     judge_airport = cursor.fetchall()
+            # except Exception as e:
+            #     raise e
+            # if judge_airport:
+            #     not_standard_field['iata_code'].append((row['id'],row['name']))
 
             #检查belong_city_id以及map_info
             belong_cityId = row['belong_city_id']
@@ -336,16 +341,16 @@ def airport_field_check(airport_path,param):
 
 
             #检查city_id
-            city_id = row['city_id']
-            if city_id and city_id != 'NULL':
-                judge_city = None
-                try:
-                    cursor.execute(select_city,(city_id,))
-                    judge_city = cursor.fetchall()
-                except Exception as e:
-                    conn.rollback()
-                if not judge_city:
-                    not_standard_field['city_id'].append((row['id'],row['name']))
+            # city_id = row['city_id']
+            # if city_id and city_id != 'NULL':
+            #     judge_city = None
+            #     try:
+            #         cursor.execute(select_city,(city_id,))
+            #         judge_city = cursor.fetchall()
+            #     except Exception as e:
+            #         conn.rollback()
+            #     if not judge_city:
+            #         not_standard_field['city_id'].append((row['id'],row['name']))
 
             #检查 status
             status = row.get('status',None)
@@ -363,14 +368,14 @@ def airport_field_check(airport_path,param):
                 pass
             else:
                 not_standard_field['inner_order'].append((row['id'],row['name']))
-    with open(path+'check_airport.csv','w+') as airport:
+    with open(path+'check_file_airport.csv','w+') as airport:
         writer = csv.writer(airport)
         writer.writerow(('字段名称','不合格机场'))
         for key,value in not_standard_field.items():
             value_str = json.dumps(value, ensure_ascii=False)
             writer.writerow((key,value_str))
     if not_standard_field:
-        return '/'.join([param,'check_airport.csv'])
+        return '/'.join([param,'check_file_airport.csv'])
     else:
         return False
 
@@ -378,9 +383,8 @@ def airport_field_check(airport_path,param):
 def check_repeat_city(city_path,param):
 
     path = ''.join([base_path, str(param), '/'])
-    select_sql = "select * from city where name=%s and country_id=%s"
-    judge_prov_id = "select * from city where name=%s and country_id =%s and prov_id=%s"
-    judge_region_id = "select * from city where name=%s and country_id =%s and region_id=%s"
+    select_sql = "select * from city where name=%s and country_id=%s and status_online='Open'"
+    judge_prov_id = "select * from city where name=%s and country_id =%s and prov_id=%s and status_online='Open'"
     select_mapInfo = "select map_info from city"
     conn = pymysql.connect(**check_field)
     cursor = conn.cursor()
@@ -401,12 +405,12 @@ def check_repeat_city(city_path,param):
             country_id = row['country_id']
             region_id = row['region_id']
             prov_id = row['prov_id']
-            if not region_id and not prov_id:
+            if not prov_id:
                 cursor.execute(select_sql,(name,country_id))
-            elif region_id:
-                cursor.execute(judge_region_id,(name,country_id,region_id))
+            # elif region_id:
+            #     cursor.execute(judge_region_id,(name,country_id,region_id))
             elif prov_id:
-                cursor.execute((judge_prov_id,(name,country_id,prov_id)))
+                cursor.execute(judge_prov_id,(name,country_id,prov_id))
             judge_city = cursor.fetchall()
             if judge_city:
                 for map_info in mapInfo_list:
@@ -417,14 +421,14 @@ def check_repeat_city(city_path,param):
                     if distance <= MAX_DISTANCE:
                         repeat_city['repeat_city'].append((row['id'],row['name']))
                         break
-    with open(path+'check_repeat_city.csv','w+') as city:
+    with open(path+'check_file_repeat_city.csv','w+') as city:
         writer = csv.writer(city)
         writer.writerow(('repeat_city','重复城市列表'))
         for key,value in repeat_city.items():
             value_str = json.dumps(value, ensure_ascii=False)
             writer.writerow((key,value_str))
     if repeat_city:
-        return '/'.join([param,'check_repeat_city.csv'])
+        return '/'.join([param,'check_file_repeat_city.csv'])
     else:
         return False
 
@@ -462,14 +466,14 @@ def check_repeat_airport(airport_path,param):
                         repeat_airport['repeat_airport'].append((row['id'],row['name']))
                         break
 
-        with open(path+'check_repeat_airport.csv','w+') as airport:
+        with open(path+'check_file_repeat_airport.csv','w+') as airport:
             writer = csv.writer(airport)
             writer.writerow(('repeat_airport','重复机场列表'))
             for key,value in repeat_airport.items():
                 value_str = json.dumps(value, ensure_ascii=False)
                 writer.writerow((key,value_str))
         if repeat_airport:
-            return '/'.join([param,'check_repeat_airport.csv'])
+            return '/'.join([param,'check_file_repeat_airport.csv'])
         else:
             return False
 #城市字段不合格率统计
