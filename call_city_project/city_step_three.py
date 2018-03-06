@@ -143,10 +143,10 @@ def task_start():
             else:
                 need_share_airport_path = []
             logger.debug(share_airport_path)
-            share_airport_path = list(share_airport_path).pop(2)
+            share_airport_path = list(share_airport_path)[:2]
             logger.debug(share_airport_path)
             share_airport_to_data_path = share_airport_path
-            share_airport_path = share_airport_path.append(need_share_airport_path)
+            share_airport_path = share_airport_path.extend(need_share_airport_path)
             logger.debug(share_airport_path)
         if share_airport_path and judge_city_id:
             for airport_file_path in share_airport_path:
