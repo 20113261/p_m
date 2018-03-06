@@ -137,8 +137,8 @@ def task_start():
         elif airport_path:
             share_airport_path = from_file_get_share_airport(param)
             citys = share_airport_path[2]
-            print(share_airport_path)
-            print(citys)
+            logger.debug(share_airport_path)
+            logger.debug(citys)
             if citys:
                 need_share_airport_path = update_share_airport(temp_config,param,citys)
             else:
