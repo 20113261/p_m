@@ -53,7 +53,8 @@ def update_step_report(csv_path,param,step_front,step_after):
         conn.close()
 
 def task_start():
-    param = sys.argv[1]
+    #param = sys.argv[1]
+    param = '689'
     zip_path = get_zip_path(param)
     file_name = zip_path.split('/')[-1]
     zip_path = ''.join([base_path,file_name])
@@ -120,21 +121,21 @@ def task_start():
 
         logger.debug("城市更新后的图片名称更新到city表响应的new_product_pic字段-结束")
         logger.debug("新增机场入库开始执行")
-        if judge_city_id:
-            new_airport_insert(temp_config, param)
+        # if judge_city_id:
+        #     new_airport_insert(temp_config, param)
         logger.debug("新增机场入库执行完毕")
         logger.debug("为城市提供共享机场开始执行")
-        share_airport_paths = []
+
         share_airport_to_data_path = []
         if not airport_path:
-            need_share_airport_path = update_share_airport(temp_config,param)
+            need_share_airport_path = list(update_share_airport(temp_config,param))
 
         elif airport_path:
             share_airport_path = from_file_get_share_airport(param)
             citys = share_airport_path[2]
             airport_infos = share_airport_path[3]
             if citys:
-                need_share_airport_path = update_share_airport(temp_config,param,citys,airport_infos)
+                need_share_airport_path = list(update_share_airport(temp_config,param,citys,airport_infos))
             else:
                 need_share_airport_path = []
             share_airport_to_data_path = list(share_airport_path)[:2]
@@ -145,17 +146,18 @@ def task_start():
                                      ))
                 for city_id in city_infos.keys():
                     temp_save = []
-                    temp_save.append(city_infos[city_id]['id_number'],city_id,city_infos[city_id]['city_name'],city_infos[city_id]['city_name_en'],
-                                     city_infos[city_id]['country_id'],city_infos[city_id]['city_map_info']
+                    temp_save.extend([city_infos[city_id]['id_number'],city_id,city_infos[city_id]['city_name'],city_infos[city_id]['city_name_en'],
+                                     city_infos[city_id]['country_id'],city_infos[city_id]['city_map_info']]
                                      )
-                    temp_save.append(update_city_picture[city_id]['new_product_city_pic'])
+                    pic_name = update_city_picture[str(city_id)]['new_product_city_pic']
+                    temp_save.append(pic_name)
                     if airport_infos.get(city_id,None):
-                        temp_save.append(airport_infos[city_id]['airport_name'],airport_infos[city_id]['airport_name_en'],airport_infos[city_id]['airport_map_info'],
-                                         airport_infos[city_id]['airport_belong_city_id'],airport_infos[city_id]['airport_from']
+                        temp_save.extend([airport_infos[city_id]['airport_name'],airport_infos[city_id]['airport_name_en'],airport_infos[city_id]['airport_map_info'],
+                                         airport_infos[city_id]['airport_belong_city_id'],airport_infos[city_id]['airport_from']]
                                          )
                     writer.writerow(temp_save)
                 need_share_airport_path.append('city_airport_info.csv')
-        if share_airport_paths and judge_city_id:
+        if need_share_airport_path and judge_city_id:
             for airport_file_path in need_share_airport_path:
                 airport_file_path = '/'.join([param,airport_file_path])
                 save_path.append(airport_file_path)

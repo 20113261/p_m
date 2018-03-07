@@ -184,7 +184,7 @@ def write_csv(city_id, _id,param,config,airport_info):
             writer.writerow((city_result[0], city_result[1], city_result[3], city_result[2], airport_result[0],
                              airport_result[2], airport_result[3], airport_result[1], airport_result[4]))
         if airport_info:
-            airport_info[city_result[0]] = {'airport_iata_code':airport_result[5],'airport_name':airport_result[2],'airport_map_info':airport_result[1],
+            airport_info[str(city_result[0])] = {'airport_iata_code':airport_result[5],'airport_name':airport_result[2],'airport_map_info':airport_result[1],
                                             'airport_name_en': airport_result[3],'airport_belong_city_id':airport_result[4],'airport_from':'生成共享机场'}
     except Exception as e:
         city_conn.rollback()
@@ -345,7 +345,7 @@ def from_file_get_share_airport(param):
                 save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
                                                   row['city_id'], row['belong_city_id'], row['map_info'], row['status'],
                                                   row['time2city_center'], row['inner_order']))
-                airport_info[row['city_id']] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
+                airport_info[str(row['city_id'])] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
                                            'airport_name_en':row['name_en'],'airport_from':'标注机场','airport_belong_city_id':row['belong_city_id']
                                            }
             elif row['city_id'] != row['belong_city_id']:
@@ -353,7 +353,7 @@ def from_file_get_share_airport(param):
                 save_add_new_share_airport.append((row['iata_code'],row['name'],row['name_en'],row['city_id'],row['belong_city_id'],row['map_info'],row['status'],
                                                   row['time2city_center'],row['inner_order']))
                 city_id_map.pop(save_pop_key)
-                airport_info[row['city_id']] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
+                airport_info[str(row['city_id'])] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
                                            'airport_name_en':row['name_en'],'airport_from':'标注共享机场','airport_belong_city_id':row['belong_city_id']
                                            }
         else:

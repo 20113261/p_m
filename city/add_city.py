@@ -78,8 +78,8 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
     if key in change_map_info_key:
         map_info = _value.replace('，', ',').replace(' ', '')
-        if need_change_map_info:
-            map_info = ','.join((map_info.split(',')[::-1]))
+        # if need_change_map_info:
+        #     map_info = ','.join((map_info.split(',')[::-1]))
         return True, map_info
 
     if key in ['time_zone', 'summer_zone']:
@@ -174,13 +174,12 @@ def read_file(xlsx_path,config,param):
         writer.writerow(("city_id_number","city_id",'name','name_en'))
         for city_id in all_city_id:
             writer.writerow(city_id)
+    city_infos = defaultdict(dict)
 
-    with open(path+'add_new_city_info.csv','w+') as city:
-        writer = csv.writer(city)
-        writer.writerow(('id_number','id','name','name_en','py','map_info','region_id','country_id'))
-        for city_info in all_city_info:
-            writer.writerow(city_info)
-    return 'city_id.csv','add_new_city_info.csv'
+    for city_info in all_city_info:
+        city_infos[str(city_info[1])] = {'id_number':city_info[0],'city_name':city_info[2],'city_name_en':city_info[3],'city_map_info':city_info[5],'country_id':city_info[-1]}
+
+    return city_infos
 if __name__ == '__main__':
     temp_config = config
     temp_config['db'] = 'add_city_686'
@@ -188,5 +187,5 @@ if __name__ == '__main__':
     # xlsx_path = '/tmp/new_city.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
-    xlsx_path = '/Users/miojilx/Desktop/新增城市示例0226/新增城市.xlsx'
+    xlsx_path = '/Users/miojilx/Desktop/新增城市示例0305/新增城市.xlsx'
     read_file(xlsx_path,temp_config,'')
