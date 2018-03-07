@@ -8,13 +8,8 @@ from collections import defaultdict
 import json
 import traceback
 from my_logger import get_logger
-# SQL_DICT = {
-#     'host': '10.10.230.206',
-#     'user': 'mioji_admin',
-#     'password': 'mioji1109',
-#     'charset': 'utf8',
-#     'db': 'tmp'
-# }
+from city.config import config
+
 SQL_DICT = {
     'host': '10.10.69.170',
     'user': 'reader',
@@ -134,6 +129,7 @@ def read_file(xlsx_path,config,param):
         converters=converters,
     ).fillna('null')
     conn = pymysql.connect(**SQL_DICT)
+    all_city_info = []
     with conn as cursor:
         for i in range(len(table)):
             line = table.iloc[i]
@@ -172,17 +168,25 @@ def read_file(xlsx_path,config,param):
             else:
                 data_table.upsert(data, keys=['id'])
             all_city_id.append((city_id_number,data['id'],data['name'],data['name_en']))
+            all_city_info.append((data['id'],data['name'],data['name_en'],data['py'],data['map_info'],data['region_id'],data['country_id']))
     with open(path+'city_id.csv','w+') as city:
         writer = csv.writer(city)
         writer.writerow(("city_id_number","city_id",'name','name_en'))
         for city_id in all_city_id:
             writer.writerow(city_id)
 
-    return 'city_id.csv'
+    with open(path+'add_new_city_info.csv','w+') as city:
+        writer = csv.writer(city)
+        writer.writerow(('id','name','name_en','py','map_info','region_id','country_id'))
+        for city_info in all_city_info:
+            writer.writerow(city_info)
+    return 'city_id.csv','add_new_city_info.csv'
 if __name__ == '__main__':
+    temp_config = config
+    temp_config['db'] = 'add_city_686'
     # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
     # xlsx_path = '/tmp/new_city.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
-    xlsx_path = '/Users/miojilx/Desktop/new_city/测试新增城市.xlsx'
-    read_file(xlsx_path,None)
+    xlsx_path = '/Users/miojilx/Desktop/新增城市示例0226/新增城市.xlsx'
+    read_file(xlsx_path,temp_config,'')
