@@ -151,7 +151,7 @@ def task_start():
                     temp_save.append(update_city_picture[city_id]['new_product_city_pic'])
                     if airport_infos.get(city_id,None):
                         temp_save.append(airport_infos[city_id]['airport_name'],airport_infos[city_id]['airport_name_en'],airport_infos[city_id]['airport_map_info'],
-                                         airport_infos[city_id]['ariport_belong_city_id'],airport_infos[city_id]['airport_from']
+                                         airport_infos[city_id]['airport_belong_city_id'],airport_infos[city_id]['airport_from']
                                          )
                     writer.writerow(temp_save)
                 need_share_airport_path.append('city_airport_info.csv')
