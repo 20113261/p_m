@@ -45,7 +45,7 @@ def from_file_airport_insert(config,param,airport_paths):
     path = ''.join([base_path,str(param),'/'])
     update_sql = "insert ignore into airport(iata_code,name,name_en,city_id,belong_city_id,map_info,status,time2city_center,inner_order) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
     conn = pymysql.connect(**config)
-    cursor= conn.cursor()
+    cursor = conn.cursor()
     _count = 0
     save_result = []
     for airport_path in airport_paths:
@@ -53,6 +53,7 @@ def from_file_airport_insert(config,param,airport_paths):
             reader = csv.DictReader(airport)
             for row in reader:
                 _count += 1
+                logger.debug(row)
                 save_result.append((row['iata_code'],row['name'],row['name_en'],row['city_id'],row['belong_city_id'],row['map_info'],row['status'],row['time2city_center'],row['inner_order']))
                 if len(save_result) >= 2000:
                     cursor.executemany(update_sql,save_result)

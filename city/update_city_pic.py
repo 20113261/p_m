@@ -49,20 +49,17 @@ def update_city_pic(picture_path,config,param):
         city_img[cid].add(f_name)
 
     # 更新图片信息
-    with open(path+'update_city_pic.csv','w+') as city:
-        writer = csv.writer(city)
-        writer.writerow(('city_id','picture'))
-        for cid, pic_set in city_img.items():
-            new_product_pic = '|'.join(pic_set)
-            logger.debug("{} => {}".format(cid, new_product_pic))
-            writer.writerow((cid,new_product_pic))
-            target_table.update({
-                'id': cid,
-                'new_product_city_pic': new_product_pic
-            }, keys=['id', ])
-
+    update_city_picture = defaultdict(dict)
+    for cid, pic_set in city_img.items():
+        new_product_pic = '|'.join(pic_set)
+        logger.debug("{} => {}".format(cid, new_product_pic))
+        target_table.update({
+            'id': cid,
+            'new_product_city_pic': new_product_pic
+        }, keys=['id', ])
+        update_city_picture[cid] = {'new_product_city_pic':new_product_pic}
     logger.debug(','.join(cid_set))
-    return 'update_city_pic.csv'
+    return update_city_picture
 if __name__ == '__main__':
     pass
 

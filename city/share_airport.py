@@ -168,12 +168,12 @@ def condition_judge_3(id, city_id, inner_value, trans_degree, inner_order, dista
         print("codition_judge_3函数出现错误", e)
 
 
-def write_csv(city_id, _id,param,config):
+def write_csv(city_id, _id,param,config,airport_info):
     path = ''.join([base_path, str(param), '/'])
     city_conn = pymysql.connect(**config)
     cursor = city_conn.cursor()
     city_sql = "SELECT id,country_id,status_online,map_info FROM city WHERE id = %s"
-    airport_sql = "SELECT id,map_info,name,name_en,belong_city_id FROM airport WHERE id =%s"
+    airport_sql = "SELECT id,map_info,name,name_en,belong_city_id,iata_code FROM airport WHERE id =%s"
     try:
         cursor.execute(city_sql, (city_id,))
         city_result = cursor.fetchone()
@@ -183,6 +183,9 @@ def write_csv(city_id, _id,param,config):
             writer = csv.writer(airport)
             writer.writerow((city_result[0], city_result[1], city_result[3], city_result[2], airport_result[0],
                              airport_result[2], airport_result[3], airport_result[1], airport_result[4]))
+        if airport_info:
+            airport_info[city_result[0]] = {'airport_iata_code':airport_result[5],'airport_name':airport_result[2],'airport_map_info':airport_result[1],
+                                            'airport_name_en': airport_result[3],'airport_belong_city_id':airport_result[4],'airport_from':'生成共享机场'}
     except Exception as e:
         city_conn.rollback()
         print(e)
@@ -207,7 +210,7 @@ def write_city_list(result,param,config):
         writer.writerow(results)
 
 
-def update_share_airport(config,param,add_new_city=None):
+def update_share_airport(config,param,add_new_city=None,airport_info=None):
 
     path = ''.join([base_path, str(param), '/'])
 
@@ -272,50 +275,50 @@ def update_share_airport(config,param,add_new_city=None):
         if cond_trans_degree_1:
             if len(cond_trans_degree_1) >= 2:
                 sort_key = min(cond_trans_degree_1.keys())
-                write_csv(result[0], cond_inner_order_1[sort_key][0],param,config)
+                write_csv(result[0], cond_inner_order_1[sort_key][0],param,config,airport_info)
             else:
                 if len(cond_inner_order_1) >= 2:
                     sort_key = max(cond_inner_order_1.keys())
-                    write_csv(result[0], cond_inner_order_1[sort_key][0],param,config)
+                    write_csv(result[0], cond_inner_order_1[sort_key][0],param,config,airport_info)
                 else:
                     degree_key = list(cond_trans_degree_1.keys())[0]
                     inner_key = list(cond_inner_order_1.keys())[0]
                     if cond_trans_degree_1[degree_key][1] < cond_inner_order_1[inner_key][1]:
-                        write_csv(result[0], cond_trans_degree_1[degree_key][0],param,config)
+                        write_csv(result[0], cond_trans_degree_1[degree_key][0],param,config,airport_info)
                     else:
-                        write_csv(result[0], cond_inner_order_1[inner_key][0],param,config)
+                        write_csv(result[0], cond_inner_order_1[inner_key][0],param,config,airport_info)
 
         elif cond_trans_degree_2:
             if len(cond_trans_degree_2) >= 2:
                 sort_key = min(cond_trans_degree_2.keys())
-                write_csv(result[0], cond_trans_degree_2[sort_key][0],param,config)
+                write_csv(result[0], cond_trans_degree_2[sort_key][0],param,config,airport_info)
             else:
                 if len(cond_inner_order_2) >= 2:
                     sort_key = max(cond_inner_order_2.keys())
-                    write_csv(result[0], cond_inner_order_2[sort_key][0],param,config)
+                    write_csv(result[0], cond_inner_order_2[sort_key][0],param,config,airport_info)
                 else:
                     degree_key = list(cond_trans_degree_2.keys())[0]
                     inner_key = list(cond_inner_order_2.keys())[0]
                     if cond_trans_degree_2[degree_key][1] < cond_inner_order_2[inner_key][1]:
-                        write_csv(result[0], cond_trans_degree_2[degree_key][0],param,config)
+                        write_csv(result[0], cond_trans_degree_2[degree_key][0],param,config,airport_info)
                     else:
-                        write_csv(result[0], cond_inner_order_2[inner_key][0],param,config)
+                        write_csv(result[0], cond_inner_order_2[inner_key][0],param,config,airport_info)
 
         elif cond_trans_degree_3:
             if len(cond_trans_degree_3) >= 2:
                 sort_key = min(cond_trans_degree_3.keys())
-                write_csv(result[0], cond_trans_degree_3[sort_key][0],param,config)
+                write_csv(result[0], cond_trans_degree_3[sort_key][0],param,config,airport_info)
             else:
                 if len(cond_inner_order_3) >= 2:
                     sort_key = max(cond_inner_order_3.keys())
-                    write_csv(result[0], cond_inner_order_3[sort_key][0],param,config)
+                    write_csv(result[0], cond_inner_order_3[sort_key][0],param,config,airport_info)
                 else:
                     degree_key = list(cond_trans_degree_3.keys())[0]
                     inner_key = list(cond_inner_order_3.keys())[0]
                     if cond_trans_degree_3[degree_key][1] < cond_inner_order_3[inner_key][1]:
-                        write_csv(result[0], cond_trans_degree_3[degree_key][0],param,config)
+                        write_csv(result[0], cond_trans_degree_3[degree_key][0],param,config,airport_info)
                     else:
-                        write_csv(result[0], cond_inner_order_3[inner_key][0],param,config)
+                        write_csv(result[0], cond_inner_order_3[inner_key][0],param,config,airport_info)
 
         elif not condition_1 or not condition_2 or not condition_3:
             write_city_list(result,param,config)
@@ -324,13 +327,7 @@ def update_share_airport(config,param,add_new_city=None):
 
 def from_file_get_share_airport(param):
     path = ''.join([base_path, str(param), '/'])
-    with open(path+'add_new_airport.csv', 'w+') as airport:
-        writer = csv.writer(airport)
-        writer.writerow(('iata_code','name','name_en','city_id','belong_city_id','map_info','status','time2city_center','inner_order'))
-    with open(path+'add_new_share_airport.csv', 'w+') as airport:
-        writer = csv.writer(airport)
-        writer.writerow(('iata_code', 'name', 'name_en', 'city_id', 'belong_city_id', 'map_info', 'status',
-                         'time2city_center',  'inner_order'))
+    airport_info = defaultdict(dict)
     city_id_map = {}
     with open(path+'city_id.csv','r+') as city:
         reader = csv.DictReader(city)
@@ -348,11 +345,17 @@ def from_file_get_share_airport(param):
                 save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
                                                   row['city_id'], row['belong_city_id'], row['map_info'], row['status'],
                                                   row['time2city_center'], row['inner_order']))
+                airport_info[row['city_id']] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
+                                           'airport_name_en':row['name_en'],'airport_from':'标注机场','airport_belong_city_id':row['belong_city_id']
+                                           }
             elif row['city_id'] != row['belong_city_id']:
                 row['city_id'] = city_id_map[row['city_id']][0]
                 save_add_new_share_airport.append((row['iata_code'],row['name'],row['name_en'],row['city_id'],row['belong_city_id'],row['map_info'],row['status'],
                                                   row['time2city_center'],row['inner_order']))
                 city_id_map.pop(save_pop_key)
+                airport_info[row['city_id']] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
+                                           'airport_name_en':row['name_en'],'airport_from':'标注共享机场','airport_belong_city_id':row['belong_city_id']
+                                           }
         else:
             save_city_id = []
             if city_id_map:
@@ -367,6 +370,6 @@ def from_file_get_share_airport(param):
         for new_share_airport in save_add_new_share_airport:
             writer.writerow(new_share_airport)
 
-    return 'add_new_airport.csv','add_new_share_airport.csv',save_city_id
+    return 'add_new_airport.csv','add_new_share_airport.csv',save_city_id,airport_info
 if __name__ == '__main__':
     from_file_get_share_airport('686')
