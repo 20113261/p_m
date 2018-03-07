@@ -53,8 +53,8 @@ def update_step_report(csv_path,param,step_front,step_after):
         conn.close()
 
 def task_start():
-    #param = sys.argv[1]
-    param = '689'
+    param = sys.argv[1]
+
     zip_path = get_zip_path(param)
     file_name = zip_path.split('/')[-1]
     zip_path = ''.join([base_path,file_name])
@@ -139,7 +139,7 @@ def task_start():
             else:
                 need_share_airport_path = []
             share_airport_to_data_path = list(share_airport_path)[:2]
-            with open('city_airport_info.csv','w+') as city:
+            with open(path+'city_airport_info.csv','w+') as city:
                 writer = csv.writer(city)
                 writer.writerow(('id_number','city_id','city_name','city_name_en','country_id','city_map_info','new_product_city_pic',
                                      'airport_name','airport_name_en','airport_map_info','airport_belong_city_id','airport_from'
