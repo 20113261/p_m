@@ -168,7 +168,7 @@ def read_file(xlsx_path,config,param):
             else:
                 data_table.upsert(data, keys=['id'])
             all_city_id.append((city_id_number,data['id'],data['name'],data['name_en']))
-            all_city_info.append((data['id'],data['name'],data['name_en'],data['py'],data['map_info'],data['region_id'],data['country_id']))
+            all_city_info.append((city_id_number,data['id'],data['name'],data['name_en'],data['py'],data['map_info'],data['region_id'],data['country_id']))
     with open(path+'city_id.csv','w+') as city:
         writer = csv.writer(city)
         writer.writerow(("city_id_number","city_id",'name','name_en'))
@@ -177,7 +177,7 @@ def read_file(xlsx_path,config,param):
 
     with open(path+'add_new_city_info.csv','w+') as city:
         writer = csv.writer(city)
-        writer.writerow(('id','name','name_en','py','map_info','region_id','country_id'))
+        writer.writerow(('id_number','id','name','name_en','py','map_info','region_id','country_id'))
         for city_info in all_city_info:
             writer.writerow(city_info)
     return 'city_id.csv','add_new_city_info.csv'
