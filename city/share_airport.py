@@ -337,8 +337,8 @@ def from_file_get_share_airport(param):
         writer = csv.writer(airport)
         writer.writerow(('iata_code','name','name_en','city_id','belong_city_id','map_info','status','time2city_center','inner_order'))
 
-    with open(path+'add_new_share_airport.csv') as airport:
-        writer = csv.writer(airport,'w+')
+    with open(path+'add_new_share_airport.csv','w+') as airport:
+        writer = csv.writer(airport)
         writer.writerow(('iata_code','name','name_en','city_id','belong_city_id','map_info','status','time2city_center','inner_order'))
     save_add_new_airport = []
     save_add_new_share_airport = []
