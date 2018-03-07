@@ -111,7 +111,7 @@ def task_start():
                         break
             city_info_path = '/'.join([param,city_insert_path[1]])
             save_path.append(city_info_path)
-            temp_path = ''.join([base_path, city_insert_path[1]])
+            temp_path = ''.join([base_path, city_info_path])
             os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path, param))
         logger.debug("[新增城市入库执行完毕]")
         logger.debug("[新增城市图片名称更新开始]")
