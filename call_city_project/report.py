@@ -36,9 +36,9 @@ def make_image_content_report(t_all, t_done, t_failed, param):
         data = '第 {0} 批 总数 {1} 生成成功 {2} 生成失败 {3}'.format(param, t_all, format(t_done/t_all, '.0%'), format(t_failed/t_all, '.0%'))
         f.write(data)
     cmd = "rsync -vI {0} 10.10.150.16::opcity/{1}".format(txtfile, param)
-    print(cmd)
+    logger.info('{0}, 上传命令 {1}'.format(param, cmd))
     status = system(cmd)
-    print(status)
+    logger.info('{0}, 上传返回 {1}'.format(param, str(status)))
     if status==0:
         logger.info('{}, 报表上传成功'.format(param))
         return True
