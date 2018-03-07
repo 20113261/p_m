@@ -109,7 +109,8 @@ def task_start():
                     if cursor.fetchall():
                         judge_city_id = 0
                         break
-            save_path.append(city_insert_path[1])
+            city_info_path = '/'.join([param,city_insert_path[1]])
+            save_path.append(city_info_path)
             temp_path = ''.join([base_path, city_insert_path[1]])
             os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path, param))
         logger.debug("[新增城市入库执行完毕]")
@@ -134,7 +135,11 @@ def task_start():
         share_airport_to_data_path = []
         if not airport_path:
             share_airport_paths = update_share_airport(temp_config,param)
-
+            for airport_file_path in share_airport_paths:
+                airport_file_path = '/'.join([param,airport_file_path])
+                save_path.append(airport_file_path)
+                temp_path = ''.join([base_path,airport_file_path])
+                os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
         elif airport_path:
             share_airport_path = from_file_get_share_airport(param)
             citys = share_airport_path[2]
@@ -199,4 +204,3 @@ if __name__ == "__main__":
     #collection = client['MongoTask']['Task_Queue_file_downloader_TaskName_google_driver_52_20180131']
     #total_count = collection.find({})
     #total_count.count()
-
