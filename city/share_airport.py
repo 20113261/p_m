@@ -333,6 +333,12 @@ def from_file_get_share_airport(param):
         reader = csv.DictReader(city)
         for row in reader:
             city_id_map[row['city_id_number']] = [row['city_id'],row['name']]
+    with open(path+'add_new_airport.csv') as airport:
+        writer = csv.writer(airport)
+        writer.writerow(('iata_code','name','name_en','city_id','belong_city_id','map_info','status','time2city_center','inner_order'))
+    with open(path+'add_new_share_airport.csv') as airport:
+        writer = csv.writer(airport)
+        writer.writerow(('iata_code','name','name_en','city_id','belong_city_id','map_info','status','time2city_center','inner_order'))
     save_add_new_airport = []
     save_add_new_share_airport = []
     with open(path+'新增机场.csv','r+') as airport:
