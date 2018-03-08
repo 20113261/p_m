@@ -6,12 +6,15 @@ import datetime
 import traceback
 import pymongo
 
-from city.config import data_config, OpCity_config, base_path
+from city.config import data_config, OpCity_config, base_path, config as temp_config
 from call_city_project.step_status import modify_status, getStepStatus
 from my_logger import get_logger
 from call_city_project.report import make_poi_and_hotel_report, make_image_content_report, get_file
 from call_city_project.step_status import modify_status
-from call_city_project.city_step_seven import check_POI_data, update_mapinfo, analysis_result, success_report, dumps_sql, send_email_format
+try:
+    from call_city_project.city_step_seven import check_POI_data, update_mapinfo, analysis_result, success_report, dumps_sql, send_email_format
+except:pass
+from city.find_hotel_opi_city import from_ota_get_city
 
 scheduler = BlockingScheduler()
 logger = get_logger('monitor', base_path)
@@ -159,8 +162,7 @@ def monitor_step3(stepa):
         collection_name, task_name = collection_names
         total_count = get_total_count(collection_name)
         if int(total_count) == 0:
-            update_step_report(step,param,-1,0)
-            return
+            return '0%'
 
         client = pymongo.MongoClient(host='10.10.231.105')
         collection = client['MongoTask'][collection_name]
@@ -181,18 +183,19 @@ def monitor_step3(stepa):
 
         logger.info('{0}, collections: {1}  total: {2}  success: {3}  failed: {4}'.format(step, collection_name, total_count, success_finish_num, failed_finish_num))
         if failed_finish_num>0 and failed_finish_num+success_finish_num==total_count:
-            update_step_report('', param, -1, 0, int(stepa))
             logger.info('{0}, {1} 失败'.format(step, collection_name))
 
         if success_finish_num == total_count:
-            # update_step_report('', param, 1, 0, int(stepa))
+            from_ota_get_city(temp_config, param)
             modify_status(step, param, flag=False)
             logger.info('{0}, {1} 成功'.format(step, collection_name))
+
+    return format(success_finish_num/total_count, '.0%')
 
 
 def local_jobs():
     # scheduler.add_job(monitor_report, 'date', args=('5',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
-    scheduler.add_job(monitor_step3,'cron',args=('3',),second='*/300',id='step3')
+    # scheduler.add_job(monitor_step3,'cron',args=('3',),second='*/300',id='step3')
     scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
     scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')
     scheduler.add_job(monitor_report, 'cron', args=('5',), second='*/300', id='step5')
