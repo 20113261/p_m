@@ -56,9 +56,9 @@ def task_start():
         file_list = os.listdir(file_path)
         for child_file in file_list:
             path = '/'.join([file_path, child_file])
-            if '新增城市' in child_file:
+            if ('新增城市' in child_file) and (len(child_file.split('.')[0]) == 4):
                 city_path = path
-            elif '新增机场' in child_file:
+            elif ('新增机场' in child_file) and (len(child_file.split('.')[0]) == 4):
                 airport_path = path
             elif os.path.isdir(path):
                 picture_path = path
