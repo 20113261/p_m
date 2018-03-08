@@ -21,7 +21,9 @@ def make_poi_and_hotel_report(data, param):
 
     logger.info('{}, 生成报表完成'.format(param))
     cmd = "rsync -vI {0} 10.10.150.16::opcity/{1}".format(csvfile, param)
+    logger.info('{0}, 上传命令 {1}'.format(param, cmd))
     status = system(cmd)
+    logger.info('{0}, 上传返回 {1}'.format(param, str(status)))
     if status==256:
         logger.info('{}, 报表上传成功'.format(param))
     else:
