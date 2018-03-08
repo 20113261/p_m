@@ -8,7 +8,6 @@
 from data_source import MysqlSource
 from my_logger import get_logger
 from MongoTask.MongoTaskInsert import InsertTask
-from service_platform_conn_pool import fetchall, spider_base_tmp_wanle_pool, spider_base_tmp_wanle_test_pool
 import pymongo
 from collections import defaultdict
 
@@ -66,7 +65,7 @@ def insert_task():
                 'source': "ctripGT",
                 'source_id': sid,
                 'target_url': url,
-                'bucket_name': 'mioji-GT',
+                'bucket_name': 'ctrip-grouptravel',
                 'file_prefix': 'ctripGT',
                 'is_poi_task': True,
                 'need_insert_db': False,

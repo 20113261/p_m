@@ -2,17 +2,16 @@
 # -*- coding: utf-8 -*-
 
 # @author: feng
-
 # @date: 2018-02-01
-from data_source import MysqlSource
+
+
 from MongoTask.MongoTaskInsert import InsertTask, TaskType
-from service_platform_conn_pool import source_info_config
 import pymongo
 
 
 def get_tasks():
     client = pymongo.MongoClient('mongodb://root:miaoji1109-=@10.19.2.103:27017/')
-    collections = client['SuggestName']['CtripPoiSDK_mioji']
+    collections = client['SuggestName']['CtripPoiSDK_Mioji']
     #tasks =set()
     #for data in collections.find():
     #    try:
@@ -29,8 +28,8 @@ def get_tasks():
     tasks = []
     for co in collections.find({}):
         tasks.append(co)
-        if len(tasks) == 10:
-            break
+        # if len(tasks) == 10:
+        #     break
 
     return tasks
 
@@ -38,8 +37,8 @@ def get_tasks():
 if __name__ == '__main__':
 
     with InsertTask(worker='proj.total_tasks.ctrip_poi_list_task', queue='poi_list', routine_key='poi_list',
-                    task_name='city_total_ctripPoi_20180226a', source='CtripPoi', _type='CtripList',
-                    priority=3, task_type=TaskType.CITY_TASK) as it:
+                    task_name='city_total_ctripPoi_20180308a', source='CtripPoi', _type='CtripList',
+                    priority=2, task_type=TaskType.CITY_TASK) as it:
         for line in get_tasks():
             args = {
                 "city_id": line['city_id'],
@@ -47,4 +46,5 @@ if __name__ == '__main__':
                 "source": "ctripPoi",
                 'city_url': line['task']
             }
+            #print(line['task'])
             it.insert_task(args)
