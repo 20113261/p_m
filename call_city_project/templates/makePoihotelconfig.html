@@ -8,8 +8,8 @@
             background-color: #ccc;
         }
     </style>
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!--<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>-->
+    <!--<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>-->
 </head>
 <body>
     <div class="wrap">
@@ -23,9 +23,6 @@
                 <a id="sign"></a>
                 <a id="hotel"></a>
             </div>
-			<!--<div id="fileWrap">-->
-				<!--<p>上传文件列表</p>-->
-			<!--</div>-->
 		</div>
 	</div>
     <script type="text/javascript">
@@ -34,53 +31,42 @@
 		prs = document.getElementById("process"),
         task_prs = document.getElementById("taskprocess"),
         option = {
-                url: '/upload',
-                process_url: '/taskprocess',
-                maxSize: 100,
-                multiple: true,
-                beforeSend: function(file){
-                    bf.innerText = "开始上传...";
-                },
-                callback: function(res){
-                    res = JSON.parse(res);
-                    if(res && res.code == 0){
-                        // alert("上传成功！");
-                        bf.innerText = "上传成功!";
+            url: '/upload',
+            process_url: '/taskprocess',
+            maxSize: 100,
+            multiple: true,
+            beforeSend: function(file){
+                bf.innerText = "开始上传...";
+            },
+            callback: function(res){
+                res = JSON.parse(res);
+                if(res && res.code == 0){
+                    // alert("上传成功！");
+                    bf.innerText = "上传成功!";
+                    get_task_process(option);
+                }else{
+                    alert(res.msg);
+                }
+            },
+            callback_process: function(res){
+                res = JSON.parse(res);
+                if(res && res.code == 0){
+                    var pre = res.process;
+                    task_prs.innerText = "任务进度为: "+ pre;
+                    if(pre!="100%"){
                         get_task_process(option);
                     }else{
-                        alert(res.msg);
+                        console.log("文件生成完成");
+                        showconfigfiles();
                     }
-//                    var fileWrap  = document.getElementById('fileWrap');
-
-//                    for(var i=0; i<res.data.length; i++){
-//                        var p = document.createElement('p');
-//                        var file = document.createElement('a');
-//                        file.href = '//front-js.cc/test/fileupload/' + res.data[i].StoredIn;
-//                        file.target = "_blank"
-//                        file.innerText = "文件名：" + res.data[i].StoredIn;
-//                        p.appendChild(file);
-//                        fileWrap.appendChild(p);
-//                    }
-                },
-                callback_process: function(res){
-                    res = JSON.parse(res);
-                    if(res && res.code == 0){
-                        var pre = res.process;
-                        task_prs.innerText = "任务进度为: "+ pre;
-                        if(pre!="100%"){
-                            get_task_process(option);
-                        }else{
-                            console.log("文件生成完成");
-                            showconfigfiles();
-                        }
-                    }else{
-                        alert(res.msg);
-                    }
-                },
-                uploading: function(pre){
-                    prs.innerText = "当前上传进度为：" + pre + "%";
+                }else{
+                    alert(res.msg);
                 }
+            },
+            uploading: function(pre){
+                prs.innerText = "当前上传进度为：" + pre + "%";
             }
+        }
 
 
         btn.onclick = function(){
@@ -90,8 +76,8 @@
         function myUpload(option){
             var fd = new FormData(),
             xhr = new XMLHttpRequest(),
-            input;
             input = document.createElement('input');
+
             input.setAttribute('id', 'myUploadInput');
             input.setAttribute('type', 'file');
             input.setAttribute('name', 'file');
