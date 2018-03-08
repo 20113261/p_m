@@ -15,7 +15,7 @@ from my_logger import get_logger
 from city.send_email import send_email
 
 param = sys.argv[1]
-SEND_TO = ['luwanning@mioji.com', 'mazhenyang@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com']
+SEND_TO = ['luwanning@mioji.com', 'mazhenyang@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com', 'xuzhanlei@mioji.com']
 # SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
 path = ''.join([base_path, str(param), '/'])
 logger = get_logger('step6', path)
