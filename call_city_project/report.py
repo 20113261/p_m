@@ -13,8 +13,8 @@ logger = get_logger('monitor', base_path)
 def make_poi_and_hotel_report(data, param):
     fieldnames = ['任务批次', '抓取源', '抓取类型', '列表页完成', '列表页完成无数据', '列表页无城市数据', '列表页全部', '详情页完成', '详情页完成无数据', '详情页全部', '图片完成', '图片完成无数据', '图片全部']
     csvfile = path_join(base_path, param, poi_and_hotel_report_name)
-    with open(csvfile, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    with open(csvfile, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for line in data:
             writer.writerow({k:v for k,v in zip(fieldnames, line)})
