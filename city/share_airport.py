@@ -172,8 +172,6 @@ def write_csv(city_id, _id,param,config,airport_info):
     cursor = city_conn.cursor()
     city_sql = "SELECT id,country_id,status_online,map_info FROM city WHERE id = %s"
     airport_sql = "SELECT id,map_info,name,name_en,belong_city_id,iata_code FROM airport WHERE id =%s"
-    ('city_id', 'country_id', 'status_online', 'city_mapInfo', 'airport_id', 'airport_mapInfo',
-     'name', 'name_en', 'belong_city_id')
     try:
         cursor.execute(city_sql, (city_id,))
         city_result = cursor.fetchone()
