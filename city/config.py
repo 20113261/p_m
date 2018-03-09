@@ -14,6 +14,7 @@ airport_path = ""
 
 #中间过程生成文件所在路径
 base_path = '/search/service/nginx/html/MioaPyApi/store/opcity/'
+upload_path = '/search/service/nginx/html/MioaPyApi/store/upload/'
 
 #数据库配置
 OpCity_config = {

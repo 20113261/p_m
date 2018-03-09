@@ -47,15 +47,15 @@ def selectServicePlatform2BaseDataFinal():
             tag = result[0]
         else:
             raise Exception('没有获取到tag')
-        with open('/search/cuixiyi/PoiCommonScript/call_city_project/hotel.sql') as f:
-            create_table = f.read()
-            create_table = create_table.format(tag)
-        cursor.execute(create_table, ())
-
-        for hotel_source in hotels:
-            _sql = sql.format(tag, hotel_source)
-            cursor.execute(_sql, ())
-        conn.commit()
+        # with open('/search/cuixiyi/PoiCommonScript/call_city_project/hotel.sql') as f:
+        #     create_table = f.read()
+        #     create_table = create_table.format(tag)
+        # cursor.execute(create_table, ())
+        #
+        # for hotel_source in hotels:
+        #     _sql = sql.format(tag, hotel_source)
+        #     cursor.execute(_sql, ())
+        # conn.commit()
     except Exception as e:
         conn.rollback()
         raise Exception('汇总数据出错: \n{}'.format(traceback.format_exc(e)))

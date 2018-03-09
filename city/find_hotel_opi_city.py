@@ -6,10 +6,11 @@ pymysql.install_as_MySQLdb()
 import pandas
 from DBUtils.PooledDB import PooledDB
 import sys
+import glob
 import csv
 from collections import defaultdict
 import json
-from city.config import base_path,config
+from city.config import base_path, config, upload_path
 base_data_config = {
     'host': '10.10.69.170',
     'user': 'mioji_admin',
@@ -93,34 +94,38 @@ def data_connection_pool(config):
     return conn
 
 def from_ota_get_city(config,param):
-    path = ''.join([base_path, str(param), '/'])
+    path = ''.join([upload_path, str(param), '/'])
     with open(path+'酒店配置.csv','w+') as hotel:
         writer = csv.writer(hotel)
         writer.writerow(('id','name','ctrip','elong','agoda','booking','expedia','hotels'))
     with open(path+"景点配置.csv",'w+') as poi:
         writer = csv.writer(poi)
         writer.writerow(('id','name','daodao','qyer'))
+    new_add_city_excel_file = glob.glob(path+'/*/新增城市.xlsx')[0]
     conn = data_connection_pool(config)
     cursor = conn.cursor()
-    city_data = pandas.read_csv(path+'city_id.csv',)
+    city_data = pandas.read_excel(new_add_city_excel_file,)
     city_names = city_data['name'].values
     city_names_en = city_data['name_en'].values
-    city_id_numbers = city_data['city_id_number'].values
-    city_ids = city_data['city_id'].values
-    city_infos = zip(city_id_numbers,city_ids,city_names,city_names_en)
+    # city_id_numbers = city_data['city_id_number'].values
+    # city_ids = city_data['city_id'].values
+    city_ids = city_data['id'].values
+    city_infos = zip(city_ids,city_names,city_names_en)
     sources = ['ctrip','elong','agoda','booking','expedia','hotels','daodao','qyer']
     hotel_source = ['ctrip','elong','agoda','booking','expedia','hotels']
     poi_source = ['daodao','qyer']
-    select_sql = "select s_city,source,suggest from ota_location where source=%s and s_city=%s"
+    select_sql = "select s_city,source,suggest from BaseDataFinal.ota_location where source=%s and s_city=%s"
+    hotel_saves = []
+    poi_saves = []
     for city_info in city_infos:
         hotel_save = {}
         poi_save = {}
         poi_save['id'] = hotel_save['id'] = str(city_info[0])
-        poi_save['name'] = hotel_save['name'] = str(city_info[2])
-        poi_save['name_en'] = hotel_save['name_en'] = str(city_info[3])
+        poi_save['name'] = hotel_save['name'] = str(city_info[1])
+        poi_save['name_en'] = hotel_save['name_en'] = str(city_info[2])
 
         for source in sources:
-            cursor.execute(select_sql,(source,city_info[2]))
+            cursor.execute(select_sql,(source,city_info[1]))
             result = cursor.fetchone()
             if not result:
                 pass
@@ -146,12 +151,19 @@ def from_ota_get_city(config,param):
                     hotel_save[source] = suggest
                 elif source in poi_source:
                     poi_save[source] = suggest
-        with open(path+'酒店配置.csv','a+') as hotel:
-            writer = csv.DictWriter(hotel,fieldnames=['id','name','name_en','ctrip','elong','agoda','booking','expedia','hotels'])
-            writer.writerow(hotel_save)
-        with open(path+'景点配置.csv','a+') as poi:
-            writer = csv.DictWriter(poi,fieldnames=['id','name','name_en','daodao','qyer'])
-            writer.writerow(poi_save)
+
+        poi_saves.append(poi_save.copy())
+        hotel_saves.append(hotel_save.copy())
+
+
+    with open(path+'酒店配置.csv','a+') as hotel:
+        writer = csv.DictWriter(hotel,fieldnames=['id','name','name_en','ctrip','elong','agoda','booking','expedia','hotels'])
+        writer.writeheader()
+        writer.writerows(hotel_saves)
+    with open(path+'景点配置.csv','a+') as poi:
+        writer = csv.DictWriter(poi,fieldnames=['id','name','name_en','daodao','qyer'])
+        writer.writeheader()
+        writer.writerows(poi_saves)
     return '酒店配置.csv','景点配置.csv'
 
 def add_city_suggest(city_path):
