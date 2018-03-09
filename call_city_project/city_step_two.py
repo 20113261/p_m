@@ -41,6 +41,7 @@ def update_step_report(csv_path,param,step_front,step_after):
 def task_start():
     try:
         param = sys.argv[1]
+
         task_start_one(param)
         zip_path = get_zip_path(param)
         file_name = zip_path.split('/')[-1]
@@ -108,6 +109,7 @@ def task_start():
                 temp_path = ''.join([base_path,airport_field_path])
                 os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
                 save_path.append(airport_field_path)
+                flag = 0
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
