@@ -186,7 +186,7 @@ def monitor_step3(stepa):
             logger.info('{0}, {1} 失败'.format(step, collection_name))
 
         if success_finish_num == total_count:
-            from_ota_get_city(temp_config, param)
+            from_ota_get_city(data_config, param)
             modify_status(step, param, flag=False)
             logger.info('{0}, {1} 成功'.format(step, collection_name))
 
