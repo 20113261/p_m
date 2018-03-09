@@ -88,7 +88,7 @@ def city_field_check(city_path,param,picture_path):
     trans_degree = [-1, 0, 1]
     status = ['Close', 'Open']
     not_standard_field = defaultdict(list)
-    select_tricode = "select * from city where tri_code=%s"
+    select_tricode = "select * from city where tri_code=%s and (status_online='Open' or status_test='Open')"
     select_country = "select name from country where mid=%s"
     select_province = "select * from province where id=%s"
     select_region = "select * from region where id=%s"
