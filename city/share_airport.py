@@ -10,6 +10,7 @@ from city.config import base_path
 import traceback
 import json
 from collections import defaultdict
+import types
 config = {
     'host': '10.10.69.170',
     'user': 'reader',
@@ -84,8 +85,7 @@ def condition_judge_1(id, city_id, inner_value, trans_degree, inner_order, dista
     temp_degree = result[0]
     if int(temp_degree) == -1:
         temp_degree = 100000
-    if int(inner_value) == -1:
-        inner_value = 100000
+
     try:
         if not trans_degree.get(temp_degree, None):
             trans_degree[temp_degree] = [id, distance]
@@ -117,8 +117,7 @@ def condition_judge_2(id, city_id, inner_value, trans_degree, inner_order, dista
     temp_degree = result[0]
     if int(temp_degree) == -1:
         temp_degree = 100000
-    if int(inner_value) == -1:
-        inner_value = 100000
+
     try:
         if not trans_degree.get(temp_degree, None):
             trans_degree[temp_degree] = [id, distance]
@@ -150,8 +149,7 @@ def condition_judge_3(id, city_id, inner_value, trans_degree, inner_order, dista
     temp_degree = result[0]
     if int(temp_degree) == -1:
         temp_degree = 100000
-    if int(inner_value) == -1:
-        inner_value = 100000
+
     try:
         if not trans_degree.get(temp_degree, None):
             trans_degree[temp_degree] = [id, distance]
@@ -258,18 +256,30 @@ def update_share_airport(config,param,add_new_city=None,airport_info=None):
 
                 distance = dist_from_coordinates(float(city_lng), float(city_lat), float(airport_lng), float(airport_lat))
 
-                if distance<= 100:
+                if distance <= 100:
                     condition_1 = 1
-                    condition_judge_1(open_airport[0], result[0], open_airport[2], cond_trans_degree_1,
+                    if isinstance(result,(str,)):
+                        city_id = result
+                    else:
+                        city_id = result[0]
+                    condition_judge_1(open_airport[0], city_id, open_airport[2], cond_trans_degree_1,
                                       cond_inner_order_1, distance,config)
 
                 elif distance <= 200:
                     condition_2 = 1
-                    condition_judge_2(open_airport[0], result[0], open_airport[2], cond_trans_degree_2,
+                    if isinstance(result,(str,)):
+                        city_id = result
+                    else:
+                        city_id = result[0]
+                    condition_judge_2(open_airport[0], city_id, open_airport[2], cond_trans_degree_2,
                                       cond_inner_order_2, distance,config)
-                elif distance<= 300:
+                elif distance <= 300:
                     condition_3 = 1
-                    condition_judge_3(open_airport[0], result[0], open_airport[2], cond_trans_degree_3,
+                    if isinstance(result,(str,)):
+                        city_id = result
+                    else:
+                        city_id = result[0]
+                    condition_judge_3(open_airport[0], city_id, open_airport[2], cond_trans_degree_3,
                                       cond_inner_order_3, distance,config)
 
         if cond_trans_degree_1:
