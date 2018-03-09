@@ -294,7 +294,7 @@ def airport_must_write_field(airport_path,param):
 def airport_field_check(airport_path,param):
     path = ''.join([base_path, str(param), '/'])
     select_tricode = "select * from airport where iata_code=%s"
-    select_city = "select map_info from city where id=%s"
+    select_city = "select map_info from city where id=%s "
     not_standard_field = defaultdict(list)
     status_list = ['Open','Close']
     city_data = pandas.read_excel(airport_path, )
@@ -323,21 +323,21 @@ def airport_field_check(airport_path,param):
             #     not_standard_field['iata_code'].append((row['id'],row['name']))
 
             #检查belong_city_id以及map_info
-            belong_cityId = row['belong_city_id']
-            try:
-                cursor.execute(select_city,(belong_cityId,))
-                map_info = cursor.fetchone()
-            except Exception as e:
-                conn.rollback()
-                raise e
-            if not map_info:
-                not_standard_field['belong_city_id'].append((row['id'],row['name']))
-            elif map_info[0] != 'NULL':
-                city_long,city_lat = map_info[0].split(',')
-                airport_long,airport_lat = row['map_info'].replace('，',',').split(',')
-                distince = getDist(float(city_long),float(city_lat),float(airport_long),float(airport_lat))
-                if distince > 200000:
-                    not_standard_field['map_info'].append((row['id'],row['name']))
+            # belong_cityId = row['belong_city_id']
+            # try:
+            #     cursor.execute(select_city,(belong_cityId,))
+            #     map_info = cursor.fetchone()
+            # except Exception as e:
+            #     conn.rollback()
+            #     raise e
+            # if not map_info:
+            #     not_standard_field['belong_city_id'].append((row['id'],row['name']))
+            # elif map_info[0] != 'NULL':
+            #     city_long,city_lat = map_info[0].split(',')
+            #     airport_long,airport_lat = row['map_info'].replace('，',',').split(',')
+            #     distince = getDist(float(city_long),float(city_lat),float(airport_long),float(airport_lat))
+            #     if distince > 200000:
+            #         not_standard_field['map_info'].append((row['id'],row['name']))
 
 
             #检查city_id
@@ -364,7 +364,7 @@ def airport_field_check(airport_path,param):
 
             #检查 inner_order
             inner_order = int(row['inner_order'])
-            if inner_order >= 1 or inner_order == -1:
+            if inner_order >= 0:
                 pass
             else:
                 not_standard_field['inner_order'].append((row['id'],row['name']))
