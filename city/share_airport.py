@@ -172,6 +172,8 @@ def write_csv(city_id, _id,param,config,airport_info):
     cursor = city_conn.cursor()
     city_sql = "SELECT id,country_id,status_online,map_info FROM city WHERE id = %s"
     airport_sql = "SELECT id,map_info,name,name_en,belong_city_id,iata_code FROM airport WHERE id =%s"
+    ('city_id', 'country_id', 'status_online', 'city_mapInfo', 'airport_id', 'airport_mapInfo',
+     'name', 'name_en', 'belong_city_id')
     try:
         cursor.execute(city_sql, (city_id,))
         city_result = cursor.fetchone()
@@ -179,8 +181,8 @@ def write_csv(city_id, _id,param,config,airport_info):
         airport_result = cursor.fetchone()
         with open(path+'share_airport.csv', 'a+') as airport:
             writer = csv.writer(airport)
-            writer.writerow((city_result[0], city_result[1], city_result[3], city_result[2], airport_result[0],
-                             airport_result[2], airport_result[3], airport_result[1], airport_result[4]))
+            writer.writerow((city_result[0], city_result[1], city_result[2], city_result[3], airport_result[0],
+                             airport_result[1], airport_result[2], airport_result[3], airport_result[4]))
         if airport_info:
             airport_info[str(city_result[0])] = {'airport_iata_code':airport_result[5],'airport_name':airport_result[2],'airport_map_info':airport_result[1],
                                             'airport_name_en': airport_result[3],'airport_belong_city_id':airport_result[4],'airport_from':'生成共享机场'}
