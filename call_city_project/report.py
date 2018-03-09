@@ -35,7 +35,7 @@ def make_image_content_report(t_all, t_done, t_failed, param):
     txtfile = path_join(base_path, param, merge_image_and_content)
     print(txtfile)
     with open(txtfile, 'w') as f:
-        data = '第 {0} 批 总数 {1} 生成成功 {2} 生成失败 {3}'.format(param, t_all, format(t_done/t_all, '.0%'), format(t_failed/t_all, '.0%'))
+        data = '第 {0} 批 酒店总数 {1} 生成成功 {2} 生成失败 {3}'.format(param, t_all, format(t_done/t_all, '.0%'), format(t_failed/t_all, '.0%'))
         f.write(data)
     cmd = "rsync -vI {0} 10.10.150.16::opcity/{1}".format(txtfile, param)
     logger.info('{0}, 上传命令 {1}'.format(param, cmd))
