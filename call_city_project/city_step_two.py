@@ -5,7 +5,7 @@ from city.field_check import check_repeat_airport,check_repeat_city,city_field_c
 import pymysql
 pymysql.install_as_MySQLdb()
 import zipfile
-from city.config import config,base_path,OpCity_config
+from city.config import config,base_path,OpCity_config, upload_path
 import os
 import sys
 from collections import defaultdict
@@ -38,21 +38,28 @@ def update_step_report(csv_path,param,step_front,step_after):
     finally:
         conn.close()
 
-def task_start():
+def task_start(*args):
     try:
-        param = sys.argv[1]
-        task_start_one(param)
-        zip_path = get_zip_path(param)
-        file_name = zip_path.split('/')[-1]
-        zip_path = ''.join([base_path, file_name])
-        zip = zipfile.ZipFile(zip_path)
         save_path = []
-        file_name = zip.filename.split('.')[0].split('/')[-1]
-        path = ''.join([base_path, str(param), '/'])
-        if path.endswith('/'):
-            file_path = ''.join([path, file_name])
+        if not args:
+            param = sys.argv[1]
+            task_start_one(param)
+            zip_path = get_zip_path(param)
+            file_name = zip_path.split('/')[-1]
+            zip_path = ''.join([base_path, file_name])
+            zip = zipfile.ZipFile(zip_path)
+
+            file_name = zip.filename.split('.')[0].split('/')[-1]
+            path = ''.join([base_path, str(param), '/'])
+            if path.endswith('/'):
+                file_path = ''.join([path, file_name])
+            else:
+                file_path = '/'.join([path, file_name])
+            path = ''.join([base_path, str(param), '/'])
         else:
-            file_path = '/'.join([path, file_name])
+            param, file_path = args
+            path = ''.join([upload_path, str(param), '/'])
+
         file_list = os.listdir(file_path)
         for child_file in file_list:
             path = '/'.join([file_path, child_file])
@@ -66,7 +73,7 @@ def task_start():
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
         return_result['error']['error_str'] = ''
-        path = ''.join([base_path, str(param), '/'])
+
         func_and_args = {
             check_repeat_city: (city_path, param, path),
             # check_repeat_airport: (airport_path, param, path),
@@ -102,4 +109,4 @@ def task_start():
         print('[result][{0}]'.format(return_result))
         update_step_report(csv_path,param,-1,0)
 if __name__ == "__main__":
-    task_start()
+    task_start('690')
