@@ -5,6 +5,7 @@
 from MongoTask.MongoTaskInsert import InsertTask
 from datetime import datetime
 import csv
+import pandas
 import json
 from city.find_hotel_opi_city import add_city_suggest
 
@@ -15,16 +16,10 @@ def get_task_name(param):
     task_name = task_name.format(local_time)
     return task_name
 
-def get_city_id(path):
-    city_id = {}
-    with open(path+'city_id.csv','r+') as city:
-        reader = csv.DictReader(city)
-        for row in reader:
-            city_id[int(row['city_id_number'])] = row['city_id']
-    return city_id
+
 def create_task(city_path,path,database_name,param):
     task_name = get_task_name(param)
-    city_map_id = get_city_id(path)
+
     with InsertTask(worker='proj.total_tasks.allhotel_city_suggest', queue='supplement_field', routine_key='supplement_field',
                     task_name=task_name, source='sources', _type='SourceSuggest',
                     priority=11) as it:
@@ -36,7 +31,7 @@ def create_task(city_path,path,database_name,param):
                     'keyword': city[0],
                     'country_id': str(city[1]),
                     'map_info': city[2],
-                    'city_id': city_map_id[int(city[3])],
+                    'city_id': None,
                     'database_name': database_name
                 }
                 it.insert_task(args)
