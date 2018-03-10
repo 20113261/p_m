@@ -52,9 +52,7 @@ def getDist(lng1, lat1, lng2, lat2):
     return int(s)
 
 #检查城市必填字段
-def city_must_write_field(city_path,param):
-    path = ''.join([base_path, str(param), '/'])
-
+def city_must_write_field(city_path, param, path):
     check_not_empty_field = [
         'name','name_en','map_info','time_zone','summer_zone','grade','country_id',
          'trans_degree',
@@ -82,9 +80,7 @@ def city_must_write_field(city_path,param):
         return None
 
 #城市字段检查
-def city_field_check(city_path,param,picture_path):
-    path = ''.join([base_path, str(param), '/'])
-
+def city_field_check(city_path, param, picture_path, path):
     trans_degree = [-1, 0, 1]
     status = ['Close', 'Open']
     not_standard_field = defaultdict(list)
@@ -264,8 +260,7 @@ def city_field_check(city_path,param,picture_path):
         return False
 
 #检查机场必填字段
-def airport_must_write_field(airport_path,param):
-    path = ''.join([base_path, str(param), '/'])
+def airport_must_write_field(airport_path, param, path):
     check_not_empty_field = [
         'iata_code','name','name_en','belong_city_id','map_info','inner_order'
     ]
@@ -291,8 +286,7 @@ def airport_must_write_field(airport_path,param):
     else:
         return False
 #机场字段检查
-def airport_field_check(airport_path,param):
-    path = ''.join([base_path, str(param), '/'])
+def airport_field_check(airport_path, param, path):
     select_tricode = "select * from airport where iata_code=%s"
     select_city = "select map_info from city where id=%s "
     not_standard_field = defaultdict(list)
@@ -380,9 +374,7 @@ def airport_field_check(airport_path,param):
         return False
 
 #检查城市是否重复
-def check_repeat_city(city_path,param):
-
-    path = ''.join([base_path, str(param), '/'])
+def check_repeat_city(city_path, param, path):
     select_sql = "select * from city where name=%s and country_id=%s and status_online='Open'"
     judge_prov_id = "select * from city where name=%s and country_id =%s and prov_id=%s and status_online='Open'"
     select_mapInfo = "select map_info from city"
@@ -433,8 +425,7 @@ def check_repeat_city(city_path,param):
         return False
 
 #检查是否机场重复
-def check_repeat_airport(airport_path,param):
-    path = ''.join([base_path, str(param), '/'])
+def check_repeat_airport(airport_path, param, path):
     select_sql = "select * from airport where name=%s"
     select_mapInfo = "select map_info from airport"
     conn = pymysql.connect(**check_field)

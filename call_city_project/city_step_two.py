@@ -66,14 +66,14 @@ def task_start():
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
         return_result['error']['error_str'] = ''
-
+        path = ''.join([base_path, str(param), '/'])
         func_and_args = {
-            check_repeat_city: (city_path,param),
-            # check_repeat_airport: (airport_path,param),
-            city_must_write_field: (city_path,param),
-            airport_must_write_field: (airport_path,param),
-            city_field_check: (city_path, param,picture_path),
-            airport_field_check: (airport_path,param)
+            check_repeat_city: (city_path, param, path),
+            # check_repeat_airport: (airport_path, param, path),
+            city_must_write_field: (city_path, param, path),
+            airport_must_write_field: (airport_path, param, path),
+            city_field_check: (city_path, param, picture_path, path),
+            airport_field_check: (airport_path, param, path)
         }
 
         flag = 1
