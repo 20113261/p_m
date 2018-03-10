@@ -12,6 +12,7 @@ from collections import defaultdict
 from call_city_project.city_step_one import task_start_one
 import json
 import traceback
+from copy import deepcopy
 def get_zip_path(param):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
@@ -62,13 +63,13 @@ def task_start(*args):
 
         file_list = os.listdir(file_path)
         for child_file in file_list:
-            path = '/'.join([file_path, child_file])
+            child_file_path = '/'.join([file_path, child_file])
             if '新增城市.xlsx' == child_file:
-                city_path = path
+                city_path = child_file_path
             elif '新增机场.xlsx' == child_file:
-                airport_path = path
-            elif os.path.isdir(path):
-                picture_path = path
+                airport_path = child_file_path
+            elif os.path.isdir(child_file_path):
+                picture_path = child_file_path
         return_result = defaultdict(dict)
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
