@@ -99,7 +99,7 @@ def task_start():
         conn = pymysql.connect(**test_config)
         cursor = conn.cursor()
         logger.debug("新增城市入库执行开始")
-        city_infos = read_file(city_path,temp_config,param)
+        city_infos = read_file(city_path, temp_config, path)
         if city_infos:
             select_sql = "select * from city where id=%s"
             with open(path+'city_id.csv','r+') as city:
