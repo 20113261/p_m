@@ -167,8 +167,6 @@ def from_ota_get_city(config,param):
     return '酒店配置.csv','景点配置.csv'
 
 def add_city_suggest(city_path):
-    conn = data_connection_pool(ota_location_config)
-    cursor = conn.cursor()
     city_data = pandas.read_excel(city_path,)
     city_names = city_data['name'].values
     city_countryIds = city_data['country_id'].values
