@@ -100,9 +100,8 @@ def check_and_modify_columns(key: str, value: str) -> (bool, str):
 
 
 
-def read_file(xlsx_path,config,param):
+def read_file(xlsx_path, config, path):
 
-    path = ''.join([base_path, str(param), '/'])
     global change_map_info_key
     # change_map_info_key = ['border_map_1', 'border_map_2']
     change_map_info_key = ['map_info']
