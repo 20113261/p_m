@@ -95,12 +95,6 @@ def data_connection_pool(config):
 
 def from_ota_get_city(config,param):
     path = ''.join([upload_path, str(param), '/'])
-    with open(path+'酒店配置.csv','w+') as hotel:
-        writer = csv.writer(hotel)
-        writer.writerow(('id','name','ctrip','elong','agoda','booking','expedia','hotels'))
-    with open(path+"景点配置.csv",'w+') as poi:
-        writer = csv.writer(poi)
-        writer.writerow(('id','name','daodao','qyer'))
     new_add_city_excel_file = glob.glob(path+'/*/新增城市.xlsx')[0]
     conn = data_connection_pool(config)
     cursor = conn.cursor()
@@ -114,7 +108,7 @@ def from_ota_get_city(config,param):
     sources = ['ctrip','elong','agoda','booking','expedia','hotels','daodao','qyer']
     hotel_source = ['ctrip','elong','agoda','booking','expedia','hotels']
     poi_source = ['daodao','qyer']
-    select_sql = "select s_city,source,suggest from BaseDataFinal.ota_location where source=%s and s_city=%s"
+    select_sql = "select s_city,source,suggest from Cityupline.ota_location where source=%s and s_city like %s"
     hotel_saves = []
     poi_saves = []
     for city_info in city_infos:
@@ -125,7 +119,7 @@ def from_ota_get_city(config,param):
         poi_save['name_en'] = hotel_save['name_en'] = str(city_info[2])
 
         for source in sources:
-            cursor.execute(select_sql,(source,city_info[1]))
+            cursor.execute(select_sql,(source,'%'+city_info[1]+'%'))
             result = cursor.fetchone()
             if not result:
                 pass
