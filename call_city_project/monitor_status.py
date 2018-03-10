@@ -157,6 +157,7 @@ def get_total_count(collection_name):
 def monitor_step3(stepa):
     step = 'step'+stepa
     tasks = getStepStatus(step)
+    temp_config['db'] = 'Cityupline'
     if len(tasks) == 0:return
     for param, collection_names in tasks.items():
         collection_name, task_name = collection_names
@@ -186,7 +187,7 @@ def monitor_step3(stepa):
             logger.info('{0}, {1} 失败'.format(step, collection_name))
 
         if success_finish_num == total_count:
-            from_ota_get_city(data_config, param)
+            from_ota_get_city(temp_config, param)
             modify_status(step, param, flag=False)
             logger.info('{0}, {1} 成功'.format(step, collection_name))
 
@@ -206,3 +207,4 @@ def local_jobs():
 if __name__ == '__main__':
     local_jobs()
     scheduler.start()
+    # monitor_step3('3')
