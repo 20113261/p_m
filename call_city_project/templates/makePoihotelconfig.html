@@ -7,12 +7,32 @@
         body{
             background-color: #ccc;
         }
+        .wrap{
+            border-collapse: separate;
+            border: solid 1px white;
+            position: relative;
+            width: 300px;
+            height: 240px;
+            top: 160px;
+            left: 20%;
+            float: left;
+        }
+        .wrapa{
+            position: relative;
+            border: solid 1px white;
+            width: 300px;
+            height: 240px;
+            top: 160px;
+            right: 20%;
+            float: right;
+        }
     </style>
     <!--<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>-->
     <!--<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>-->
 </head>
 <body>
-    <div class="wrap">
+    <fieldset class="wrap">
+        <legend>生成酒店景点配置</legend>
 		<button id="up">点击上传文件</button>
 		<div>
 			<p id="before"></p>
@@ -24,28 +44,51 @@
                 <a id="hotel"></a>
             </div>
 		</div>
-	</div>
+	</fieldset>
+    <fieldset class="wrapa">
+        <legend>上传airport配置入库</legend>
+        批次号: <input name="param"/><br/>
+		<button id="upair">点击上传文件</button>
+		<div>
+			<p id="beforeair"></p>
+			<p id="processair"></p>
+		</div>
+	</fieldset>
     <script type="text/javascript">
         var btn = document.getElementById('up'),
-		bf = document.getElementById("before"),
-		prs = document.getElementById("process"),
-        task_prs = document.getElementById("taskprocess"),
+            btnair = document.getElementById('upair'),
+		    bf = document.getElementById("before"),
+            bfair = document.getElementById("beforeair"),
+            prs = document.getElementById("process"),
+            prsair = document.getElementById("processair"),
+            task_prs = document.getElementById("taskprocess"),
         option = {
             url: '/upload',
+            urlair: '/uploadair',
             process_url: '/taskprocess',
             maxSize: 100,
             multiple: true,
-            beforeSend: function(file){
-                bf.innerText = "开始上传...";
+            beforeSend: function(file, flag){
+                if(flag=='conf'){
+                    bf.innerText = "开始上传...";
+                }else{
+                    bfair.innerText = "开始上传...";
+                }
+
             },
-            callback: function(res){
+            callback: function(res, flag){
                 res = JSON.parse(res);
                 if(res && res.code == 0){
                     // alert("上传成功！");
-                    bf.innerText = "上传成功!";
-                    get_task_process(option);
+                    if(flag=='conf'){
+                        bf.innerText = "上传成功!";
+                        get_task_process(option);
+                    }else{
+                        bfair.innerText = "上传成功!";
+                    }
+
                 }else{
-                    alert(res.msg);
+                    alert(res.errmsg);
                 }
             },
             callback_process: function(res){
@@ -63,17 +106,24 @@
                     alert(res.msg);
                 }
             },
-            uploading: function(pre){
-                prs.innerText = "当前上传进度为：" + pre + "%";
+            uploading: function(pre, flag){
+                if(flag=='conf'){
+                    prs.innerText = "当前上传进度为：" + pre + "%";
+                }else{
+                    prsair.innerText = "当前上传进度为：" + pre + "%";
+                }
             }
         }
 
 
         btn.onclick = function(){
-            myUpload(option);
+            myUpload(option, 'conf');
+        }
+        btnair.onclick = function(){
+            myUpload(option, 'air');
         }
 
-        function myUpload(option){
+        function myUpload(option, flag){
             var fd = new FormData(),
             xhr = new XMLHttpRequest(),
             input = document.createElement('input');
@@ -103,21 +153,22 @@
                     }
                 }
                 if(option.beforeSend instanceof Function){
-                    if(option.beforeSend(input) === false){
+                    if(option.beforeSend(input, flag) === false){
                         return false;
                     }
                 }
                 for(var i=0, file; file=input.files[i++];){
                     console.log(fd)
                     fd.append('myfile', file);
-                    fd.append('param', '688');
+                    var param = document.getElementsByTagName('input')[0];
+                    fd.append('param', param.value);
                 }
-                xhr.open('post', option.url);
+                xhr.open('post', flag=='conf' ? option.url : option.urlair);
                 xhr.onreadystatechange = function(){
                     if(xhr.status == 200){
                         if(xhr.readyState == 4){
                             if(option.callback instanceof Function){
-                                option.callback(xhr.responseText);
+                                option.callback(xhr.responseText, flag);
                             }
                         }
                     }else{
@@ -127,7 +178,7 @@
                 xhr.upload.onprogress = function(event){
                     var pre = Math.floor(100 * event.loaded / event.total);
                     if(option.uploading instanceof Function){
-                        option.uploading(pre);
+                        option.uploading(pre, flag);
                     }
                 }
                 xhr.send(fd);
@@ -150,7 +201,7 @@
                     }
                 }
                 xhr.send();
-            }, 1000)
+            }, 5000)
         }
 
         var showconfigfiles = function(){
