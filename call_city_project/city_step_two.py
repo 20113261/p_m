@@ -109,4 +109,4 @@ def task_start(*args):
         print('[result][{0}]'.format(return_result))
         update_step_report(csv_path,param,-1,0)
 if __name__ == "__main__":
-    task_start('690')
+    task_start()
