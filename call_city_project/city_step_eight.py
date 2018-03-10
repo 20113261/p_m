@@ -73,7 +73,7 @@ def start_task():
         tasks = modify_status('step8', param, save_collection_names)
         logger.info('[step8][%s] tasks: %s' % (param, str(tasks)))
 
-        update_step_report('', param, 1, 0)
+        # update_step_report('', param, 1, 0)
         logger.info('[step8][%s]======== success =======' % (param,))
     except Exception as e:
         return_result['error']['error_id'] = 1
