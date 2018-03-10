@@ -41,7 +41,6 @@ def update_step_report(csv_path,param,step_front,step_after):
 def task_start():
     try:
         param = sys.argv[1]
-
         task_start_one(param)
         zip_path = get_zip_path(param)
         file_name = zip_path.split('/')[-1]
@@ -57,9 +56,9 @@ def task_start():
         file_list = os.listdir(file_path)
         for child_file in file_list:
             path = '/'.join([file_path, child_file])
-            if ('新增城市' in child_file) and (len(child_file.split('.')[0]) == 4):
+            if '新增城市.xlsx' == child_file:
                 city_path = path
-            elif ('新增机场' in child_file) and (len(child_file.split('.')[0]) == 4):
+            elif '新增机场.xlsx' == child_file:
                 airport_path = path
             elif os.path.isdir(path):
                 picture_path = path
@@ -67,49 +66,26 @@ def task_start():
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
         return_result['error']['error_str'] = ''
+
+        func_and_args = {
+            check_repeat_city: (city_path,param),
+            # check_repeat_airport: (airport_path,param),
+            city_must_write_field: (city_path,param),
+            airport_must_write_field: (airport_path,param),
+            city_field_check: (city_path, param,picture_path),
+            airport_field_check: (airport_path,param)
+        }
+
         flag = 1
-        if flag:
-            city_repeat_path = check_repeat_city(city_path,param)
-            if city_repeat_path and flag:
-                save_path.append(city_repeat_path)
-                temp_path = ''.join([base_path,city_repeat_path])
-                os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-                flag = 0
-        # if flag:
-        #     airport_repeat_path = check_repeat_airport(airport_path,param)
-        #     if airport_repeat_path and flag:
-        #         temp_path = ''.join([base_path,airport_repeat_path])
-        #         os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-        #         save_path.append(airport_repeat_path)
-        #         flag = 0
-        if flag:
-            city_must_path = city_must_write_field(city_path,param)
-            if city_must_path and flag:
-                temp_path = ''.join([base_path,city_must_path])
-                os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-                save_path.append(city_must_path)
-                flag = 0
-        if flag:
-            airport_must_path = airport_must_write_field(airport_path,param)
-            if airport_must_path and flag:
-                temp_path = ''.join([base_path,airport_must_path])
-                os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-                save_path.append(airport_must_path)
-                flag = 0
-        if flag:
-            city_field_path = city_field_check(city_path, param,picture_path)
-            if city_field_path and flag:
-                temp_path = ''.join([base_path,city_field_path])
-                os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-                save_path.append(city_field_path)
-                flag = 0
-        if flag:
-            airport_field_path = airport_field_check(airport_path,param)
-            if airport_field_path and flag:
-                temp_path = ''.join([base_path,airport_field_path])
-                os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-                save_path.append(airport_field_path)
-                flag = 0
+        for func, args in func_and_args.items():
+            if flag:
+                check_field_path = func(*args)
+                if check_field_path and flag:
+                    temp_path = ''.join([base_path, check_field_path])
+                    os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path, param))
+                    save_path.append(check_field_path)
+                    flag = 0
+
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
         csv_path = ';'.join(save_path)
@@ -118,6 +94,7 @@ def task_start():
         else:
             update_step_report(csv_path,param,-1,0)
     except Exception as e:
+        print(traceback.format_exc())
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()
