@@ -24,7 +24,7 @@ def get_tasks():
     # for line in fetchall(spider_base_tmp_wanle_pool, sql, is_dict=True):
     #     yield line['sid'], line['url']
     client = pymongo.MongoClient('mongodb://root:miaoji1109-=@10.19.2.103:27017/')
-    db = client['data_result']
+    collections = client['data_result']['ctripGT_detail']
     se = defaultdict(set)
     for co in collections.find({}):
         pid = co['args']['pid_3rd']
@@ -65,7 +65,7 @@ def insert_task():
                 'source': "ctripGT",
                 'source_id': sid,
                 'target_url': url,
-                'bucket_name': 'ctrip-grouptravel',
+                'bucket_name': 'mioji-grouptravel',
                 'file_prefix': 'ctripGT',
                 'is_poi_task': True,
                 'need_insert_db': True,
