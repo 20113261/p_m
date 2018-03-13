@@ -156,11 +156,11 @@ def from_ota_get_city(config,param):
         hotel_saves.append(hotel_save.copy())
 
 
-    with open(path+'酒店配置.csv','a+') as hotel:
+    with open(path+'酒店配置.csv','w+') as hotel:
         writer = csv.DictWriter(hotel,fieldnames=['id','name','name_en','ctrip','elong','agoda','booking','expedia','hotels'])
         writer.writeheader()
         writer.writerows(hotel_saves)
-    with open(path+'景点配置.csv','a+') as poi:
+    with open(path+'景点配置.csv','w+') as poi:
         writer = csv.DictWriter(poi,fieldnames=['id','name','name_en','daodao','qyer'])
         writer.writeheader()
         writer.writerows(poi_saves)
