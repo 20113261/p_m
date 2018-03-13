@@ -24,7 +24,7 @@ def get_tasks():
     # for line in fetchall(spider_base_tmp_wanle_pool, sql, is_dict=True):
     #     yield line['sid'], line['url']
     client = pymongo.MongoClient('mongodb://root:miaoji1109-=@10.19.2.103:27017/')
-    collections = client['data_result']['GT_detail']
+    db = client['data_result']
     se = defaultdict(set)
     for co in collections.find({}):
         pid = co['args']['pid_3rd']
@@ -42,7 +42,7 @@ def get_tasks():
 
             for i in c['route_day']:
                 for ii in i['detail']:
-                    for iii in ii['image_list_day']:
+                    for iii in ii['image_list']:
                         pro = len(se[pid])
                         se[pid].add(iii)
                         if pro < len(se[pid]):
@@ -68,7 +68,7 @@ def insert_task():
                 'bucket_name': 'ctrip-grouptravel',
                 'file_prefix': 'ctripGT',
                 'is_poi_task': True,
-                'need_insert_db': False,
+                'need_insert_db': True,
             }
             it.insert_task(args)
 

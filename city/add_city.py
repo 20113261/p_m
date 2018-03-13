@@ -162,6 +162,11 @@ def read_file(xlsx_path, config, path):
             if 'region_id' not in data.keys():
                 data['region_id'] = 'NULL'
 
+            data['status_online'] = 'Close'
+            data['status_test'] = 'Open'
+            data['dept_status_online'] = 'Close'
+            data['dept_status_test'] = 'Close'
+
             if debug:
                 print(data)
             else:

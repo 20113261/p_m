@@ -54,7 +54,6 @@ def update_step_report(csv_path,param,step_front,step_after):
 
 def task_start():
     param = sys.argv[1]
-
     zip_path = get_zip_path(param)
     file_name = zip_path.split('/')[-1]
     zip_path = ''.join([base_path,file_name])
@@ -73,17 +72,17 @@ def task_start():
     file_list = os.listdir(file_path)
     hotels_path = None
     for child_file in file_list:
-        path = '/'.join([file_path, child_file])
+        child_file_path = '/'.join([file_path, child_file])
         if ('新增城市' in child_file) and (len(child_file.split('.')[0]) == 4):
-            city_path = path
+            city_path = child_file_path
         elif ('新增机场' in child_file) and (len(child_file.split('.')[0]) == 4):
-            airport_path = path
-        elif os.path.isdir(path):
-            picture_path = path
+            airport_path = child_file_path
+        elif os.path.isdir(child_file_path):
+            picture_path = child_file_path
         elif '酒店配置' in child_file:
-            hotels_path = path
+            hotels_path = child_file_path
         elif '景点配置' in child_file:
-            attr_path = path
+            attr_path = child_file_path
 
     conf = configparser.ConfigParser()
     conf.read('/search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf', encoding='utf-8')
@@ -91,7 +90,6 @@ def task_start():
     conf.write(open('/search/cuixiyi/ks3up-tool-2.0.6-20170801/city.conf','w'))
     judge_city_id = 1
     try:
-        path = ''.join([base_path, str(param), '/'])
         return_result = defaultdict(dict)
         return_result['data'] = {}
         return_result['error']['error_id'] = 0
@@ -99,7 +97,8 @@ def task_start():
         conn = pymysql.connect(**test_config)
         cursor = conn.cursor()
         logger.debug("新增城市入库执行开始")
-        city_infos = read_file(city_path, temp_config, path)
+        city_base_path = ''.join([base_path, str(param), '/'])
+        city_infos = read_file(city_path, temp_config, city_base_path)
         if city_infos:
             select_sql = "select * from city where id=%s"
             with open(path+'city_id.csv','r+') as city:
@@ -193,6 +192,7 @@ def task_start():
         # logger.debug("结束更新ota_location表")
 
     except Exception as e:
+        print(traceback.format_exc())
         csv_path = ';'.join(save_path)
         return_result['error']['error_id'] = 1
         return_result['error']['error_str'] = traceback.format_exc()

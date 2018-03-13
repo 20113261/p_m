@@ -17,15 +17,14 @@ import csv
 logger = get_logger('city')
 import traceback
 from collections import defaultdict
-def shareAirport_insert(config,param,airport_paths):
-    path = ''.join([base_path, str(param), '/'])
+def shareAirport_insert(config, path, fname):
     select_sql = "select iata_code,name,name_en,belong_city_id,map_info,status,inner_order from airport where id=%s"
     update_sql = "insert ignore into airport(iata_code,name,name_en,belong_city_id,map_info,status,inner_order,city_id) values(%s,%s,%s,%s,%s,%s,%s,%s)"
     conn = pymysql.connect(**config)
     cursor = conn.cursor()
-    _count = 0
+
     save_result = []
-    with open(path+'share_airport.csv','r+') as airport:
+    with open(path+fname,'r+') as airport:
         reader = csv.DictReader(airport)
         for row in reader:
             cursor.execute(select_sql,(row['airport_id']))
@@ -40,7 +39,7 @@ def shareAirport_insert(config,param,airport_paths):
         else:
             cursor.executemany(update_sql, save_result)
             conn.commit()
-            save_result = []
+
 def from_file_airport_insert(config,param,airport_paths):
     path = ''.join([base_path,str(param),'/'])
     update_sql = "insert ignore into airport(iata_code,name,name_en,city_id,belong_city_id,map_info,status,time2city_center,inner_order) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
