@@ -10,7 +10,7 @@ import glob
 import csv
 from collections import defaultdict
 import json
-from city.config import base_path, config, upload_path
+from city.config import base_path, config, upload_path, test_config
 base_data_config = {
     'host': '10.10.69.170',
     'user': 'mioji_admin',
@@ -161,23 +161,33 @@ def from_ota_get_city(config,param):
     return '酒店配置.csv','景点配置.csv'
 
 def add_city_suggest(city_path):
+    conn = data_connection_pool(test_config)
+    cursor = conn.cursor()
+    sel_sql = "select id from city where status_online <> 'Close'"
+    cursor.execute(sel_sql, ())
+    city_dicts = {int(id[0]): 1 for id in cursor.fetchall()}
+    cursor.close()
+    conn.close()
+
     city_data = pandas.read_excel(city_path,)
+    city_id = city_data['id'].values
     city_names = city_data['name'].values
     city_countryIds = city_data['country_id'].values
     city_mapinfos = city_data['map_info'].values
     city_numbers = city_data['id'].values
-    city_infos = list(zip(city_names,city_countryIds,city_mapinfos,city_numbers))
+    city_infos = list(zip(city_id, city_names,city_countryIds,city_mapinfos,city_numbers))
+    real_city_infos = [city for city in city_infos if not city_dicts.get(city[0])]
     sources = ['ctrip', 'elong', 'agoda', 'booking', 'expedia', 'hotels', 'daodao', 'qyer']
     deletion_city_suggest = defaultdict(list)
 
     for source in sources:
-        for city_info in city_infos:
+        for city_info in real_city_infos:
             deletion_city_suggest[source].append(city_info)
     return deletion_city_suggest
 
 if __name__ == "__main__":
-    temp_config = config
-    temp_config['db'] = 'add_city_681'
+    # temp_config = config
+    # temp_config['db'] = 'add_city_681'
 
-    add_city_suggest()
+    add_city_suggest('/search/service/nginx/html/MioaPyApi/store/upload/702/城市更新新增/新增城市.xlsx')
 
