@@ -62,11 +62,15 @@ def get_GT_tasks():
 def get_ctripPoi_tasks():
     client = pymongo.MongoClient('mongodb://root:miaoji1109-=@10.19.2.103:27017/')
     collections = client['data_result']['ctripPoi_image_url']
+    se = defaultdict(set)
     for co in collections.find({}):
-        yield str(co['bigImgUrl']),co['bigImgUrl']
+        if len(se[co['imgInfo.poiUrl']]) <=50:
+            se[co['imgInfo.poiUrl']].add(co['bigImgUrl'])
+            yield str(co['id']),co['bigImgUrl']
 
 
-def insert_task():
+def insert_ctripPoi_task():
+# --- ctrip Poi
     with InsertTask(worker='proj.total_tasks.images_task', queue='file_downloader', routine_key='file_downloader',
                     task_name='images_total_Poi_20180314a', source='ctripPoi', _type='FileDownloader',
                     priority=11) as it:
@@ -81,24 +85,25 @@ def insert_task():
                 'need_insert_db': True,
             }
             it.insert_task(args)
-#--- ctrip Poi
 
 
+
+def insert_ctripGT_task():
 #--- ctrip GT
-    # with InsertTask(worker='proj.total_tasks.images_task', queue='file_downloader', routine_key='file_downloader',
-    #                 task_name='image_GT_ctrip', source='ctripGT', _type='FileDownloader',
-    #                 priority=11) as it:
-    #     for sid, url in get_GT_tasks():
-    #         args = {
-    #             'source': "ctripGT",
-    #             'source_id': sid,
-    #             'target_url': url,
-    #             'bucket_name': 'mioji-grouptravel',
-    #             'file_prefix': 'ctripGT',
-    #             'is_poi_task': True,
-    #             'need_insert_db': True,
-    #         }
-    #         it.insert_task(args)
+    with InsertTask(worker='proj.total_tasks.images_task', queue='file_downloader', routine_key='file_downloader',
+                    task_name='image_GT_ctrip', source='ctripGT', _type='FileDownloader',
+                    priority=11) as it:
+        for sid, url in get_GT_tasks():
+            args = {
+                'source': "ctripGT",
+                'source_id': sid,
+                'target_url': url,
+                'bucket_name': 'mioji-grouptravel',
+                'file_prefix': 'ctripGT',
+                'is_poi_task': True,
+                'need_insert_db': True,
+            }
+            it.insert_task(args)
 
 
 def get_data_from_db(sql):
@@ -145,5 +150,5 @@ def ctripPoiImage_task():
 
 
 if __name__ == '__main__':
-    insert_task()
-    #ctripPoiImage_task()
+    #insert_task()
+    ctripPoiImage_task()
