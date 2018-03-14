@@ -16,6 +16,8 @@ airport_path = ""
 base_path = '/search/service/nginx/html/MioaPyApi/store/opcity/'
 upload_path = '/search/service/nginx/html/MioaPyApi/store/upload/'
 
+base_step_six_path = '/search/service/nginx/html/MioaPyApi/store/step6/'
+
 #数据库配置
 OpCity_config = {
         'host': '10.10.144.181',

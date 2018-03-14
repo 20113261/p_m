@@ -3,7 +3,7 @@
 
 import sys
 import os
-from call_city_project.step_status import getStepStatus
+from call_city_project.step_status import getStepStatus,modify_status
 from city.config import base_step_six_path,OpCity_config
 from apscheduler.schedulers.blocking import BlockingScheduler
 import pymysql
@@ -34,6 +34,7 @@ def monitor_step_six():
         if 'hotel_report' in file_name:
             save_path = '/'.join([str(param),file_name])
             update_step_report(save_path,param,1)
+            modify_status(step, param, flag=False)
 
 if __name__ == "__main__":
     pass
