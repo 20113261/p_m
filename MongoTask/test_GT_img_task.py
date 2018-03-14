@@ -68,7 +68,7 @@ def get_ctripPoi_tasks():
 
 def insert_task():
     with InsertTask(worker='proj.total_tasks.images_task', queue='file_downloader', routine_key='file_downloader',
-                    task_name='images_total_qyer_20180314a', source='ctripPoi', _type='FileDownloader',
+                    task_name='images_total_Poi_20180314a', source='ctripPoi', _type='FileDownloader',
                     priority=11) as it:
         for sid, url in get_ctripPoi_tasks():
             args = {
