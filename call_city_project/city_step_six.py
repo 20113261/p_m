@@ -13,7 +13,7 @@ import subprocess
 import time
 from my_logger import get_logger
 from city.send_email import send_email
-
+from call_city_project.step_status import modify_status
 param = sys.argv[1]
 SEND_TO = ['luwanning@mioji.com', 'mazhenyang@mioji.com', 'chaisiyuan@mioji.com', 'dujun@mioji.com', 'zhaoxiaoyang@mioji.com', 'xuzhanlei@mioji.com']
 # SEND_TO = ['luwanning@mioji.com', 'cuixiyi@mioji.com']
@@ -122,6 +122,7 @@ def task_start():
     融合类型：增量融合
         """ .format(check_result=check_result[:-2], data_path=data_path), SEND_TO)
         # update_step_report('', param, 1, 0)
+        tasks = modify_status('step6', param,)
         logger.info('[step6][%s]======== success =======' % (param,))
     except Exception as e:
         return_result['error']['error_id'] = 1

@@ -262,7 +262,7 @@ def city_field_check(city_path, param, picture_path, path):
 #检查机场必填字段
 def airport_must_write_field(airport_path, param, path):
     check_not_empty_field = [
-        'iata_code','name','name_en','belong_city_id','map_info','inner_order'
+        'name','name_en','map_info','inner_order'
     ]
     city_data = pandas.read_excel(airport_path, )
     city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False)

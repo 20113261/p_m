@@ -43,7 +43,8 @@ def task_start(*args):
     try:
         save_path = []
         if not args:
-            param = sys.argv[1]
+            # param = sys.argv[1]
+            param = '699'
             task_start_one(param)
             zip_path = get_zip_path(param)
             file_name = zip_path.split('/')[-1]

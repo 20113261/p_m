@@ -26,6 +26,7 @@ from city.share_airport import from_file_get_share_airport
 from city.db_insert import from_file_airport_insert
 import csv
 from city.find_hotel_opi_city import from_ota_get_city
+import pandas
 def get_zip_path(param):
     conn = pymysql.connect(**OpCity_config)
     cursor = conn.cursor()
@@ -162,7 +163,20 @@ def task_start():
                 save_path.append(airport_file_path)
                 temp_path = ''.join([base_path,airport_file_path])
                 os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path,param))
-
+        city_airport_data = pandas.read_csv(path+'city_airport_info.csv')
+        data = {}
+        data['新增城市总数'] = len(city_airport_data.values)
+        data['无机场城市数量'] = len(city_airport_data[city_airport_data['airport_from'].isnull()].values)
+        data['有机场城市数量'] = len(city_airport_data[city_airport_data['airport_from'].apply(lambda x: x == '标注机场',)].values)
+        data['有共享机场城市数量'] = len(city_airport_data[city_airport_data['airport_from'].apply(lambda x: x == '生成共享机场',)].values)
+        with open(path+'city_airport_count.csv','w+') as city:
+            writer = csv.DictWriter(city,fieldnames=['新增城市总数','有机场城市数量','有共享机场城市数量','无机场城市数量'])
+            writer.writeheader()
+            writer.writerow(data)
+            count_file = '/'.join([param,'city_airport_count.csv'])
+            save_path.append(count_file)
+            temp_path = ''.join([base_path, count_file])
+            os.system("rsync -vI {0} 10.10.150.16::opcity/{1}".format(temp_path, param))
         logger.debug("城市共享机场执行完毕")
         logger.debug("城市共享机场入库开始")
         if judge_city_id and share_airport_to_data_path:
