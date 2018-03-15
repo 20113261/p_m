@@ -40,17 +40,17 @@ def get_columns():
 def get_max_id() -> int:
     conn = pymysql.connect(**SQL_DICT)
     with conn as cursor:
-        cursor.execute('''SELECT max(id)
+        cursor.execute('''SELECT id
 FROM city
 WHERE id NOT LIKE '9%';''')
-        for __max_id in cursor.fetchall():
-            return int(__max_id[0])
+        city_ids = {__max_id[0]: 0 for __max_id in cursor.fetchall()}
+        return city_ids, int(max(city_ids.keys()))
 
 
-max_id = get_max_id()
+city_ids, max_id = get_max_id()
 
 
-def generate_id(country_id: str) -> str:
+def generate_id() -> str:
     global max_id
     print(max_id)
     # continent_id = (int(country_id) // 100) * 10
@@ -151,7 +151,8 @@ def read_file(xlsx_path, config, path):
                 continue
             city_id_number = data['id']
             # 补充字段
-            data['id'] = generate_id(data['country_id'])
+            if city_ids.get(data['id'], 1):
+                data['id'] = generate_id()
             if 'country_id' not in data.keys():
                 data['country_id'] = country_id_dict[data['country']]
 
@@ -186,10 +187,10 @@ def read_file(xlsx_path, config, path):
     return city_infos
 if __name__ == '__main__':
     temp_config = config
-    temp_config['db'] = 'add_city_686'
+    temp_config['db'] = 'Cityupline'
     # xlsx_path = '/search/tmp/大峡谷分隔城市及机场.xlsx'
     # xlsx_path = '/tmp/new_city.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/需要修改的城市信息.xlsx'
     # xlsx_path = '/Users/hourong/Downloads/meizhilv.xlsx'
-    xlsx_path = '/Users/miojilx/Desktop/新增城市示例0305/新增城市.xlsx'
-    read_file(xlsx_path,temp_config,'')
+    xlsx_path = '/search/service/nginx/html/MioaPyApi/store/upload/703/城市更新新增/新增城市.xlsx'
+    read_file(xlsx_path,temp_config,'/search/service/nginx/html/MioaPyApi/store/upload/703')
