@@ -79,51 +79,92 @@ def city_must_write_field(city_path, param, path):
     else:
         return None
 
+SQL_DICT = {
+    'host': '10.10.69.170',
+    'user': 'reader',
+    'password': 'miaoji1109',
+    'charset': 'utf8',
+    'db': 'base_data'
+}
+
+def get_max_id() -> int:
+        conn = pymysql.connect(**SQL_DICT)
+        with conn as cursor:
+            cursor.execute('''SELECT id
+    FROM city
+    WHERE id NOT LIKE '9%';''')
+            city_ids = {__max_id[0]: 1 for __max_id in cursor.fetchall()}
+            return city_ids, int(max(city_ids.keys()))
+
+city_ids, max_id = get_max_id()
+
+
+def Latin_Extended_A(uchar):
+    """
+            判断一个 unicode 是否是拉丁字母以及拉丁衍生字母以及相应富豪
+            :type uchar: unicode
+            :return: bool
+            """
+    if ('\u0020' <= uchar <= '\u007e') or ('\u00a0' <= uchar <= '\u00ff') or ('\u0100' <= uchar <= '\u017f'):
+        return True
+    else:
+        return False
+
+def excel_to_csv(city_path,airport_path, path):
+    city_data = pandas.read_excel(city_path)
+    airport_data = pandas.read_excel(airport_path)
+    city_data['id'] = city_data['id'].astype(int)
+    city_data.to_csv(path + '新增城市.csv', encoding='utf-8', index=False)
+    airport_data['city_id'].fillna('',inplace=True)
+    airport_data['belong_city_id'].fillna('',inplace=True)
+    airport_data['belong_city_id'] = airport_data['belong_city_id'].apply(lambda x: int(x) if x else x)
+    airport_data['city_id'] = airport_data['city_id'].apply(lambda x: int(x) if x else x)
+    airport_data.to_csv(path + '新增机场.csv',encoding='utf-8',index=False)
+
 #城市字段检查
 def city_field_check(city_path, param, picture_path, path):
     trans_degree = [-1, 0, 1]
-    status = ['Close', 'Open']
+    status = ['Close', 'Open', 'Ready', 'OutwardOpen']
     not_standard_field = defaultdict(list)
     select_tricode = "select * from city where tri_code=%s and (status_online='Open' or status_test='Open')"
     select_country = "select name from country where mid=%s"
     select_province = "select * from province where id=%s"
     select_region = "select * from region where id=%s"
-    city_data = pandas.read_excel(city_path,)
-    city_data.to_csv(path+'新增城市.csv',encoding='utf-8',index=False)
 
     with open(path+'新增城市.csv') as city:
         reader = csv.DictReader(city)
         for row in reader:
+            if city_ids.get(row['id']):continue
             conn = pymysql.connect(**check_field)
             cursor = conn.cursor()
 
             #检查中,英文名
-            judge_name = Common.has_any(row['name'],Common.is_chinese)
-            if not judge_name:
-                not_standard_field['name'].append((row['id'],row['name']))
-            judge_name_en = Common.is_all(row['name_en'],Common.is_latin_and_punctuation)
-            if not judge_name_en:
-                not_standard_field['name_en'].append((row['id'],row['name']))
+            # judge_name = Common.has_any(row['name'],Common.is_chinese)
+            # if not judge_name:
+            #     not_standard_field['name'].append((row['id'],row['name']))
+            # judge_name_en = Common.is_all(row['name_en'], Latin_Extended_A)
+            # if not judge_name_en:
+            #     not_standard_field['name_en'].append((row['id'],row['name']))
 
             #检查城市三字码
-            try:
-                tri_code = row['tri_code']
-                judge_tricode = ''
-                if tri_code and tri_code != 'NULL':
-                    cursor.execute(select_tricode,(row['tri_code']))
-                    judge_tricode = cursor.fetchall()
-            except Exception as e:
-                raise e
-            if judge_tricode:
-                not_standard_field['tri_code'].append((row['id'],row['name']))
+            # try:
+            #     tri_code = row['tri_code']
+            #     judge_tricode = ''
+            #     if tri_code and tri_code != 'NULL':
+            #         cursor.execute(select_tricode,(row['tri_code']))
+            #         judge_tricode = cursor.fetchall()
+            # except Exception as e:
+            #     raise e
+            # if judge_tricode:
+            #     not_standard_field['tri_code'].append((row['id'],row['name']))
 
             #检查别名
-            alias = row.get('alias',None)
-            if alias and alias != 'NULL':
-                try:
-                    judge_alias = re.search(r'^[a-zA-Z|]+$',alias).group()
-                except:
-                    not_standard_field['alias'].append((row['id'],row['name']))
+            # alias = row.get('alias',None)
+            # if alias and alias != 'NULL':
+            #     try:
+            #         judge_alias = re.search(r'^[a-zA-Z|]+$',alias).group()
+            #     except:
+            #         not_standard_field['alias'].append((row['id'],row['name']))
             #检查拼音
             str_pinyin = row.get('py',None)
             if str_pinyin:
@@ -133,14 +174,14 @@ def city_field_check(city_path, param, picture_path, path):
                     not_standard_field['py'].append((row['id'],row['name']))
 
             #检查 time_zone,summer_zone
-            time_zone = int(row['time_zone'])
-            summer_zone = int(row['summer_zone'])
+            time_zone = float(row['time_zone'])
+            summer_zone = float(row['summer_zone'])
             if time_zone < -11 and time_zone > 14:
                 not_standard_field['time_zone'].append((row['id'],row['name']))
             if summer_zone < -11 and time_zone > 14:
                 not_standard_field['summer_zone'].append((row['id'],row['name']))
-            if time_zone > summer_zone:
-                not_standard_field['time_summer'].append((row['id'],row['name']))
+            # if time_zone > summer_zone:
+            #     not_standard_field['time_summer'].append((row['id'],row['name']))
 
             #检查时间格式
             save_time = {}
@@ -151,6 +192,7 @@ def city_field_check(city_path, param, picture_path, path):
             for key,value in save_time.items():
                 try:
                     if value and value != 'NULL':
+                        value = value.replace('24:00:00', '00:00:00')
                         datetime.strptime(value,'%Y-%m-%dT%H:%M:%S')
                 except:
                     not_standard_field[key].append((row['id'],row['name']))
@@ -198,7 +240,7 @@ def city_field_check(city_path, param, picture_path, path):
             save_status['dept_status_test'] = row.get('dept_status_test',None)
             for key,value in save_status.items():
                 if value and value not in status:
-                    save_status[key].append((row['id'],row['name']))
+                    not_standard_field[key].append((row['id'],row['name']))
 
             #检查region_id
             region_id = row.get('region_id',None)
@@ -264,8 +306,7 @@ def airport_must_write_field(airport_path, param, path):
     check_not_empty_field = [
         'name','name_en','map_info','inner_order'
     ]
-    city_data = pandas.read_excel(airport_path, )
-    city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False)
+
     new_add_airport = pandas.read_csv(path+'新增机场.csv', encoding='utf-8', )
     airport_field_empty = defaultdict(list)
     for field in check_not_empty_field:
@@ -291,8 +332,7 @@ def airport_field_check(airport_path, param, path):
     select_city = "select map_info from city where id=%s "
     not_standard_field = defaultdict(list)
     status_list = ['Open','Close']
-    city_data = pandas.read_excel(airport_path, )
-    city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False)
+
     with open(path+'新增机场.csv','r+') as airport:
         reader = csv.DictReader(airport)
         for row in reader:
@@ -387,8 +427,7 @@ def check_repeat_city(city_path, param, path):
     except Exception as e:
         conn.rollback()
     mapInfo_list = [map_info[0] for map_info in mapInfo_list]
-    city_data = pandas.read_excel(city_path, )
-    city_data.to_csv(path+'新增城市.csv', encoding='utf-8', index=False,)
+
     with open(path+'新增城市.csv','r+') as city:
         reader = csv.DictReader(city)
         for row in reader:
@@ -437,8 +476,7 @@ def check_repeat_airport(airport_path, param, path):
     except Exception as e:
         conn.rollback()
     mapInfo_list = [map_info[0] for map_info in mapInfo_list]
-    city_data = pandas.read_excel(airport_path, )
-    city_data.to_csv(path+'新增机场.csv', encoding='utf-8', index=False)
+
     with open(path+'新增机场.csv','r+') as airport:
         reader = csv.DictReader(airport)
         for row in reader:
@@ -548,6 +586,7 @@ def get_sid(source,suggest,city_id):
         if _l_sid:
             sid = _l_sid[0]
         else:
+            sid = 'city-{}'.format(city_id)
             logger.info("[unknown suggest][source: {}][suggest: {}]".format(source, suggest))
 
     elif source == 'agoda':
@@ -623,6 +662,18 @@ def get_sid(source,suggest,city_id):
     return sid
 
 
+def get_max_id() -> int:
+    conn = pymysql.connect(**SQL_DICT)
+    with conn as cursor:
+        cursor.execute('''SELECT id
+FROM city
+WHERE id NOT LIKE '9%';''')
+        city_ids = {__max_id[0]: 1 for __max_id in cursor.fetchall()}
+        return city_ids, int(max(city_ids.keys()))
+
+
+city_ids, max_id = get_max_id()
+
 
 def add_others_source_city(city_path,hotels_path,attr_path,config,param):
     select_country = "select name from country where mid=%s"
@@ -656,6 +707,7 @@ def add_others_source_city(city_path,hotels_path,attr_path,config,param):
     with open(path+'新增城市.csv','r+') as city:
         reader = csv.DictReader(city)
         for row in reader:
+            if city_ids.get(row['id']):continue
             for source in source_city_info.keys():
                 others_info = {}
                 city_id = city_info[row['id']]
@@ -683,7 +735,7 @@ def add_others_source_city(city_path,hotels_path,attr_path,config,param):
     cursor = conn.cursor()
     print(save_result)
     cursor.executemany(insert_sql,save_result)
-    cursor.executemany(real_insert_sql,save_result)
+    # cursor.executemany(real_insert_sql, save_result)
     conn.commit()
     conn.close()
 if __name__ == "__main__":
