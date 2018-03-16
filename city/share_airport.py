@@ -359,7 +359,7 @@ def from_file_get_share_airport(config, param):
     with open(path+'新增机场.csv','r+') as airport:
         reader = csv.DictReader(airport)
         for row in reader:
-            if airport_ids.get(row['id']):continue
+            # if airport_ids.get(row['id']):continue
             save_pop_key = row['city_id']
             if not str(row['city_id']).isdigit() or not str(row['belong_city_id']).isdigit():
                 save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
