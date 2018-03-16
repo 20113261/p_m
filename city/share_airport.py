@@ -329,7 +329,17 @@ def update_share_airport(config,param,add_new_city=None,airport_info=None):
 
     return 'share_airport.csv','city_list.csv'
 
-def from_file_get_share_airport(param):
+def get_airport_ids(config):
+    config['db'] = 'add_city_' + config
+    select_sql = "select id from airport where status = 'Open'"
+    conn = pymysql.connect(**config)
+    cursor = conn.cursor()
+    cursor.execute(select_sql, ())
+    result = {id: 1 for id in cursor.fetchall()}
+    return result
+
+def from_file_get_share_airport(config, param):
+    airport_ids = get_airport_ids(config)
     path = ''.join([base_path, str(param), '/'])
     airport_info = defaultdict(dict)
     city_id_map = {}
@@ -349,6 +359,7 @@ def from_file_get_share_airport(param):
     with open(path+'新增机场.csv','r+') as airport:
         reader = csv.DictReader(airport)
         for row in reader:
+            if airport_ids.get(row['id']):continue
             save_pop_key = row['city_id']
             if not str(row['city_id']).isdigit() or not str(row['belong_city_id']).isdigit():
                 save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
