@@ -43,8 +43,7 @@ def task_start(*args):
     try:
         save_path = []
         if not args:
-            # param = sys.argv[1]
-            param = '699'
+            param = sys.argv[1]
             task_start_one(param)
             zip_path = get_zip_path(param)
             file_name = zip_path.split('/')[-1]
@@ -77,7 +76,7 @@ def task_start(*args):
         return_result['error']['error_str'] = ''
 
         func_and_args = {
-            check_repeat_city: (city_path, param, path),
+            # check_repeat_city: (city_path, param, path),
             # check_repeat_airport: (airport_path, param, path),
             city_must_write_field: (city_path, param, path),
             airport_must_write_field: (airport_path, param, path),
