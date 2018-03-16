@@ -385,12 +385,13 @@ def from_file_get_share_airport(config, param):
                                                }
                     logger.debug("[city_id等于belong_city_id][{0}]".format(str(row)))
                 elif row['city_id'] != row['belong_city_id']:
-                    if city_id_map.get(save_pop_key,None):
-                        row['city_id'] = city_id_map_copy[str(row['city_id'])][0]
+
+                    row['city_id'] = city_id_map_copy[str(row['city_id'])][0]
 
                     save_add_new_share_airport.append((row['iata_code'],row['name'],row['name_en'],row['city_id'],row['belong_city_id'],row['map_info'],row['status'],
                                                       row['time2city_center'],row['inner_order']))
-                    city_id_map.pop(save_pop_key)
+                    if city_id_map.get(save_pop_key, None):
+                        city_id_map.pop(save_pop_key)
                     airport_info[str(row['city_id'])] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
                                                'airport_name_en':row['name_en'],'airport_from':'标注共享机场','airport_belong_city_id':row['belong_city_id']
                                                }
