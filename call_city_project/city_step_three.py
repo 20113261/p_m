@@ -6,6 +6,7 @@ from city.add_city import read_file
 from city.share_airport import update_share_airport
 from city.city_map_ciytName import revise_pictureName
 from city.update_city_pic import update_city_pic
+from city.field_check import excel_to_csv
 from city.db_insert import shareAirport_insert
 from city.config import config,base_path,OpCity_config,ota_config,test_config
 import os
@@ -55,6 +56,7 @@ def update_step_report(csv_path,param,step_front,step_after):
 
 def task_start():
     param = sys.argv[1]
+    # param = '706'
     zip_path = get_zip_path(param)
     file_name = zip_path.split('/')[-1]
     zip_path = ''.join([base_path,file_name])
@@ -97,19 +99,20 @@ def task_start():
         return_result['error']['error_str'] = ''
         conn = pymysql.connect(**test_config)
         cursor = conn.cursor()
+
         logger.debug("新增城市入库执行开始")
         city_base_path = ''.join([base_path, str(param), '/'])
         city_infos = read_file(city_path, temp_config, city_base_path)
-        if city_infos:
-            select_sql = "select * from city where id=%s"
-            with open(path+'city_id.csv','r+') as city:
-                reader = csv.DictReader(city)
-                for row in reader:
-                    city_id = row['city_id']
-                    cursor.execute(select_sql,(city_id,))
-                    if cursor.fetchall():
-                        judge_city_id = 0
-                        break
+        # if city_infos:
+        #     select_sql = "select * from city where id=%s"
+        #     with open(path+'city_id.csv','r+') as city:
+        #         reader = csv.DictReader(city)
+        #         for row in reader:
+        #             city_id = row['city_id']
+        #             cursor.execute(select_sql,(city_id,))
+        #             if cursor.fetchall():
+        #                 judge_city_id = 0
+        #                 break
 
         logger.debug("[新增城市入库执行完毕]")
         logger.debug("[新增城市图片名称更新开始]")
@@ -121,8 +124,8 @@ def task_start():
 
         logger.debug("城市更新后的图片名称更新到city表响应的new_product_pic字段-结束")
         logger.debug("新增机场入库开始执行")
-        if judge_city_id:
-            new_airport_insert(temp_config, param)
+        # if judge_city_id:
+        #     new_airport_insert(temp_config, param)
         logger.debug("新增机场入库执行完毕")
         logger.debug("为城市提供共享机场开始执行")
 
@@ -149,7 +152,12 @@ def task_start():
                     temp_save.extend([city_infos[city_id]['id_number'],city_id,city_infos[city_id]['city_name'],city_infos[city_id]['city_name_en'],
                                      city_infos[city_id]['country_id'],city_infos[city_id]['city_map_info']]
                                      )
-                    pic_name = update_city_picture[str(city_id)]['new_product_city_pic']
+                    if not update_city_picture.get(str(city_id),None):
+                        pic_name = ''
+                    else:
+
+                        pic_name = update_city_picture[str(city_id)]['new_product_city_pic']
+
                     temp_save.append(pic_name)
                     if airport_infos.get(city_id,None):
                         temp_save.extend([airport_infos[city_id]['airport_name'],airport_infos[city_id]['airport_name_en'],airport_infos[city_id]['airport_map_info'],
@@ -185,7 +193,7 @@ def task_start():
         logger.debug("城市共享机场入库结束,机场入库总数：{0}".format(count))
         logger.debug("将新增城市更新到ota_location的各个源-开始")
         if hotels_path and judge_city_id:
-            add_others_source_city(city_path,hotels_path,attr_path,config,param)
+            add_others_source_city(city_path,hotels_path,attr_path,temp_config,param)
         logger.debug("将新增城市更新到ota_location的各个源-结束")
         return_result = json.dumps(return_result)
         print('[result][{0}]'.format(return_result))
