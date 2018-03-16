@@ -339,7 +339,7 @@ def get_airport_ids(config):
     return result
 
 def from_file_get_share_airport(config, param):
-    airport_ids = get_airport_ids(config)
+    # airport_ids = get_airport_ids(config)
     path = ''.join([base_path, str(param), '/'])
     airport_info = defaultdict(dict)
     city_id_map = {}
