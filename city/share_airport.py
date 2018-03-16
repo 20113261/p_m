@@ -10,6 +10,7 @@ from city.config import base_path
 import traceback
 import json
 from collections import defaultdict
+from my_logger import get_logger
 import types
 config = {
     'host': '10.10.69.170',
@@ -213,7 +214,7 @@ def update_share_airport(config,param,add_new_city=None,airport_info=None):
     path = ''.join([base_path, str(param), '/'])
 
 
-    logger = get_logger('city')
+    logger = get_logger('step3',path)
     with open(path+'city_list.csv', 'w+') as city:
         writer = csv.writer(city)
         writer.writerow(('city_id', 'city_name'))
@@ -343,10 +344,14 @@ def from_file_get_share_airport(config, param):
     path = ''.join([base_path, str(param), '/'])
     airport_info = defaultdict(dict)
     city_id_map = {}
+    city_id_map_copy = {}
+    logger = get_logger('step3', path)
     with open(path+'city_id.csv','r+') as city:
         reader = csv.DictReader(city)
+
         for row in reader:
             city_id_map[str(row['city_id_number'])] = [row['city_id'],row['name']]
+            city_id_map_copy[str(row['city_id_number'])] = [row['city_id'],row['name']]
     with open(path+'add_new_airport.csv','w+') as airport:
         writer = csv.writer(airport)
         writer.writerow(('iata_code','name','name_en','city_id','belong_city_id','map_info','status','time2city_center','inner_order'))
@@ -366,31 +371,35 @@ def from_file_get_share_airport(config, param):
                 save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
                                              row['city_id'], row['belong_city_id'], row['map_info'], row['status'],
                                              row['time2city_center'], row['inner_order']))
+                logger.debug("[city_id或者belong_city_id为空][{0}]".format(str(row)))
             else:
                 if row['city_id'] == row['belong_city_id']:
-                    row['city_id'] = row['belong_city_id'] = city_id_map[str(row['city_id'])][0]
+                    row['city_id'] = row['belong_city_id'] = city_id_map_copy[str(row['city_id'])][0]
 
-                    # city_id_map.pop(save_pop_key)
+                    city_id_map.pop(save_pop_key)
                     save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
                                                       row['city_id'], row['belong_city_id'], row['map_info'], row['status'],
                                                       row['time2city_center'], row['inner_order']))
                     airport_info[str(row['city_id'])] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
                                                'airport_name_en':row['name_en'],'airport_from':'标注机场','airport_belong_city_id':row['belong_city_id']
                                                }
+                    logger.debug("[city_id等于belong_city_id][{0}]".format(str(row)))
                 elif row['city_id'] != row['belong_city_id']:
 
-                    row['city_id'] = city_id_map[str(row['city_id'])][0]
+                    row['city_id'] = city_id_map_copy[str(row['city_id'])][0]
                     save_add_new_share_airport.append((row['iata_code'],row['name'],row['name_en'],row['city_id'],row['belong_city_id'],row['map_info'],row['status'],
                                                       row['time2city_center'],row['inner_order']))
-                    # city_id_map.pop(save_pop_key)
+                    city_id_map.pop(save_pop_key)
                     airport_info[str(row['city_id'])] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
                                                'airport_name_en':row['name_en'],'airport_from':'标注共享机场','airport_belong_city_id':row['belong_city_id']
                                                }
+                    logger.debug("[city_id不等于belong_city_id][{0}]".format(str(row)))
         else:
             save_city_id = []
-            # if city_id_map:
-            #     for key,value in city_id_map.items():
-            #         save_city_id.append(value[0])
+            if city_id_map:
+                for key,value in city_id_map.items():
+                    save_city_id.append(value[0])
+                logger.debug("[需要共享机场的城市id][{0}]".format(str(city_id_map)))
     with open(path+'add_new_airport.csv', 'a+') as airport:
         writer = csv.writer(airport)
         for new_airport in save_add_new_airport:

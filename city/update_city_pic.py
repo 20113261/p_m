@@ -13,10 +13,11 @@ import traceback
 import json
 import csv
 from city.config import base_path
-logger = get_logger("city")
+
 
 def update_city_pic(picture_path,config,param):
     path = ''.join([base_path, str(param), '/'])
+    logger = get_logger("step",path)
     db = dataset.connect('mysql+pymysql://{user}:{password}@{host}/{db}?charset=utf8'.format(**config))
     # db = dataset.connect('mysql+pymysql://mioji_admin:mioji1109@10.10.228.253/base_data?charset=utf8')
     target_table = db['city']

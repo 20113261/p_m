@@ -14,7 +14,7 @@ from my_logger import get_logger
 import pymysql
 pymysql.install_as_MySQLdb()
 import csv
-logger = get_logger('city')
+
 import traceback
 from collections import defaultdict
 def shareAirport_insert(config, path, fname):
@@ -47,7 +47,9 @@ def from_file_airport_insert(config,param,airport_paths):
     cursor = conn.cursor()
     _count = 0
     save_result = []
+    logger = get_logger('step',path)
     for airport_path in airport_paths:
+        logger.debug("函数名：{0},入机场文件名：{1}".format(from_file_airport_insert.__name__, airport_path))
         with open(path+airport_path,'r+') as airport:
             reader = csv.DictReader(airport)
             for row in reader:
@@ -58,9 +60,11 @@ def from_file_airport_insert(config,param,airport_paths):
                     cursor.executemany(update_sql,save_result)
                     conn.commit()
                     save_result = []
-    else:
+
+    if save_result:
         cursor.executemany(update_sql,save_result)
         conn.commit()
+        save_result = []
     return _count
     # db = dataset.connect('mysql+pymysql://{user}:{password}@{host}:3306/{db}?charset=utf8'.format(**config))
     # airport_table = db['airport']
