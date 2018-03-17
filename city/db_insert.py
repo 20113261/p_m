@@ -47,14 +47,14 @@ def from_file_airport_insert(config,param,airport_paths):
     cursor = conn.cursor()
     _count = 0
     save_result = []
-    logger = get_logger('step',path)
+    logger = get_logger('step3',path)
     for airport_path in airport_paths:
         # logger.debug("函数名：{0},入机场文件名：{1}".format(from_file_airport_insert.__name__, airport_path))
         with open(path+airport_path,'r+') as airport:
             reader = csv.DictReader(airport)
             for row in reader:
                 _count += 1
-                logger.debug(row)
+                # logger.debug(row)
                 save_result.append((row['iata_code'],row['name'],row['name_en'],row['city_id'],row['belong_city_id'],row['map_info'],row['status'],row['time2city_center'],row['inner_order']))
                 if len(save_result) >= 1000:
                     cursor.executemany(update_sql,save_result)
