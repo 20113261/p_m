@@ -58,9 +58,15 @@ def update_city_pic(picture_path,config,param):
             'id': cid,
             'new_product_city_pic': new_product_pic
         }, keys=['id', ])
-        update_city_picture[cid] = {'new_product_city_pic':new_product_pic}
+        update_city_picture[str(cid)] = {'new_product_city_pic': new_product_pic}
     logger.debug(','.join(cid_set))
     return update_city_picture
 if __name__ == '__main__':
-    pass
+    config = {
+        'host': '10.10.230.206',
+        'user': 'mioji_admin',
+        'password': 'mioji1109',
+        'db': 'add_city_706',
+        'charset': 'utf8'}
+    update_city_pic('/search/service/nginx/html/MioaPyApi/store/opcity/图片',config,'706')
 
