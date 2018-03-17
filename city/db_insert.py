@@ -49,7 +49,7 @@ def from_file_airport_insert(config,param,airport_paths):
     save_result = []
     logger = get_logger('step',path)
     for airport_path in airport_paths:
-        logger.debug("函数名：{0},入机场文件名：{1}".format(from_file_airport_insert.__name__, airport_path))
+        # logger.debug("函数名：{0},入机场文件名：{1}".format(from_file_airport_insert.__name__, airport_path))
         with open(path+airport_path,'r+') as airport:
             reader = csv.DictReader(airport)
             for row in reader:
