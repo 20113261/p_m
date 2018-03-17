@@ -56,7 +56,7 @@ def from_file_airport_insert(config,param,airport_paths):
                 _count += 1
                 logger.debug(row)
                 save_result.append((row['iata_code'],row['name'],row['name_en'],row['city_id'],row['belong_city_id'],row['map_info'],row['status'],row['time2city_center'],row['inner_order']))
-                if len(save_result) >= 2000:
+                if len(save_result) >= 100:
                     cursor.executemany(update_sql,save_result)
                     conn.commit()
                     save_result = []
