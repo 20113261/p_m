@@ -366,7 +366,6 @@ def from_file_get_share_airport(config, param):
         for row in reader:
             # if airport_ids.get(row['id']):continue
             save_pop_key = str(row['city_id'])
-            print("save_pop_key:",save_pop_key)
             if not str(row['city_id']).isdigit() or not str(row['belong_city_id']).isdigit():
                 save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
                                              row['city_id'], row['belong_city_id'], row['map_info'], row['status'],
@@ -383,7 +382,7 @@ def from_file_get_share_airport(config, param):
                     airport_info[str(row['city_id'])] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
                                                'airport_name_en':row['name_en'],'airport_from':'标注机场','airport_belong_city_id':row['belong_city_id']
                                                }
-                    logger.debug("[city_id等于belong_city_id][{0}]".format(str(row)))
+                    # logger.debug("[city_id等于belong_city_id][{0}]".format(str(row)))
                 elif row['city_id'] != row['belong_city_id']:
 
                     row['city_id'] = city_id_map_copy[str(row['city_id'])][0]
@@ -395,7 +394,7 @@ def from_file_get_share_airport(config, param):
                     airport_info[str(row['city_id'])] = {'airport_iata_code':row['iata_code'],'airport_map_info':row['map_info'],'airport_name':row['name'],
                                                'airport_name_en':row['name_en'],'airport_from':'标注共享机场','airport_belong_city_id':row['belong_city_id']
                                                }
-                    logger.debug("[city_id不等于belong_city_id][{0}]".format(str(row)))
+                    # logger.debug("[city_id不等于belong_city_id][{0}]".format(str(row)))
         else:
             save_city_id = []
             if city_id_map:
