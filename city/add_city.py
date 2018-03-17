@@ -153,6 +153,10 @@ def read_file(xlsx_path, config, path):
             # 补充字段
             if city_ids.get(data['id'], 1):
                 data['id'] = generate_id()
+                data['status_online'] = 'Close'
+                data['status_test'] = 'Open'
+                data['dept_status_online'] = 'Close'
+                data['dept_status_test'] = 'Close'
             if 'country_id' not in data.keys():
                 data['country_id'] = country_id_dict[data['country']]
 
@@ -162,11 +166,6 @@ def read_file(xlsx_path, config, path):
             # 补全必须字段
             if 'region_id' not in data.keys():
                 data['region_id'] = 'NULL'
-
-            data['status_online'] = 'Close'
-            data['status_test'] = 'Open'
-            data['dept_status_online'] = 'Close'
-            data['dept_status_test'] = 'Close'
 
             if debug:
                 print(data)
