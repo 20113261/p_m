@@ -64,7 +64,7 @@ def get_hotels_url(suggest):
     except Exception as e:
         return None
 def get_expedia_url(suggest):
-    url = 'https://www.expedia.com/Hotel-Search?destination={0}'
+    url = 'https://www.expedia.com/Hotel-Search?destination={0}&'
     try:
         destination = suggest['regionNames']['lastSearchName']
         url = url.format(destination)
