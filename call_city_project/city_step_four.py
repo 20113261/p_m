@@ -54,6 +54,25 @@ def monitor_google_driver(collection_name,param, task_name):
         # job = backgroudscheduler.get_job('step4')
         # job.remove()
 
+SQL_DICT = {
+    'host': '10.10.230.206',
+    'user': 'mioji_admin',
+    'password': 'mioji1109',
+    'charset': 'utf8',
+    'db': 'add_city_706'
+}
+
+def get_max_id() -> int:
+    conn = pymysql.connect(**SQL_DICT)
+    with conn as cursor:
+        cursor.execute('''SELECT id
+FROM city
+where id>60183  and id<>90001 order by id desc;''')
+        city_ids = {__max_id[0]: 1 for __max_id in cursor.fetchall()}
+        return city_ids, int(max(city_ids.keys()))
+
+
+city_ids, max_id = get_max_id()
 
 def task_start():
     logger.info('[step4][%s]======== start =======' % [param])
@@ -69,7 +88,8 @@ def task_start():
         with open(path,'r+') as city:
             reader = csv.DictReader(city)
             for row in reader:
-                save_cityId.append(row['city_id'])
+                if city_ids.get(row['city_id']):
+                    save_cityId.append(row['city_id'])
         # save_cityId = ['10001','10003','10005']
         logger.info('[step4][%s] 启动发任务' % [param])
         collection_name, task_name = google_driver(save_cityId,param,config)
