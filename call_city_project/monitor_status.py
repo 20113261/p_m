@@ -89,7 +89,7 @@ def monitor_task_summary(step):
             logger.info('{}, {}'.format(stepa, task_name))
             tasks_status = from_tag_get_tasks_status(task_name)
             logger.info('{}, {}'.format(stepa, tasks_status))
-            line = tasks_status[0]
+            line = tasks_status[-1]
             t_all, t_done, t_failed = line[3], line[4], line[5]
             if t_all == t_done + t_failed:
                 the_progress_of += 1
@@ -195,7 +195,7 @@ def monitor_step3(stepa):
 
 
 def local_jobs():
-    # scheduler.add_job(monitor_report, 'date', args=('5',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
+    # scheduler.add_job(monitor_task_summary, 'date', args=('4',), next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2), id='test')
     # scheduler.add_job(monitor_step3,'cron',args=('3',),second='*/300',id='step3')
     scheduler.add_job(monitor_task_summary, 'cron', args=('4',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=83), id='step4')
     scheduler.add_job(monitor_task_summary, 'cron', args=('9',), second='*/300', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=23), id='step9')
