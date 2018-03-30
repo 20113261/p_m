@@ -77,22 +77,23 @@ def create_mongodb_collect(source):
 
 
 def crawl_suggest():
-    source = ''
+    source = 'bestwest'
     collection_name = create_mongodb_collect(source)
     task_name = "all_city_suggest_{0}"
     local_time = str(datetime.now())[:10].replace('-','')
     task_name = task_name.format(local_time)
     with InsertTask(worker='proj.total_tasks.all_city_suggest', queue='supplement_field',
                     routine_key='supplement_field',
-                    task_name=task_name, source='Accor', _type='CityInfo',
+                    task_name=task_name, source='bestwest', _type='CityInfo',
                     priority=3, task_type=TaskType.NORMAL) as it:
         for c_name in get_english_keyword():
             args = {
-                'source': '',
-                'spider': '',
-                'collection_name':collection_name,
-                'keyword': '{}'.format(c_name)
+                'keyword': c_name,
+                'spider_tag': 'bestwestSuggest',
+                'collection_name': collection_name,
+                'source': 'bestwest',
+                'key':'AIzaSyAkKayctgUFqqA9Mp66CxzRDUrOX4zDQFc'
             }
             it.insert_task(args)
 if __name__ == "__main__":
-    pass
+    crawl_suggest()

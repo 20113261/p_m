@@ -367,10 +367,15 @@ def from_file_get_share_airport(config, param):
             # if airport_ids.get(row['id']):continue
             save_pop_key = str(row['city_id'])
             if not str(row['city_id']).isdigit() or not str(row['belong_city_id']).isdigit():
+                if row['city_id'] and str(row['city_id']).isdigit():
+                    row['city_id'] = city_id_map_copy[row['city_id']][0]
+                if row['belong_city_id'] and str(row['belong_city_id']).isdigit():
+                    row['belong_city_id'] = city_id_map_copy[row['belong_city_id']][0]
                 save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
                                              row['city_id'], row['belong_city_id'], row['map_info'], row['status'],
                                              row['time2city_center'], row['inner_order']))
-                logger.debug("[city_id或者belong_city_id为空][{0}]".format(str(row)))
+
+
             else:
                 if row['city_id'] == row['belong_city_id']:
                     row['city_id'] = row['belong_city_id'] = city_id_map_copy[str(row['city_id'])][0]
@@ -386,6 +391,7 @@ def from_file_get_share_airport(config, param):
                 elif row['city_id'] != row['belong_city_id']:
 
                     row['city_id'] = city_id_map_copy[str(row['city_id'])][0]
+                    row['belong_city_id'] = city_id_map_copy[str(row['belong_city_id'])][0]
 
                     save_add_new_share_airport.append((row['iata_code'],row['name'],row['name_en'],row['city_id'],row['belong_city_id'],row['map_info'],row['status'],
                                                       row['time2city_center'],row['inner_order']))
