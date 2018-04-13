@@ -41,7 +41,7 @@ def dist_from_coordinates(lat1, lon1, lat2, lon2):
 
 def get_need_share_airport_city(config):
     # 选取可用的城市
-    city_sql = """SELECT id FROM city WHERE (status_test = 'Open' OR status_online = 'Open') AND id NOT IN (SELECT DISTINCT city_id
+    city_sql = """SELECT id,map_info,trans_degree,country_id FROM city WHERE (status_test = 'Open' OR status_online = 'Open') AND id NOT IN (SELECT DISTINCT city_id
                                                                       FROM airport
                                                                       WHERE status = 'Open');"""
 
@@ -69,102 +69,6 @@ def get_need_share_airport_city(config):
     finally:
         conn.close()
     return citys, airports
-
-
-def condition_judge_1(id, city_id, inner_value, trans_degree, inner_order, distance,config):
-    city_conn = pymysql.connect(**config)
-    cursor = city_conn.cursor()
-    try:
-        sql = "SELECT trans_degree FROM city WHERE id=%s"
-        cursor.execute(sql, (city_id,))
-        result = cursor.fetchone()
-    except Exception as e:
-        print("codition_judge_1数据查询出现错误", e)
-        city_conn.rollback()
-    finally:
-        city_conn.close()
-    temp_degree = result[0]
-    if int(temp_degree) == -1:
-        temp_degree = 100000
-
-    try:
-        if not trans_degree.get(temp_degree, None):
-            trans_degree[temp_degree] = [id, distance]
-        else:
-            if distance <= trans_degree[temp_degree][1]:
-                trans_degree[temp_degree] = [id, distance]
-
-        if not inner_order.get(inner_value, None):
-            inner_order[inner_value] = [id, distance]
-        else:
-            if distance <= inner_order[inner_value][1]:
-                inner_order[inner_value] = [id, distance]
-    except Exception as e:
-        print("codition_judge_1函数出现错误", e)
-
-
-def condition_judge_2(id, city_id, inner_value, trans_degree, inner_order, distance,config):
-    city_conn = pymysql.connect(**config)
-    cursor = city_conn.cursor()
-    try:
-        sql = "SELECT trans_degree FROM city WHERE id=%s"
-        cursor.execute(sql, (city_id,))
-        result = cursor.fetchone()
-    except Exception as e:
-        print("condition_judge_2数据查询出现错误", e)
-        city_conn.rollback()
-    finally:
-        city_conn.close()
-    temp_degree = result[0]
-    if int(temp_degree) == -1:
-        temp_degree = 100000
-
-    try:
-        if not trans_degree.get(temp_degree, None):
-            trans_degree[temp_degree] = [id, distance]
-        else:
-            if distance <= trans_degree[temp_degree][1]:
-                trans_degree[temp_degree] = [id, distance]
-
-        if not inner_order.get(inner_value, None):
-            inner_order[inner_value] = [id, distance]
-        else:
-            if distance <= inner_order[inner_value][1]:
-                inner_order[inner_value] = [id, distance]
-    except Exception as e:
-        print("condition_judge_2函数出现错误", e)
-
-
-def condition_judge_3(id, city_id, inner_value, trans_degree, inner_order, distance,config):
-    city_conn = pymysql.connect(**config)
-    cursor = city_conn.cursor()
-    try:
-        sql = "SELECT trans_degree FROM city WHERE id=%s;"
-        cursor.execute(sql, (city_id,))
-        result = cursor.fetchone()
-    except Exception as e:
-        print("codition_judge_3数据查询出现错误", e)
-        city_conn.rollback()
-    finally:
-        city_conn.close()
-    temp_degree = result[0]
-    if int(temp_degree) == -1:
-        temp_degree = 100000
-
-    try:
-        if not trans_degree.get(temp_degree, None):
-            trans_degree[temp_degree] = [id, distance]
-        else:
-            if distance <= trans_degree[temp_degree][1]:
-                trans_degree[temp_degree] = [id, distance]
-
-        if not inner_order.get(inner_value, None):
-            inner_order[inner_value] = [id, distance]
-        else:
-            if distance <= inner_order[inner_value][1]:
-                inner_order[inner_value] = [id, distance]
-    except Exception as e:
-        print("codition_judge_3函数出现错误", e)
 
 
 def write_csv(city_id, _id,param,config,airport_info):
@@ -212,8 +116,6 @@ def write_city_list(city_id,param,config):
 def update_share_airport(config,param,add_new_city=None,airport_info=None):
 
     path = ''.join([base_path, str(param), '/'])
-
-
     logger = get_logger('step3',path)
     with open(path+'city_list.csv', 'w+') as city:
         writer = csv.writer(city)
@@ -228,106 +130,47 @@ def update_share_airport(config,param,add_new_city=None,airport_info=None):
     if add_new_city:
         citys = add_new_city
     print('citys:',len(citys),'airports:',len(airports))
-    select_city = 'SELECT map_info,country_id FROM city WHERE id = %s'
+    select_city = "SELECT id,map_info,trans_degree,country_id FROM city WHERE id = %s"
+    save_share_result = {}
+    for city in citys:
+        if isinstance(city, (str,)):
+            city_id = city
+            cursor.execute(select_city,(city_id,))
+            city = cursor.fetchone()
 
-    for result in citys:
-        if isinstance(result, (str,)):
-            city_id = result
+        distance_100 = []
+        distance_200 = []
+        distance_300 = []
+        city_lat, city_long = city[1].split(',')
+        for airport in airports:
+            if city[3] != airport[3]:
+                continue
+            airport_lat, airport_long = airport[1].split(',')
+
+            distance = dist_from_coordinates(float(city_lat), float(city_long), float(airport_lat), float(airport_long))
+            if distance <= 100:
+                distance_100.append((city[2], airport[2], distance, airport[0]))
+
+            elif distance > 100 and distance <= 200:
+                distance_200.append((city[2], airport[2], distance, airport[0]))
+            elif distance > 200 and distance <= 300:
+                distance_300.append((city[2], airport[2], distance, airport[0]))
+        if distance_100:
+            distance_100 = sorted(distance_100, key=lambda x: [-x[0], -x[1], x[2]])
+            save_share_result[city[0]] = distance_100[0][3]
+        elif distance_200:
+            distance_200 = sorted(distance_200, key=lambda x: [-x[0], -x[1], x[2]])
+            save_share_result[city[0]] = distance_200[0][3]
+        elif distance_300:
+            distance_300 = sorted(distance_300, key=lambda x: [-x[0], -x[1], x[2]])
+            save_share_result[city[0]] = distance_300[0][3]
         else:
-            city_id = result[0]
-        cond_trans_degree_1 = {}
-        cond_inner_order_1 = {}
-        cond_trans_degree_2 = {}
-        cond_inner_order_2 = {}
-        cond_trans_degree_3 = {}
-        cond_inner_order_3 = {}
-        cursor.execute(select_city, result)
-        city_mapInfo = cursor.fetchone()
-        if len(city_mapInfo[0].strip(',').split(',')) == 2:
-            city_lng, city_lat = city_mapInfo[0].strip(',').split(',')
+            save_share_result[city[0]] = ''
+    for city_id,airport_id in save_share_result.items():
+        if airport_id:
+            write_csv(city_id,airport_id,param,config,airport_info)
         else:
-            continue
-
-        condition_1 = 0
-        condition_2 = 0
-        condition_3 = 0
-        for open_airport in airports:
-            if open_airport[3] == city_mapInfo[1]:
-                if len(open_airport[1].strip(',').split(',')) == 2:
-                    airport_lng, airport_lat = open_airport[1].strip(',').split(',')
-                else:
-                    print("错误的map_info", open_airport[1])
-                    continue
-
-                distance = dist_from_coordinates(float(city_lng), float(city_lat), float(airport_lng), float(airport_lat))
-
-                if distance <= 100:
-                    condition_1 = 1
-
-                    condition_judge_1(open_airport[0], city_id, open_airport[2], cond_trans_degree_1,
-                                      cond_inner_order_1, distance,config)
-
-                elif distance <= 200:
-                    condition_2 = 1
-
-                    condition_judge_2(open_airport[0], city_id, open_airport[2], cond_trans_degree_2,
-                                      cond_inner_order_2, distance,config)
-                elif distance <= 300:
-                    condition_3 = 1
-                    condition_judge_3(open_airport[0], city_id, open_airport[2], cond_trans_degree_3,
-                                      cond_inner_order_3, distance,config)
-
-        if cond_trans_degree_1:
-            if len(cond_trans_degree_1) >= 2:
-                sort_key = min(cond_trans_degree_1.keys())
-                write_csv(city_id, cond_inner_order_1[sort_key][0],param,config,airport_info)
-            else:
-                if len(cond_inner_order_1) >= 2:
-                    sort_key = max(cond_inner_order_1.keys())
-                    write_csv(city_id, cond_inner_order_1[sort_key][0],param,config,airport_info)
-                else:
-                    degree_key = list(cond_trans_degree_1.keys())[0]
-                    inner_key = list(cond_inner_order_1.keys())[0]
-                    if cond_trans_degree_1[degree_key][1] < cond_inner_order_1[inner_key][1]:
-                        write_csv(city_id, cond_trans_degree_1[degree_key][0],param,config,airport_info)
-                    else:
-                        write_csv(city_id, cond_inner_order_1[inner_key][0],param,config,airport_info)
-
-        elif cond_trans_degree_2:
-            if len(cond_trans_degree_2) >= 2:
-                sort_key = min(cond_trans_degree_2.keys())
-                write_csv(city_id, cond_trans_degree_2[sort_key][0],param,config,airport_info)
-            else:
-                if len(cond_inner_order_2) >= 2:
-                    sort_key = max(cond_inner_order_2.keys())
-                    write_csv(city_id, cond_inner_order_2[sort_key][0],param,config,airport_info)
-                else:
-                    degree_key = list(cond_trans_degree_2.keys())[0]
-                    inner_key = list(cond_inner_order_2.keys())[0]
-                    if cond_trans_degree_2[degree_key][1] < cond_inner_order_2[inner_key][1]:
-                        write_csv(city_id, cond_trans_degree_2[degree_key][0],param,config,airport_info)
-                    else:
-                        write_csv(city_id, cond_inner_order_2[inner_key][0],param,config,airport_info)
-
-        elif cond_trans_degree_3:
-            if len(cond_trans_degree_3) >= 2:
-                sort_key = min(cond_trans_degree_3.keys())
-                write_csv(city_id, cond_trans_degree_3[sort_key][0],param,config,airport_info)
-            else:
-                if len(cond_inner_order_3) >= 2:
-                    sort_key = max(cond_inner_order_3.keys())
-                    write_csv(city_id, cond_inner_order_3[sort_key][0],param,config,airport_info)
-                else:
-                    degree_key = list(cond_trans_degree_3.keys())[0]
-                    inner_key = list(cond_inner_order_3.keys())[0]
-                    if cond_trans_degree_3[degree_key][1] < cond_inner_order_3[inner_key][1]:
-                        write_csv(city_id, cond_trans_degree_3[degree_key][0],param,config,airport_info)
-                    else:
-                        write_csv(city_id, cond_inner_order_3[inner_key][0],param,config,airport_info)
-
-        elif not condition_1 or not condition_2 or not condition_3:
             write_city_list(city_id,param,config)
-
     return 'share_airport.csv','city_list.csv'
 
 def get_airport_ids(config):
@@ -374,7 +217,6 @@ def from_file_get_share_airport(config, param):
                 save_add_new_airport.append((row['iata_code'], row['name'], row['name_en'],
                                              row['city_id'], row['belong_city_id'], row['map_info'], row['status'],
                                              row['time2city_center'], row['inner_order']))
-
 
             else:
                 if row['city_id'] == row['belong_city_id']:
